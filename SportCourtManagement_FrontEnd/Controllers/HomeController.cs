@@ -1,32 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
-using SportCourtManagement_FrontEnd.Models;
-using System.Diagnostics;
 
-namespace SportCourtManagement_FrontEnd.Controllers
+namespace SportCourtManagement_FrontEnd.Controllers;
+
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    public IActionResult Index()
     {
-        private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
+        if (User.Identity?.IsAuthenticated == true)
         {
-            _logger = logger;
+            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (role is "Admin" or "Staff" or "Coach")
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
         }
-
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        return RedirectToAction("Login", "Account");
     }
+
+    public IActionResult Privacy() => View();
+
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error() => View(new Models.ErrorViewModel { RequestId = System.Diagnostics.Activity.Current?.Id ?? HttpContext.TraceIdentifier });
 }

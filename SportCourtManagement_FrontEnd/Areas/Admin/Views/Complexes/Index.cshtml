@@ -1,0 +1,132 @@
+@model ComplexListViewModel
+@{
+    ViewData["Title"] = "Quản lý sân thể thao";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Quản lý sân thể thao</h1>
+        <p class="page-subtitle">Quản lý các tổ hợp sân — nhấn <span class="text-success">Chi tiết</span> để xem sân bên trong</p>
+    </div>
+    <a asp-action="Create" class="btn-primary-custom"><i class="fa-solid fa-plus"></i> Thêm tổ hợp sân</a>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card indigo">
+        <div><i class="fa-solid fa-building fa-lg" style="color:#818cf8"></i></div>
+        <div><div class="stat-label">Tổ hợp sân</div><div class="stat-value" style="color:#818cf8">@Model.Stats.TotalComplexes</div></div>
+    </div>
+    <div class="stat-card slate">
+        <div><i class="fa-solid fa-table-tennis-paddle-ball fa-lg text-secondary"></i></div>
+        <div><div class="stat-label">Tổng số sân</div><div class="stat-value">@Model.Stats.TotalCourts</div></div>
+    </div>
+    <div class="stat-card emerald">
+        <div><i class="fa-solid fa-circle-check fa-lg text-success"></i></div>
+        <div><div class="stat-label">Đang hoạt động</div><div class="stat-value text-success">@Model.Stats.ActiveCourts</div></div>
+    </div>
+    <div class="stat-card amber">
+        <div><i class="fa-solid fa-wrench fa-lg text-warning"></i></div>
+        <div><div class="stat-label">Bảo trì</div><div class="stat-value text-warning">@Model.Stats.MaintenanceCourts</div></div>
+    </div>
+    <div class="stat-card slate">
+        <div><i class="fa-solid fa-ban fa-lg text-secondary"></i></div>
+        <div><div class="stat-label">Ngưng hoạt động</div><div class="stat-value text-secondary">@Model.Stats.InactiveCourts</div></div>
+    </div>
+</div>
+
+<form method="get" class="filter-bar">
+    <div class="filter-search">
+        <i class="fa-solid fa-magnifying-glass text-secondary"></i>
+        <input type="text" name="search" value="@Model.Search" placeholder="Tìm tên, địa chỉ, quản lý..." />
+    </div>
+    <a asp-action="Index" class="filter-chip @(Model.CourtTypeId == null ? "active" : "")">Tất cả</a>
+    @foreach (var t in Model.CourtTypes)
+    {
+        <a asp-action="Index" asp-route-search="@Model.Search" asp-route-courtTypeId="@t.CourtTypeId"
+           class="filter-chip @(Model.CourtTypeId == t.CourtTypeId ? "active" : "")">@t.TypeName</a>
+    }
+    <span class="text-secondary small ms-auto"><strong class="text-white">@Model.TotalCount</strong> tổ hợp</span>
+</form>
+
+@if (!Model.Complexes.Any())
+{
+    <div class="empty-state">
+        <i class="fa-solid fa-building d-block"></i>
+        <h3 class="h6 text-secondary">@(string.IsNullOrEmpty(Model.Search) ? "Chưa có tổ hợp sân nào" : "Không tìm thấy kết quả")</h3>
+        <a asp-action="Create" class="btn-primary-custom mt-3"><i class="fa-solid fa-plus"></i> Thêm tổ hợp sân</a>
+    </div>
+}
+else
+{
+    <div class="admin-card">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Tổ hợp</th>
+                    <th>Địa chỉ</th>
+                    <th>Quản lý</th>
+                    <th>Sân</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Complexes)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                @if (!string.IsNullOrEmpty(c.ImageUrl))
+                                {
+                                    <img src="@c.ImageUrl" alt="" class="complex-thumb" />
+                                }
+                                <div>
+                                    <div class="fw-semibold text-white">@c.ComplexName</div>
+                                    <div class="text-secondary" style="font-size:.75rem">@c.Phone</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-secondary small">@c.Address</td>
+                        <td class="small">
+                            @if (c.ManagerId.HasValue)
+                            {
+                                <span class="text-success">#@c.ManagerId</span>
+                                <div class="text-secondary">@c.ManagerName</div>
+                            }
+                            else { <span class="text-secondary">—</span> }
+                        </td>
+                        <td>
+                            <span class="fw-semibold">@c.TotalCourts</span>
+                            <span class="text-secondary small">(@c.ActiveCourts hoạt động)</span>
+                        </td>
+                        <td>
+                            @if (c.MaintenanceCourts > 0)
+                            { <span class="status-badge status-maintenance">@c.MaintenanceCourts bảo trì</span> }
+                            else
+                            { <span class="status-badge status-available">Ổn định</span> }
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@c.ComplexId" class="btn-ghost" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
+                            <a asp-action="Edit" asp-route-id="@c.ComplexId" class="btn-ghost" title="Sửa"><i class="fa-solid fa-pen"></i></a>
+                            <form asp-action="Delete" asp-route-id="@c.ComplexId" method="post" class="d-inline" onsubmit="return confirm('Xóa tổ hợp này?')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-ghost text-danger" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pagination-custom">
+            @for (var p = 1; p <= Model.TotalPages; p++)
+            {
+                <a asp-action="Index" asp-route-page="@p" asp-route-search="@Model.Search" asp-route-courtTypeId="@Model.CourtTypeId"
+                   class="@(p == Model.Page ? "active" : "")">@p</a>
+            }
+        </div>
+    }
+}

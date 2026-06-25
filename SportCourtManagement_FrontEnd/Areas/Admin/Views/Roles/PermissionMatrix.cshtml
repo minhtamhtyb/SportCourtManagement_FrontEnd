@@ -1,0 +1,42 @@
+@model RoleListViewModel
+@{
+    ViewData["Title"] = "Ma trận phân quyền";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Ma trận phân quyền</h1>
+        <p class="page-subtitle">Theo đặc tả SRS — FE-10</p>
+    </div>
+    <a asp-action="Index" class="btn-secondary-custom"><i class="fa-solid fa-arrow-left"></i> Quay lại</a>
+</div>
+
+<div class="admin-card p-4">
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Chức năng</th>
+                    <th class="text-center">Admin</th>
+                    <th class="text-center">Manager</th>
+                    <th class="text-center">Staff</th>
+                    <th class="text-center">Coach</th>
+                    <th class="text-center">Customer</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.PermissionMatrix)
+                {
+                    <tr>
+                        <td class="fw-semibold">@row.Feature</td>
+                        <td class="text-center"><span class="@(row.Admin ? "permission-yes" : "permission-no")">@(row.Admin ? "✓" : "✗")</span></td>
+                        <td class="text-center"><span class="@(row.Manager ? "permission-yes" : "permission-no")">@(row.Manager ? "✓" : "✗")</span></td>
+                        <td class="text-center"><span class="@(row.Staff ? "permission-yes" : "permission-no")">@(row.Staff ? "✓" : "✗")</span></td>
+                        <td class="text-center"><span class="@(row.Coach ? "permission-yes" : "permission-no")">@(row.Coach ? "✓" : "✗")</span></td>
+                        <td class="text-center"><span class="@(row.Customer ? "permission-yes" : "permission-no")">@(row.Customer ? "✓" : "✗")</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

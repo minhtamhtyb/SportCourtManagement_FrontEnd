@@ -1,0 +1,87 @@
+@model UserListViewModel
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Quản lý người dùng</h1>
+        <p class="page-subtitle">Danh sách tài khoản và phân vai trò</p>
+    </div>
+</div>
+
+<form method="get" class="filter-bar">
+    <div class="filter-search">
+        <i class="fa-solid fa-magnifying-glass text-secondary"></i>
+        <input type="text" name="search" value="@Model.Search" placeholder="Tìm tên, email, SĐT..." />
+    </div>
+    <a asp-action="Index" class="filter-chip @(string.IsNullOrEmpty(Model.Role) ? "active" : "")">Tất cả</a>
+    @foreach (var r in Model.RoleOptions)
+    {
+        <a asp-action="Index" asp-route-role="@r" asp-route-search="@Model.Search"
+           class="filter-chip @(Model.Role == r ? "active" : "")">@r</a>
+    }
+</form>
+
+<div class="admin-card">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Người dùng</th>
+                <th>Email / SĐT</th>
+                <th>Vai trò</th>
+                <th>Hạng</th>
+                <th>Trạng thái</th>
+                <th class="text-end">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in Model.Users)
+            {
+                <tr class="@(!u.IsActive ? "opacity-50" : "")">
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="@(u.AvatarUrl ?? $"https://api.dicebear.com/8.x/avataaars/svg?seed={u.UserId}")" class="rounded-circle" width="36" height="36" alt="" />
+                            <span class="fw-semibold text-white">@u.FullName</span>
+                        </div>
+                    </td>
+                    <td class="small text-secondary">
+                        <div>@u.Email</div>
+                        <div>@(u.Phone ?? "—")</div>
+                    </td>
+                    <td><span class="type-badge type-default">@u.Role</span></td>
+                    <td class="text-secondary small">@(u.MembershipTier ?? "—")</td>
+                    <td>
+                        @if (u.IsActive)
+                        { <span class="status-badge status-available">Active</span> }
+                        else
+                        { <span class="status-badge status-inactive">Vô hiệu</span> }
+                    </td>
+                    <td class="text-end">
+                        <a asp-action="Details" asp-route-id="@u.UserId" class="btn-ghost"><i class="fa-solid fa-eye"></i></a>
+                        <a asp-action="EditRoles" asp-route-id="@u.UserId" class="btn-ghost"><i class="fa-solid fa-user-gear"></i></a>
+                        <form asp-action="ToggleStatus" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@u.UserId" />
+                            <input type="hidden" name="isActive" value="@(!u.IsActive).ToString().ToLower()" />
+                            <button type="submit" class="btn-ghost" title="@(u.IsActive ? "Vô hiệu hóa" : "Kích hoạt")">
+                                <i class="fa-solid @(u.IsActive ? "fa-ban text-danger" : "fa-check text-success")"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="pagination-custom">
+        @for (var p = 1; p <= Model.TotalPages; p++)
+        {
+            <a asp-action="Index" asp-route-page="@p" asp-route-search="@Model.Search" asp-route-role="@Model.Role"
+               class="@(p == Model.Page ? "active" : "")">@p</a>
+        }
+    </div>
+}

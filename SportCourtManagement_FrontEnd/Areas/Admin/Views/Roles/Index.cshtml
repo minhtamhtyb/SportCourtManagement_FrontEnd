@@ -1,0 +1,59 @@
+@model RoleListViewModel
+@{
+    ViewData["Title"] = "Phân quyền";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Quản lý vai trò & Phân quyền</h1>
+        <p class="page-subtitle">RBAC — Role-Based Access Control theo SRS</p>
+    </div>
+    <a asp-action="PermissionMatrix" class="btn-secondary-custom"><i class="fa-solid fa-table"></i> Ma trận phân quyền</a>
+</div>
+
+<div class="row g-4 mb-4">
+    @foreach (var role in Model.Roles)
+    {
+        <div class="col-md-6 col-lg-3">
+            <div class="admin-card p-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="fa-solid fa-shield-halved text-success"></i>
+                    <h2 class="h6 text-white mb-0">@role.RoleName</h2>
+                </div>
+                <p class="text-secondary small mb-2">@role.Description</p>
+                <span class="text-secondary" style="font-size:.75rem"><strong class="text-white">@role.UserCount</strong> người dùng</span>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="admin-card p-4">
+    <h2 class="h6 text-white mb-3">Ma trận phân quyền (tóm tắt)</h2>
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Chức năng</th>
+                    <th class="text-center">Admin</th>
+                    <th class="text-center">Manager</th>
+                    <th class="text-center">Staff</th>
+                    <th class="text-center">Coach</th>
+                    <th class="text-center">Customer</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.PermissionMatrix)
+                {
+                    <tr>
+                        <td>@row.Feature</td>
+                        <td class="text-center">@(row.Admin ? "✅" : "—")</td>
+                        <td class="text-center">@(row.Manager ? "✅" : "—")</td>
+                        <td class="text-center">@(row.Staff ? "✅" : "—")</td>
+                        <td class="text-center">@(row.Coach ? "✅" : "—")</td>
+                        <td class="text-center">@(row.Customer ? "✅" : "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
