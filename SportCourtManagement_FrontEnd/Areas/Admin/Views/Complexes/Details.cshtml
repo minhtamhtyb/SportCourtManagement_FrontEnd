@@ -1,0 +1,126 @@
+@model ComplexDetailsViewModel
+@{
+    ViewData["Title"] = Model.Complex.ComplexName;
+}
+
+<div class="page-header">
+    <div>
+        <a asp-action="Index" class="text-secondary small text-decoration-none"><i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách</a>
+        <h1 class="page-title mt-1">@Model.Complex.ComplexName</h1>
+        <p class="page-subtitle"><i class="fa-solid fa-location-dot me-1"></i>@Model.Complex.Address</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-controller="Complexes" asp-route-id="@Model.Complex.ComplexId" class="btn-secondary-custom"><i class="fa-solid fa-pen"></i> Sửa tổ hợp</a>
+        <a asp-action="Create" asp-controller="Courts" asp-route-complexId="@Model.Complex.ComplexId" class="btn-primary-custom"><i class="fa-solid fa-plus"></i> Thêm sân</a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="admin-card p-4">
+            @if (!string.IsNullOrEmpty(Model.Complex.ImageUrl))
+            {
+                <img src="@Model.Complex.ImageUrl" alt="" class="w-100 rounded mb-3" style="max-height:200px;object-fit:cover" />
+            }
+            <p class="text-secondary mb-0">@(Model.Complex.Description ?? "Không có mô tả.")</p>
+            <div class="d-flex flex-wrap gap-3 mt-3 small text-secondary">
+                <span><i class="fa-solid fa-phone me-1"></i>@(Model.Complex.Phone ?? "—")</span>
+                <span><i class="fa-solid fa-table-tennis-paddle-ball me-1"></i>@Model.Complex.TotalCourts sân</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        @if (Model.Manager != null)
+        {
+            <div class="admin-card p-3">
+                <h2 class="h6 text-white mb-3"><i class="fa-solid fa-user-check me-2 text-success"></i>Quản lý phụ trách</h2>
+                <div class="d-flex align-items-center gap-3">
+                    <img src="@(Model.Manager.AvatarUrl ?? $"https://api.dicebear.com/8.x/avataaars/svg?seed={Model.Manager.UserId}")" class="rounded-circle" width="48" height="48" alt="" />
+                    <div>
+                        <div class="fw-semibold text-white">@Model.Manager.FullName</div>
+                        <div class="text-secondary small">#@Model.Manager.UserId · @Model.Manager.Email</div>
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="stat-grid mt-0" style="grid-template-columns:1fr 1fr">
+            <div class="stat-card emerald p-3"><div class="stat-label">Hoạt động</div><div class="stat-value text-success">@Model.Complex.ActiveCourts</div></div>
+            <div class="stat-card amber p-3"><div class="stat-label">Bảo trì</div><div class="stat-value text-warning">@Model.Complex.MaintenanceCourts</div></div>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Details" asp-route-id="@Model.Complex.ComplexId" method="get" class="filter-bar">
+    <div class="filter-search">
+        <i class="fa-solid fa-magnifying-glass text-secondary"></i>
+        <input type="text" name="search" value="@Model.Search" placeholder="Tìm tên hoặc mã sân..." />
+    </div>
+    <a asp-action="Details" asp-route-id="@Model.Complex.ComplexId" class="filter-chip @(string.IsNullOrEmpty(Model.StatusFilter) ? "active" : "")">Tất cả</a>
+    @foreach (var s in new[] { "Available", "Maintenance", "Inactive", "Booked" })
+    {
+        <a asp-action="Details" asp-route-id="@Model.Complex.ComplexId" asp-route-search="@Model.Search" asp-route-status="@s"
+           class="filter-chip @(Model.StatusFilter == s ? "active" : "")">@((DisplayHelpers.GetCourtStatus(s).Label))</a>
+    }
+</form>
+
+<h2 class="h6 text-white mb-3">Danh sách sân (@Model.Courts.Count)</h2>
+
+@if (!Model.Courts.Any())
+{
+    <div class="empty-state">
+        <i class="fa-solid fa-table-tennis-paddle-ball d-block"></i>
+        <p class="text-secondary">Chưa có sân trong tổ hợp này</p>
+        <a asp-action="Create" asp-controller="Courts" asp-route-complexId="@Model.Complex.ComplexId" class="btn-primary-custom">Thêm sân đầu tiên</a>
+    </div>
+}
+else
+{
+    <div class="court-card-grid">
+        @foreach (var court in Model.Courts)
+        {
+            <div class="court-card">
+                <img src="@court.ImageUrl" alt="@court.CourtName" class="court-card-img" onerror="this.src='https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400'" />
+                <div class="court-card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="fw-semibold text-white">@court.CourtName</div>
+                            <div class="text-secondary small">@court.CourtCode · @court.CourtTypeName</div>
+                        </div>
+                        <partial name="_CourtStatusBadge" model="court.Status" />
+                    </div>
+                    <div class="small text-secondary mb-2">
+                        <i class="fa-solid fa-clock me-1"></i>@court.OpenTime — @court.CloseTime
+                        · <i class="fa-solid fa-tag ms-1 me-1"></i>@DisplayHelpers.FormatCurrency(court.PricePerHour)/giờ
+                    </div>
+                    <div class="d-flex gap-1 flex-wrap align-items-center">
+                        <a asp-controller="Courts" asp-action="Edit" asp-route-id="@court.CourtId" class="btn-secondary-custom btn-sm py-1 px-2" style="font-size:.75rem"><i class="fa-solid fa-pen"></i></a>
+                        <form asp-controller="Courts" asp-action="UpdateStatus" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@court.CourtId" />
+                            <input type="hidden" name="complexId" value="@Model.Complex.ComplexId" />
+                            <select name="status" class="form-select form-select-sm" style="width:auto;font-size:.75rem" onchange="this.form.submit()">
+                                @foreach (var s in new[] { "Available", "Maintenance", "Inactive" })
+                                {
+                                    if (court.Status == s)
+                                    {
+                                        <option value="@s" selected>@DisplayHelpers.GetCourtStatus(s).Label</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@s">@DisplayHelpers.GetCourtStatus(s).Label</option>
+                                    }
+                                }
+                            </select>
+                        </form>
+                        <form asp-controller="Courts" asp-action="Delete" method="post" class="d-inline ms-auto" onsubmit="return confirm('Xóa sân này?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@court.CourtId" />
+                            <input type="hidden" name="complexId" value="@Model.Complex.ComplexId" />
+                            <button type="submit" class="btn-ghost text-danger btn-sm"><i class="fa-solid fa-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

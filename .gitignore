@@ -1,0 +1,23 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.slnLaunch.user
+
+# Build
+**/bin/
+**/obj/
+[Bb]in/
+[Oo]bj/
+
+# Secrets / local
+**/.env
+**/.env.*
+**/appsettings.*.local.json
+**/secrets.json
+
+# OS
+Thumbs.db
+.DS_Store

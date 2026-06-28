@@ -1,0 +1,32 @@
+@model UserEditRolesViewModel
+@{
+    ViewData["Title"] = "Gán vai trò";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Gán vai trò</h1>
+        <p class="page-subtitle">@Model.FullName — @Model.Email</p>
+    </div>
+    <a asp-action="Index" class="btn-secondary-custom"><i class="fa-solid fa-arrow-left"></i> Quay lại</a>
+</div>
+
+<div class="admin-card p-4" style="max-width:480px">
+    <form asp-action="EditRoles" asp-route-id="@Model.UserId" method="post" class="form-dark">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+            <label asp-for="Role" class="form-label"></label>
+            <select asp-for="Role" class="form-select">
+                @foreach (var r in Model.RoleOptions)
+                {
+                    <option value="@r">@r</option>
+                }
+            </select>
+        </div>
+        <div class="mb-4 form-check">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label asp-for="IsActive" class="form-check-label text-secondary">Tài khoản đang hoạt động</label>
+        </div>
+        <button type="submit" class="btn-primary-custom"><i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi</button>
+    </form>
+</div>
