@@ -1,20 +1,32 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+<<<<<<< HEAD
 using Microsoft.AspNetCore.Authentication;
 using SportCourtManagement_FrontEnd.Models.Configuration;
 using SportCourtManagement_FrontEnd.Services;
 using SportCourtManagement_FrontEnd.Services.Api;
+=======
+using SportCourtManagement_FrontEnd.Models.Configuration;
+using SportCourtManagement_FrontEnd.Services;
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 using SportCourtManagement_FrontEnd.Services.Implementations;
 using SportCourtManagement_FrontEnd.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection(ApiSettings.SectionName));
+<<<<<<< HEAD
 builder.Services.AddHttpContextAccessor();
+=======
+builder.Services.AddSingleton<MockDataStore>();
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 
 var useMock = builder.Configuration.GetValue<bool>($"{ApiSettings.SectionName}:UseMockData", true);
 if (useMock)
 {
+<<<<<<< HEAD
     builder.Services.AddSingleton<MockDataStore>();
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     builder.Services.AddScoped<IAuthService, MockAuthService>();
     builder.Services.AddScoped<ICourtService, MockCourtService>();
     builder.Services.AddScoped<IServiceCatalogService, MockServiceCatalogService>();
@@ -22,6 +34,7 @@ if (useMock)
     builder.Services.AddScoped<IUserService, MockUserService>();
     builder.Services.AddScoped<IRoleService, MockRoleService>();
 }
+<<<<<<< HEAD
 else
 {
     var apiBaseUrl = builder.Configuration.GetValue<string>($"{ApiSettings.SectionName}:BaseUrl")
@@ -41,6 +54,8 @@ else
     builder.Services.AddScoped<IUserService, ApiUserService>();
     builder.Services.AddScoped<IRoleService, ApiRoleService>();
 }
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -50,6 +65,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
+<<<<<<< HEAD
         options.Cookie.HttpOnly = true;
         options.Cookie.IsEssential = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
@@ -70,6 +86,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                     session.SetString(JwtForwardingHandler.SessionTokenKey, token);
             }
         };
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     });
 
 builder.Services.AddAuthorization(options =>
@@ -79,6 +97,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddControllersWithViews();
+<<<<<<< HEAD
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -86,6 +105,9 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+=======
+builder.Services.AddSession();
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 
 var app = builder.Build();
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 (function () {
     const TOAST_DURATION = 4500;
 
@@ -78,3 +79,8 @@
         if (error) showToast(error, 'error');
     });
 })();
+=======
+document.getElementById('sidebarToggle')?.addEventListener('click', function () {
+    document.getElementById('adminSidebar')?.classList.toggle('collapsed');
+});
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e

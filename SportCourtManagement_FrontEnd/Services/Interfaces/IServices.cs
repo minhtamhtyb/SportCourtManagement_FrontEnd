@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 using Microsoft.AspNetCore.Http;
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 using SportCourtManagement_FrontEnd.Models.Api;
 using SportCourtManagement_FrontEnd.Models.DTOs;
 
@@ -6,7 +9,11 @@ namespace SportCourtManagement_FrontEnd.Services.Interfaces;
 
 public interface IAuthService
 {
+<<<<<<< HEAD
     Task<AuthLoginResult> LoginAsync(LoginRequest request);
+=======
+    Task<AuthResponse?> LoginAsync(LoginRequest request);
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     Task RegisterAsync(RegisterRequest request);
     Task VerifyEmailAsync(VerifyEmailRequest request);
     Task LogoutAsync();
@@ -21,7 +28,10 @@ public interface ICourtService
     Task<CourtComplexDto> CreateComplexAsync(CourtComplexDto dto);
     Task UpdateComplexAsync(int id, CourtComplexDto dto);
     Task DeleteComplexAsync(int id);
+<<<<<<< HEAD
     Task<string> UploadComplexImageAsync(IFormFile file);
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     Task<List<CourtTypeDto>> GetCourtTypesAsync();
     Task<List<UserDto>> GetManagersAsync();
     Task<UserDto?> GetManagerByIdAsync(int id);

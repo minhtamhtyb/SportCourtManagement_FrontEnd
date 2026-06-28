@@ -23,6 +23,7 @@
             </div>
             <div class="mb-4">
                 <label asp-for="Otp" class="form-label"></label>
+<<<<<<< HEAD
                 <input asp-for="Otp" class="form-control text-center fs-4 letter-spacing" maxlength="6" placeholder="000000" style="letter-spacing:.5em" />
                 <span asp-validation-for="Otp" class="text-danger small"></span>
                 @if (ViewBag.UseMockData == true)
@@ -33,6 +34,11 @@
                 {
                     <p class="text-secondary small mt-2 mb-0">Mã OTP được in tại <strong class="text-success">console Backend</strong> (terminal chạy API port 5211).</p>
                 }
+=======
+                <input asp-for="Otp" class="form-control text-center fs-4 letter-spacing" maxlength="6" placeholder="123456" style="letter-spacing:.5em" />
+                <span asp-validation-for="Otp" class="text-danger small"></span>
+                <p class="text-secondary small mt-2 mb-0">Demo: dùng mã <strong class="text-success">123456</strong></p>
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
             </div>
 
             <button type="submit" class="btn btn-success w-100 py-2 fw-bold">Xác thực</button>

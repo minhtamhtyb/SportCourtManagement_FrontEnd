@@ -41,6 +41,7 @@ public class AuthResponse
     public UserDto User { get; set; } = new();
 }
 
+<<<<<<< HEAD
 public class AuthLoginResult
 {
     public AuthResponse? Response { get; init; }
@@ -55,6 +56,8 @@ public class AuthLoginResult
         new() { ErrorMessage = message, RequiresEmailVerification = requiresVerification };
 }
 
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 public class CourtTypeDto
 {
     public int CourtTypeId { get; set; }

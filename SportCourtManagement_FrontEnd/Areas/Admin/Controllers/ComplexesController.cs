@@ -30,9 +30,13 @@ public class ComplexesController(ICourtService courtService) : Controller
 
     public async Task<IActionResult> Create()
     {
+<<<<<<< HEAD
         var vm = await BuildFormViewModel();
         if (IsAjaxRequest()) return PartialView("_ComplexFormModal", vm);
         return View("Form", vm);
+=======
+        return View("Form", await BuildFormViewModel());
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     }
 
     [HttpPost]
@@ -41,11 +45,15 @@ public class ComplexesController(ICourtService courtService) : Controller
     {
         if (!ModelState.IsValid)
         {
+<<<<<<< HEAD
             if (IsAjaxRequest()) return JsonValidationErrors();
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
             await PopulateFormOptions(model);
             return View("Form", model);
         }
 
+<<<<<<< HEAD
         try
         {
             await ApplyImageUploadAsync(model);
@@ -69,13 +77,34 @@ public class ComplexesController(ICourtService courtService) : Controller
             await PopulateFormOptions(model);
             return View("Form", model);
         }
+=======
+        await courtService.CreateComplexAsync(MapToDto(model));
+        TempData["Success"] = "Thêm tổ hợp sân thành công!";
+        return RedirectToAction(nameof(Index));
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     }
 
     public async Task<IActionResult> Edit(int id)
     {
+<<<<<<< HEAD
         var vm = await BuildFormViewModelForEdit(id);
         if (vm == null) return NotFound();
         if (IsAjaxRequest()) return PartialView("_ComplexFormModal", vm);
+=======
+        var complex = await courtService.GetComplexByIdAsync(id);
+        if (complex == null) return NotFound();
+
+        var vm = await BuildFormViewModel();
+        vm.ComplexId = complex.ComplexId;
+        vm.ComplexName = complex.ComplexName;
+        vm.Address = complex.Address;
+        vm.Phone = complex.Phone;
+        vm.ManagerId = complex.ManagerId;
+        vm.ManagerName = complex.ManagerName;
+        vm.Description = complex.Description;
+        vm.ImageUrl = complex.ImageUrl;
+        vm.CourtTypeIds = complex.CourtTypeIds;
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
         return View("Form", vm);
     }
 
@@ -85,11 +114,15 @@ public class ComplexesController(ICourtService courtService) : Controller
     {
         if (!ModelState.IsValid)
         {
+<<<<<<< HEAD
             if (IsAjaxRequest()) return JsonValidationErrors();
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
             await PopulateFormOptions(model);
             return View("Form", model);
         }
 
+<<<<<<< HEAD
         try
         {
             await ApplyImageUploadAsync(model);
@@ -113,6 +146,11 @@ public class ComplexesController(ICourtService courtService) : Controller
             await PopulateFormOptions(model);
             return View("Form", model);
         }
+=======
+        await courtService.UpdateComplexAsync(id, MapToDto(model));
+        TempData["Success"] = "Cập nhật tổ hợp sân thành công!";
+        return RedirectToAction(nameof(Index));
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     }
 
     public async Task<IActionResult> Details(int id, string? search, string? status)
@@ -141,19 +179,26 @@ public class ComplexesController(ICourtService courtService) : Controller
         try
         {
             await courtService.DeleteComplexAsync(id);
+<<<<<<< HEAD
             if (IsAjaxRequest())
                 return Json(new { success = true, message = "Xóa tổ hợp sân thành công!" });
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
             TempData["Success"] = "Xóa tổ hợp sân thành công!";
         }
         catch (InvalidOperationException ex)
         {
+<<<<<<< HEAD
             if (IsAjaxRequest())
                 return Json(new { success = false, message = ex.Message });
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
             TempData["Error"] = ex.Message;
         }
         return RedirectToAction(nameof(Index));
     }
 
+<<<<<<< HEAD
     private bool IsAjaxRequest() =>
         Request.Headers.XRequestedWith == "XMLHttpRequest";
 
@@ -189,6 +234,8 @@ public class ComplexesController(ICourtService courtService) : Controller
         return vm;
     }
 
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     private async Task<ComplexFormViewModel> BuildFormViewModel()
     {
         var vm = new ComplexFormViewModel();
@@ -202,6 +249,7 @@ public class ComplexesController(ICourtService courtService) : Controller
         vm.Managers = await courtService.GetManagersAsync();
     }
 
+<<<<<<< HEAD
     private async Task ApplyImageUploadAsync(ComplexFormViewModel model)
     {
         if (model.ImageFile is { Length: > 0 })
@@ -213,6 +261,8 @@ public class ComplexesController(ICourtService courtService) : Controller
         }
     }
 
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     private static CourtComplexDto MapToDto(ComplexFormViewModel model) => new()
     {
         ComplexName = model.ComplexName,

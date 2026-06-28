@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 using Microsoft.AspNetCore.Http;
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 using SportCourtManagement_FrontEnd.Models.Api;
 using SportCourtManagement_FrontEnd.Models.DTOs;
 using SportCourtManagement_FrontEnd.Services.Interfaces;
@@ -89,10 +92,14 @@ public class MockCourtService(MockDataStore store) : ICourtService
         Task.FromResult(store.CourtTypes.Where(t => t.IsActive).ToList());
 
     public Task<List<UserDto>> GetManagersAsync() =>
+<<<<<<< HEAD
         Task.FromResult(store.Users.Where(u => u.Role == "Staff" && u.IsActive).ToList());
 
     public Task<string> UploadComplexImageAsync(IFormFile file) =>
         Task.FromResult($"https://picsum.photos/seed/{Guid.NewGuid():N}/800/400");
+=======
+        Task.FromResult(store.Users.Where(u => u.Role is "Admin" or "Staff").ToList());
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 
     public Task<UserDto?> GetManagerByIdAsync(int id) =>
         Task.FromResult(store.Users.FirstOrDefault(u => u.UserId == id));

@@ -1,5 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+<<<<<<< HEAD
 using Microsoft.AspNetCore.Http;
+=======
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 using SportCourtManagement_FrontEnd.Models.DTOs;
 
 namespace SportCourtManagement_FrontEnd.Models.ViewModels.Admin;
@@ -41,11 +44,17 @@ public class ComplexFormViewModel
     public string? Description { get; set; }
 
     [Display(Name = "URL ảnh")]
+<<<<<<< HEAD
     public string? ImageUrl { get; set; }
 
     [Display(Name = "Ảnh tổ hợp")]
     public IFormFile? ImageFile { get; set; }
 
+=======
+    [Url(ErrorMessage = "URL không hợp lệ")]
+    public string? ImageUrl { get; set; }
+
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     public List<int> CourtTypeIds { get; set; } = [];
     public List<CourtTypeDto> CourtTypeOptions { get; set; } = [];
     public List<UserDto> Managers { get; set; } = [];

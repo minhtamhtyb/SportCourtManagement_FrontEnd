@@ -66,7 +66,11 @@
                 <div class="text-white fw-semibold text-truncate" style="font-size:.75rem">@userName</div>
                 <div class="text-truncate" style="font-size:.625rem;color:#64748b">@userRole</div>
             </div>
+<<<<<<< HEAD
             <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="sidebar-text">
+=======
+            <form asp-controller="Account" asp-action="Logout" method="post" class="sidebar-text">
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
                 @Html.AntiForgeryToken()
                 <button type="submit" class="btn-ghost" title="Đăng xuất"><i class="fa-solid fa-right-from-bracket"></i></button>
             </form>
@@ -92,9 +96,20 @@
             </div>
         </header>
         <main class="admin-content">
+<<<<<<< HEAD
             <div id="adminFlashData" class="d-none"
                  data-success="@TempData["Success"]"
                  data-error="@TempData["Error"]"></div>
+=======
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert-flash alert-success-flash"><i class="fa-solid fa-circle-check me-2"></i>@TempData["Success"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert-flash alert-error-flash"><i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["Error"]</div>
+            }
+>>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
             @RenderBody()
         </main>
     </div>
