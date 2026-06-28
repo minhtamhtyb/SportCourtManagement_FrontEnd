@@ -1,0 +1,296 @@
+@{
+    ViewData["Title"] = "Attendance & Check-in";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Manager/attendance.css" asp-append-version="true" />
+}
+
+<div class="attendance-container">
+    <!-- Module Header -->
+    <div class="module-header">
+        <div class="module-title">
+            <h3>Quản lý nhân sự</h3>
+            <p>Theo dõi chấm công và hiệu suất làm việc của đội ngũ vận hành.</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-secondary-custom">
+                <span class="material-symbols-outlined">download</span>
+                Xuất báo cáo (CSV)
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-navigation">
+        <a class="tab-link" href="/manager/staff/shifts">Lịch trực hàng tuần</a>
+        <a class="tab-link active" href="/manager/staff/attendance">Chấm công &amp; Chuyên cần</a>
+        <a class="tab-link" href="/manager/staff/list">Danh sách nhân viên</a>
+        <a class="tab-link" href="/manager/staff/salary">Cấu hình tiền lương</a>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="attendance-toolbar">
+        <div class="toolbar-filters">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" placeholder="Tìm tên nhân viên..." />
+            </div>
+
+            <div class="filter-box">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <span>Từ: </span>
+                <input type="date" style="background:transparent;border:none;color:var(--on-surface);font-size:13px;outline:none;" />
+            </div>
+
+            <div class="filter-box">
+                <span class="material-symbols-outlined">event</span>
+                <span>Đến: </span>
+                <input type="date" style="background:transparent;border:none;color:var(--on-surface);font-size:13px;outline:none;" />
+            </div>
+
+            <div class="filter-box">
+                <span class="material-symbols-outlined">filter_list</span>
+                <select>
+                    <option>Tất cả ca trực</option>
+                    <option>Morning</option>
+                    <option>Afternoon</option>
+                    <option>Evening</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="status-list">
+            <span class="status-dot-indicator present"></span>
+            <span>42 Đúng giờ</span>
+            <span class="separator">|</span>
+            <span class="status-dot-indicator late"></span>
+            <span>3 Đi muộn</span>
+        </div>
+    </div>
+
+    <!-- Attendance Data Table -->
+    <!-- StaffShiftResponse: ShiftDate, ShiftType, StartTime, EndTime, CheckInTime, CheckOutTime, LateMinutes, EarlyLeaveMinutes -->
+    <div class="table-panel glass-panel">
+        <table class="attendance-table">
+            <thead>
+                <tr>
+                    <th>Nhân viên</th>
+                    <th>Ngày &amp; Ca trực</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Đi muộn</th>
+                    <th class="diff-col">Về sớm</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Row 1: LateMinutes=0, EarlyLeaveMinutes=0 → Đúng giờ -->
+                <tr>
+                    <td>
+                        <div class="employee-cell">
+                            <div class="employee-avatar">
+                                <img alt="Phạm Minh Hoàng" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3OyqucUhAQNTGfk0bk_7nAylbuHhOhqSF0k1VdjPWLOlH2aEvH46drxY4VYGrqD0HERsQ0EyYwlLNZQUQ6GeGwMqVFX__sTe-5sE57bO7Uq1IEo33FQhfryeU4Uzcdk8Io6fprE76zTLyRi_GE6BbaJOn0Lhs7pbCwidrYoVVaBxXRJc4Dimihb6ClQJhWP0ISRR3UYlIMcnhde186-LLoY1A6JOsT5oTIAdPccFwbHpUdGzR80xt7wY2dIbcRnpuN2HytJTqvTo" />
+                            </div>
+                            <div>
+                                <p class="employee-name">Phạm Minh Hoàng</p>
+                                <p class="employee-id">ID: 42</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="shift-info-cell">
+                        <p class="shift-day">24/06/2026</p>
+                        <p class="shift-time">
+                            <span class="material-symbols-outlined">schedule</span>
+                            Morning · 06:00 – 14:00
+                        </p>
+                    </td>
+                    <td>
+                        <div class="employee-cell gap-2">
+                            <span class="code-font">05:55</span>
+                            <span class="status-badge on-time">Đúng giờ</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="employee-cell gap-2">
+                            <span class="code-font">14:02</span>
+                            <span class="status-badge finished">Xong ca</span>
+                        </div>
+                    </td>
+                    <td><span class="diff-badge empty">0 phút</span></td>
+                    <td class="diff-col"><span class="diff-badge empty">0 phút</span></td>
+                </tr>
+
+                <!-- Row 2: LateMinutes=15 → Muộn -->
+                <tr>
+                    <td>
+                        <div class="employee-cell">
+                            <div class="employee-avatar">
+                                <img alt="Nguyễn Thùy Linh" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUg6-78oyiDpQoxntIS_cKhXjfqk0lwjNDQuklp08xptP4gNtJfWIlVqHakspHOSTykVgJEZfgxsw972Rm7NK99yymEYR0WUN5X_yXAlg5KXy9gbhkbJ03nxDPZjC9uOSPC-zB1ypLaKEXQno4dohJVxuC7X-IDE173BQulZHPozRcr9U_oSyoImPsGWAvfohNmEBOgfF5yvYaatj_nUuS4kJa9Igf_wLuJWqPlO3seSj4s_q_GtjhOCvmh4cEUmks0O0MW9GTcuQ" />
+                            </div>
+                            <div>
+                                <p class="employee-name">Nguyễn Thùy Linh</p>
+                                <p class="employee-id">ID: 81</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="shift-info-cell">
+                        <p class="shift-day">24/06/2026</p>
+                        <p class="shift-time">
+                            <span class="material-symbols-outlined">schedule</span>
+                            Morning · 06:00 – 14:00
+                        </p>
+                    </td>
+                    <td>
+                        <div class="employee-cell gap-2">
+                            <span class="code-font" style="color: var(--error);">06:15</span>
+                            <span class="status-badge late-badge">Muộn</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="employee-cell gap-2">
+                            <span class="code-font">14:00</span>
+                            <span class="status-badge finished">Xong ca</span>
+                        </div>
+                    </td>
+                    <td><span class="diff-badge minus-red">15 phút</span></td>
+                    <td class="diff-col"><span class="diff-badge empty">0 phút</span></td>
+                </tr>
+
+                <!-- Row 3: EarlyLeaveMinutes=15 → Về sớm -->
+                <tr>
+                    <td>
+                        <div class="employee-cell">
+                            <div class="employee-avatar">
+                                <img alt="Trần Anh Tú" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDd0cYmiqDtmT7F4rabYWjYHTxq2smH91bha2CE66oqd6BMkBRhXWMe-437co4CFbxQkEY7-ZYxRCgtwJ53VLRGrLAD8oboaBy9Gqse7fOJ-_bmdlMj2i6D0NqtV_F-lgSRwX8gr2BgGeWTDBBZScqLCfF5Ipfyjd-GEsJ0Rn90N06MPKevReMGc_9seyvUGxB0ntSQc0Gy-g3KXBaym1XsnNsKevkQFPU4gEy1jF7yaZwUj1KqHHL_YrfsqnVsllNKMjTF61mTQs" />
+                            </div>
+                            <div>
+                                <p class="employee-name">Trần Anh Tú</p>
+                                <p class="employee-id">ID: 22</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="shift-info-cell">
+                        <p class="shift-day">24/06/2026</p>
+                        <p class="shift-time">
+                            <span class="material-symbols-outlined">schedule</span>
+                            Afternoon · 14:00 – 22:00
+                        </p>
+                    </td>
+                    <td>
+                        <div class="employee-cell gap-2">
+                            <span class="code-font">13:58</span>
+                            <span class="status-badge on-time">Đúng giờ</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="employee-cell gap-2">
+                            <span class="code-font" style="color: var(--tertiary);">21:45</span>
+                            <span class="status-badge early">Về sớm</span>
+                        </div>
+                    </td>
+                    <td><span class="diff-badge empty">0 phút</span></td>
+                    <td class="diff-col"><span class="diff-badge minus-orange">15 phút</span></td>
+                </tr>
+
+                <!-- Row 4: Evening shift – CheckOut=null, đang trực -->
+                <tr>
+                    <td>
+                        <div class="employee-cell">
+                            <div class="employee-avatar">
+                                <img alt="Lê Kim Chi" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUkGcDMEBENkQNbiBpCfE0MyC7v3iSN-w4u-ffl_sbsZVkvp87Z-rraPrwpotLu6tVZgL9FI7CSFhu-lLuPTD-CXHZE2ZwLX_9SkvUmBupOHZxyxNbCl5dd2DdYk7rbAQmQf6noE5gNc9HrmBcuyUOmXWsj4MJblSqtpqHsknvGDKlECL6_Hw0b96ka9Y1U9IW5OuqGUhq9-lD_IJ-t9NKgDPMUBwxH4lCXwqzYIpshr48v3LSKFKjS3PaqVhtjEOaLWxMoBOf22A" />
+                            </div>
+                            <div>
+                                <p class="employee-name">Lê Kim Chi</p>
+                                <p class="employee-id">ID: 95</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="shift-info-cell">
+                        <p class="shift-day">24/06/2026</p>
+                        <p class="shift-time">
+                            <span class="material-symbols-outlined">schedule</span>
+                            Evening · 22:00 – 06:00 (+1)
+                        </p>
+                    </td>
+                    <td>
+                        <div class="employee-cell gap-2">
+                            <span class="code-font">22:00</span>
+                            <span class="status-badge on-time">Đúng giờ</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="employee-cell gap-2">
+                            <span class="code-font">--:--</span>
+                            <span class="status-badge working">Đang trực</span>
+                        </div>
+                    </td>
+                    <td><span class="diff-badge empty">0 phút</span></td>
+                    <td class="diff-col"><span class="diff-badge empty">--</span></td>
+                </tr>
+
+                <!-- Row 5: CheckInTime=null → Vắng mặt -->
+                <tr>
+                    <td>
+                        <div class="employee-cell">
+                            <div class="employee-avatar">
+                                <img alt="Đỗ Hoàng Long" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcEWKF1CnspJSj_QYaU3G1i4pdivJ2Jv77qI2KCvJ1ciOYJFq5-rcFVNW0mGZdy6kkEqQ0xxoXLPnPf3f4dqydPkgMG7DV6MqRIKXw-4slH12hU2hekitsuTSPxVCJ9_Ea63bmsLRUU7iEHZrEK-IlZTSIUqGNp8QhZFNoFqQ9a3-i7ad9bTmo69xYaqTfDKfv83raCHzg2VtQoMFcmZRXiQKF7b_vskHMZJa-0kHtKNeMFNVDr6d-1ADKqg4K4mwLk4owz5N5jrY" />
+                            </div>
+                            <div>
+                                <p class="employee-name">Đỗ Hoàng Long</p>
+                                <p class="employee-id">ID: 102</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="shift-info-cell">
+                        <p class="shift-day">24/06/2026</p>
+                        <p class="shift-time">
+                            <span class="material-symbols-outlined">schedule</span>
+                            Morning · 06:00 – 14:00
+                        </p>
+                    </td>
+                    <td>
+                        <div class="employee-cell gap-2">
+                            <span class="code-font" style="color: var(--error);">--:--</span>
+                            <span class="status-badge late-badge">Vắng mặt</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="employee-cell gap-2">
+                            <span class="code-font">--:--</span>
+                            <span class="diff-badge empty">--</span>
+                        </div>
+                    </td>
+                    <td><span class="diff-badge empty">--</span></td>
+                    <td class="diff-col"><span class="diff-badge empty">--</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer Pagination -->
+    <div class="pagination-panel">
+        <p class="pagination-info">Hiển thị 1 - 5 của 120 bản ghi</p>
+        <div class="pagination-buttons">
+            <button class="pagination-btn" disabled>
+                <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn">2</button>
+            <button class="pagination-btn">3</button>
+            <button class="pagination-btn">
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.attendance-table tbody tr').forEach(row => {
+            row.addEventListener('click', () => {
+                row.style.backgroundColor = 'rgba(192, 193, 255, 0.1)';
+                setTimeout(() => { row.style.backgroundColor = ''; }, 300);
+            });
+        });
+    </script>
+}

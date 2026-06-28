@@ -1,0 +1,341 @@
+@{
+    ViewData["Title"] = "Shift Management";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Manager/shifts.css" asp-append-version="true" />
+}
+
+<div class="shift-dashboard-container">
+    <!-- Module Header -->
+    <div class="module-header">
+        <div class="module-title">
+            <h3>Quản lý nhân sự</h3>
+            <p>Lịch trực hàng tuần – 3 ca cố định: Morning (06–14h), Afternoon (14–22h), Evening (22–06h).</p>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-navigation">
+        <a class="tab-link active" href="/manager/staff/shifts">Lịch trực hàng tuần</a>
+        <a class="tab-link" href="/manager/staff/attendance">Chấm công &amp; Chuyên cần</a>
+        <a class="tab-link" href="/manager/staff/list">Danh sách nhân viên</a>
+        <a class="tab-link" href="/manager/staff/salary">Cấu hình tiền lương</a>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="shift-toolbar glass-panel">
+        <div class="toolbar-left">
+            <div class="week-picker">
+                <button class="picker-btn">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <div class="picker-label">
+                    WeekStart – WeekEnd (từ API <code>GetWeeklyScheduleAsync</code>)
+                </div>
+                <button class="picker-btn">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            </div>
+            <button class="today-btn">Hôm nay</button>
+        </div>
+        <div class="toolbar-right">
+            <div class="shift-legend">
+                <span class="legend-dot morning"></span><span>Morning 06–14h</span>
+                <span class="legend-dot afternoon"></span><span>Afternoon 14–22h</span>
+                <span class="legend-dot evening"></span><span>Evening 22–06h</span>
+            </div>
+            <button class="add-staff-btn" data-bs-toggle="modal" data-bs-target="#createShiftModal">
+                <span class="material-symbols-outlined">add</span>
+                Thêm ca trực
+            </button>
+        </div>
+    </div>
+
+    <!-- Shift Grid Table (WeeklyScheduleResponse) -->
+    <div class="shift-grid-container glass-panel">
+        <div class="table-responsive custom-scrollbar">
+            <table class="shift-table">
+                <thead>
+                    <tr class="court-grid-header">
+                        <th class="sticky-col">NHÂN VIÊN</th>
+                        <th>Thứ Hai<br /><span class="day-sub">23/06</span></th>
+                        <th>Thứ Ba<br /><span class="day-sub">24/06</span></th>
+                        <th>Thứ Tư<br /><span class="day-sub">25/06</span></th>
+                        <th>Thứ Năm<br /><span class="day-sub">26/06</span></th>
+                        <th>Thứ Sáu<br /><span class="day-sub">27/06</span></th>
+                        <th class="weekend-col">Thứ Bảy<br /><span class="day-sub">28/06</span></th>
+                        <th class="weekend-col">Chủ Nhật<br /><span class="day-sub">29/06</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Staff 1: Nguyễn Văn A -->
+                    <tr>
+                        <td class="sticky-col staff-info-col">
+                            <div class="staff-info">
+                                <div class="avatar-container">
+                                    <img class="avatar-img" alt="Nguyễn Văn A"
+                                         src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7qVwjVMMInSzX3jgRwu6VFj5ISqC8nl3eY7u518JJyWie9Isu9jELtYGhmgwfHM80nNsq7qaj_jLZbGmQRdPKkI4dRYHS_c5YsUlS_HnEE30urPzP4H_0YColY_vGrCmUOqKJa1u_2QUEx11vndCWIVYUElcJUb7ChmgMN4EYQ3v-1wyzY1lQhUuz7Rdq4UK0fABHjJZ8hP2FdeqhklXdaFfXUUZWYLned69BxcTYjZUDe6VQRimnzEYbB1i5fFG6ES7FJ5X479Q" />
+                                    <span class="status-dot online"></span>
+                                </div>
+                                <div class="staff-details">
+                                    <p class="staff-name">Nguyễn Văn A</p>
+                                    <span class="staff-role">Quản lý</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card morning">
+                                <span class="shift-type-label">Morning</span>
+                                <span class="shift-time-label">06:00–14:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card morning">
+                                <span class="shift-type-label">Morning</span>
+                                <span class="shift-time-label">06:00–14:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card off">OFF</div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card afternoon">
+                                <span class="shift-type-label">Afternoon</span>
+                                <span class="shift-time-label">14:00–22:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card afternoon">
+                                <span class="shift-type-label">Afternoon</span>
+                                <span class="shift-time-label">14:00–22:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell weekend-cell">
+                            <div class="shift-card morning">
+                                <span class="shift-type-label">Morning</span>
+                                <span class="shift-time-label">06:00–14:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell weekend-cell">
+                            <div class="shift-card off">OFF</div>
+                        </td>
+                    </tr>
+
+                    <!-- Staff 2: Trần Thị B -->
+                    <tr>
+                        <td class="sticky-col staff-info-col">
+                            <div class="staff-info">
+                                <div class="avatar-container">
+                                    <img class="avatar-img" alt="Trần Thị B"
+                                         src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZvbDSS6preTvZWuJnh_FlG18V7UScyIykWzOxZCPTIHy8hdBeeTyBC_hQHpA5oqm8ln6xUZ2Tvsacw8NhQzei2Yf7WYhuFi7_iWynkA0EAgwAU_tcMEW5Ve17oj-0o-pBesTV904mhzMrwVP5tGIPOBEN-n8TAVW0DXDeoqCKlZjSX7j4bJx998rT4vjbnohJBnYatyHQHTcG2T0EJjQYzg2iRs8PR42VEMPAgiodHiuFB5PyEevqfNXFyFLDnlOEPDvtbKtQBlo" />
+                                    <span class="status-dot online"></span>
+                                </div>
+                                <div class="staff-details">
+                                    <p class="staff-name">Trần Thị B</p>
+                                    <span class="staff-role">Nhân viên sân</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card afternoon">
+                                <span class="shift-type-label">Afternoon</span>
+                                <span class="shift-time-label">14:00–22:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card off">OFF</div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card morning">
+                                <span class="shift-type-label">Morning</span>
+                                <span class="shift-time-label">06:00–14:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card morning">
+                                <span class="shift-type-label">Morning</span>
+                                <span class="shift-time-label">06:00–14:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card evening">
+                                <span class="shift-type-label">Evening</span>
+                                <span class="shift-time-label">22:00–06:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell weekend-cell">
+                            <div class="shift-card evening">
+                                <span class="shift-type-label">Evening</span>
+                                <span class="shift-time-label">22:00–06:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell weekend-cell">
+                            <div class="shift-card afternoon">
+                                <span class="shift-type-label">Afternoon</span>
+                                <span class="shift-time-label">14:00–22:00</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Staff 3: Lê Hoàng C -->
+                    <tr>
+                        <td class="sticky-col staff-info-col">
+                            <div class="staff-info">
+                                <div class="avatar-container">
+                                    <img class="avatar-img" alt="Lê Hoàng C"
+                                         src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
+                                    <span class="status-dot offline"></span>
+                                </div>
+                                <div class="staff-details">
+                                    <p class="staff-name">Lê Hoàng C</p>
+                                    <span class="staff-role">Kỹ thuật</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card evening">
+                                <span class="shift-type-label">Evening</span>
+                                <span class="shift-time-label">22:00–06:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card evening">
+                                <span class="shift-type-label">Evening</span>
+                                <span class="shift-time-label">22:00–06:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card evening">
+                                <span class="shift-type-label">Evening</span>
+                                <span class="shift-time-label">22:00–06:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card off">OFF</div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card off">OFF</div>
+                        </td>
+                        <td class="shift-cell weekend-cell">
+                            <div class="shift-card evening">
+                                <span class="shift-type-label">Evening</span>
+                                <span class="shift-time-label">22:00–06:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell weekend-cell">
+                            <div class="shift-card evening">
+                                <span class="shift-type-label">Evening</span>
+                                <span class="shift-time-label">22:00–06:00</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer Pagination -->
+    <div class="pagination-panel">
+        <p class="pagination-info">Hiển thị 1 - 3 của 24 nhân sự</p>
+        <div class="pagination-buttons">
+            <button class="pagination-btn" disabled>
+                <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn">2</button>
+            <button class="pagination-btn">3</button>
+            <button class="pagination-btn">
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Button -->
+<div class="floating-action-container">
+    <button class="fab-btn">
+        <span class="material-symbols-outlined">send</span>
+        Lưu &amp; Phát hành Lịch
+    </button>
+</div>
+
+<!-- Create Shift Modal -->
+<div class="modal fade" id="createShiftModal" tabindex="-1" aria-labelledby="createShiftLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shift-modal-content">
+            <div class="modal-header shift-modal-header">
+                <h5 class="modal-title" id="createShiftLabel">
+                    <span class="material-symbols-outlined">calendar_add_on</span>
+                    Tạo ca trực mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="shift-form-grid">
+                    <div class="shift-form-group">
+                        <label class="shift-form-label">Nhân viên (StaffId)</label>
+                        <select class="shift-form-input">
+                            <option>-- Chọn nhân viên --</option>
+                            <option>Nguyễn Văn A</option>
+                            <option>Trần Thị B</option>
+                            <option>Lê Hoàng C</option>
+                        </select>
+                    </div>
+                    <div class="shift-form-group">
+                        <label class="shift-form-label">Ngày (ShiftDate)</label>
+                        <input type="date" class="shift-form-input" />
+                    </div>
+                    <div class="shift-form-group shift-form-full">
+                        <label class="shift-form-label">Loại ca (ShiftType)</label>
+                        <div class="shift-type-selector">
+                            <label class="shift-type-option morning-opt">
+                                <input type="radio" name="shiftType" value="Morning" checked />
+                                <span>Morning</span>
+                                <small>06:00 – 14:00</small>
+                            </label>
+                            <label class="shift-type-option afternoon-opt">
+                                <input type="radio" name="shiftType" value="Afternoon" />
+                                <span>Afternoon</span>
+                                <small>14:00 – 22:00</small>
+                            </label>
+                            <label class="shift-type-option evening-opt">
+                                <input type="radio" name="shiftType" value="Evening" />
+                                <span>Evening</span>
+                                <small>22:00 – 06:00</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer shift-modal-footer">
+                <button type="button" class="shift-btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                <button type="button" class="shift-btn-primary">
+                    <span class="material-symbols-outlined">check</span>
+                    Tạo ca trực
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Context menu (right-click on shift card)
+        document.querySelectorAll('.shift-card:not(.off)').forEach(card => {
+            card.addEventListener('contextmenu', e => {
+                e.preventDefault();
+                const menu = document.getElementById('context-menu');
+                if (menu) {
+                    menu.style.display = 'block';
+                    menu.style.left = e.pageX + 'px';
+                    menu.style.top = e.pageY + 'px';
+                }
+            });
+        });
+        document.addEventListener('click', () => {
+            const menu = document.getElementById('context-menu');
+            if (menu) menu.style.display = 'none';
+        });
+    </script>
+}

@@ -1,0 +1,371 @@
+@{
+    ViewData["Title"] = "Bảo trì sân | ProCourt";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Manager/maintenance.css" asp-append-version="true" />
+}
+
+<div class="maintenance-container">
+
+    <!-- Module Header -->
+    <div class="module-header">
+        <div class="module-title">
+            <h3>Bảo trì sân</h3>
+            <p>Theo dõi lịch bảo trì sân theo trạng thái: <strong>Pending</strong>, <strong>InProgress</strong>, <strong>Completed</strong>, <strong>Cancelled</strong>.</p>
+        </div>
+        <div class="header-actions">
+            <a class="btn-secondary-custom" href="#">
+                <span class="material-symbols-outlined">download</span>
+                Xuất báo cáo
+            </a>
+            <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createMaintenanceModal">
+                <span class="material-symbols-outlined">add</span>
+                Tạo lịch bảo trì
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="summary-stats">
+        <div class="stat-card glass-panel">
+            <div class="stat-icon orange">
+                <span class="material-symbols-outlined">pending_actions</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Pending</p>
+                <span class="stat-value orange">5</span>
+                <p class="stat-sub">Chờ bắt đầu</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon sky">
+                <span class="material-symbols-outlined">construction</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">In Progress</p>
+                <span class="stat-value sky">3</span>
+                <p class="stat-sub">Đang thi công – Sân bị khoá</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon emerald">
+                <span class="material-symbols-outlined">check_circle</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Completed</p>
+                <span class="stat-value emerald">18</span>
+                <p class="stat-sub">Hoàn thành tháng này</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon rose">
+                <span class="material-symbols-outlined">cancel</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Cancelled</p>
+                <span class="stat-value rose">2</span>
+                <p class="stat-sub">Bị huỷ / từ chối</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar-container">
+        <div class="toolbar-filters">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" id="searchInput" placeholder="Tìm theo tên sân, loại bảo trì..." />
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">filter_list</span>
+                <select id="statusFilter">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Pending">Pending</option>
+                    <option value="InProgress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">build</span>
+                <select id="typeFilter">
+                    <option value="">Tất cả loại bảo trì</option>
+                    <option value="Routine">Routine (Định kỳ)</option>
+                    <option value="Emergency">Emergency (Khẩn cấp)</option>
+                    <option value="Upgrade">Upgrade (Nâng cấp)</option>
+                    <option value="Inspection">Inspection (Kiểm tra)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Table -->
+    <div class="table-panel glass-panel">
+        <table class="maintenance-table">
+            <thead>
+                <tr>
+                    <th>Sân</th>
+                    <th>Loại bảo trì</th>
+                    <th>Lý do / Mô tả</th>
+                    <th>Thời gian</th>
+                    <th>Trạng thái</th>
+                    <th>Người phụ trách</th>
+                    <th>Kết quả</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Row 1: Pending -->
+                <tr>
+                    <td>
+                        <div class="court-cell">
+                            <div class="court-icon">
+                                <span class="material-symbols-outlined">sports_tennis</span>
+                            </div>
+                            <div>
+                                <p class="court-name">Sân A1</p>
+                                <p class="court-location">ProCourt – Chi nhánh Q1</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="type-badge emergency">Emergency</span></td>
+                    <td class="reason-cell">Thay đèn chiếu sáng bị hỏng, mất 3/8 bóng</td>
+                    <td>
+                        <p class="time-start">28/06 06:00</p>
+                        <p class="time-end">28/06 14:00</p>
+                    </td>
+                    <td><span class="status-badge pending">Pending</span></td>
+                    <td>
+                        <div class="assigned-cell">
+                            <div class="assigned-avatar">
+                                <img alt="Lê Hoàng C" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
+                            </div>
+                            <span class="assigned-name">Lê Hoàng C</span>
+                        </div>
+                    </td>
+                    <td class="result-cell">–</td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-icon-btn verify" title="Duyệt / Từ chối">
+                                <span class="material-symbols-outlined">how_to_reg</span>
+                            </button>
+                            <button class="action-icon-btn edit" title="Chỉnh sửa">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="action-icon-btn delete" title="Xóa">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Row 2: InProgress -->
+                <tr>
+                    <td>
+                        <div class="court-cell">
+                            <div class="court-icon">
+                                <span class="material-symbols-outlined">sports_tennis</span>
+                            </div>
+                            <div>
+                                <p class="court-name">Sân B3</p>
+                                <p class="court-location">ProCourt – Chi nhánh Q1</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="type-badge routine">Routine</span></td>
+                    <td class="reason-cell">Căng lại lưới sân, thay dây cọc bị mòn</td>
+                    <td>
+                        <p class="time-start">28/06 08:00</p>
+                        <p class="time-end">28/06 12:00</p>
+                    </td>
+                    <td><span class="status-badge in-progress">In Progress</span></td>
+                    <td>
+                        <div class="assigned-cell">
+                            <div class="assigned-avatar">
+                                <img alt="Đỗ Hoàng Long" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcEWKF1CnspJSj_QYaU3G1i4pdivJ2Jv77qI2KCvJ1ciOYJFq5-rcFVNW0mGZdy6kkEqQ0xxoXLPnPf3f4dqydPkgMG7DV6MqRIKXw-4slH12hU2hekitsuTSPxVCJ9_Ea63bmsLRUU7iEHZrEK-IlZTSIUqGNp8QhZFNoFqQ9a3-i7ad9bTmo69xYaqTfDKfv83raCHzg2VtQoMFcmZRXiQKF7b_vskHMZJa-0kHtKNeMFNVDr6d-1ADKqg4K4mwLk4owz5N5jrY" />
+                            </div>
+                            <span class="assigned-name">Đỗ Hoàng Long</span>
+                        </div>
+                    </td>
+                    <td class="result-cell">Đang thi công – Sân tạm đóng</td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-icon-btn verify" title="Duyệt / Từ chối">
+                                <span class="material-symbols-outlined">how_to_reg</span>
+                            </button>
+                            <button class="action-icon-btn edit" title="Chỉnh sửa">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="action-icon-btn delete" title="Xóa">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Row 3: Completed -->
+                <tr>
+                    <td>
+                        <div class="court-cell">
+                            <div class="court-icon">
+                                <span class="material-symbols-outlined">sports_tennis</span>
+                            </div>
+                            <div>
+                                <p class="court-name">Sân C2</p>
+                                <p class="court-location">ProCourt – Chi nhánh Q1</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="type-badge inspection">Inspection</span></td>
+                    <td class="reason-cell">Kiểm tra định kỳ hệ thống điện toàn bộ tầng 3</td>
+                    <td>
+                        <p class="time-start">25/06 09:00</p>
+                        <p class="time-end">25/06 11:00</p>
+                    </td>
+                    <td><span class="status-badge done">Completed</span></td>
+                    <td>
+                        <div class="assigned-cell">
+                            <div class="assigned-avatar">
+                                <img alt="Lê Hoàng C" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
+                            </div>
+                            <span class="assigned-name">Lê Hoàng C</span>
+                        </div>
+                    </td>
+                    <td class="result-cell" style="color: var(--emerald-400);">Đã hoàn thành bảo trì (Duyệt bởi Manager)</td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-icon-btn edit" title="Xem chi tiết" disabled style="opacity:0.3;">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="action-icon-btn delete" title="Xóa">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Row 4: Cancelled -->
+                <tr>
+                    <td>
+                        <div class="court-cell">
+                            <div class="court-icon">
+                                <span class="material-symbols-outlined">sports_tennis</span>
+                            </div>
+                            <div>
+                                <p class="court-name">Khu WC</p>
+                                <p class="court-location">ProCourt – Chi nhánh Q1</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="type-badge upgrade">Upgrade</span></td>
+                    <td class="reason-cell">Lắp thêm bồn rửa tay mới khu nhà vệ sinh</td>
+                    <td>
+                        <p class="time-start">20/06 14:00</p>
+                        <p class="time-end">20/06 18:00</p>
+                    </td>
+                    <td><span class="status-badge cancelled">Cancelled</span></td>
+                    <td>
+                        <span class="assigned-name" style="color: var(--on-surface-variant);">Chưa phân công</span>
+                    </td>
+                    <td class="result-cell" style="color: var(--rose-400);">Từ chối: Không đủ ngân sách quý này</td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-icon-btn delete" title="Xóa">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-panel">
+        <p class="pagination-info">Hiển thị 1 - 4 của 28 lịch bảo trì</p>
+        <div class="pagination-buttons">
+            <button class="pagination-btn" disabled>
+                <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn">2</button>
+            <button class="pagination-btn">3</button>
+            <button class="pagination-btn">
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Create Maintenance Modal -->
+<div class="modal fade" id="createMaintenanceModal" tabindex="-1" aria-labelledby="createMaintenanceLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content maintenance-modal-content">
+            <div class="modal-header maintenance-modal-header">
+                <h5 class="modal-title" id="createMaintenanceLabel">
+                    <span class="material-symbols-outlined">handyman</span>
+                    Tạo lịch bảo trì mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label class="form-label-custom">Sân (CourtId)</label>
+                        <select class="form-input-custom">
+                            <option>-- Chọn sân --</option>
+                            <option>Sân A1</option>
+                            <option>Sân B3</option>
+                            <option>Sân C2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-custom">Loại bảo trì (MaintenanceType)</label>
+                        <select class="form-input-custom">
+                            <option>Routine – Định kỳ</option>
+                            <option>Emergency – Khẩn cấp</option>
+                            <option>Upgrade – Nâng cấp</option>
+                            <option>Inspection – Kiểm tra</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-custom">Thời gian bắt đầu (StartDateTime)</label>
+                        <input type="datetime-local" class="form-input-custom" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-custom">Thời gian kết thúc (EndDateTime)</label>
+                        <input type="datetime-local" class="form-input-custom" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-custom">Nhân viên phụ trách (AssignedStaffId)</label>
+                        <select class="form-input-custom">
+                            <option>-- Chọn nhân viên --</option>
+                            <option>Lê Hoàng C</option>
+                            <option>Đỗ Hoàng Long</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-custom">Trạng thái ban đầu (Status)</label>
+                        <select class="form-input-custom">
+                            <option>Pending</option>
+                            <option>InProgress</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group-full">
+                        <label class="form-label-custom">Lý do bảo trì (Reason)</label>
+                        <textarea class="form-input-custom" rows="3" placeholder="Mô tả chi tiết vấn đề hoặc lý do bảo trì..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer maintenance-modal-footer">
+                <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                <button type="button" class="btn-primary-custom">
+                    <span class="material-symbols-outlined">check</span>
+                    Tạo lịch bảo trì
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
