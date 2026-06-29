@@ -14,7 +14,6 @@
             <p class="text-secondary small mb-0">Hệ thống quản lý đặt sân SportsCourt</p>
         </div>
 
-<<<<<<< HEAD
         @if (TempData["VerifyEmail"] is string pendingEmail)
         {
             <div class="alert alert-warning py-2 small">
@@ -23,8 +22,6 @@
             </div>
         }
 
-=======
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
         <form asp-action="Login" method="post" class="form-dark">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="ReturnUrl" />
@@ -69,16 +66,10 @@
             <form asp-action="DevLoginAdmin" method="post" class="mt-2">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
-<<<<<<< HEAD
                     ⚡ Vào thẳng Admin
                 </button>
             </form>
             <p class="text-secondary small text-center mt-1 mb-0">Gọi API login thật với tài khoản Admin seed</p>
-=======
-                    ⚡ Vào thẳng Admin (Demo)
-                </button>
-            </form>
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
         </div>
 
         <p class="text-center text-secondary small mt-3 mb-0">

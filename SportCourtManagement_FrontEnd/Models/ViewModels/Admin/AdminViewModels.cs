@@ -1,8 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-<<<<<<< HEAD
 using Microsoft.AspNetCore.Http;
-=======
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 using SportCourtManagement_FrontEnd.Models.DTOs;
 
 namespace SportCourtManagement_FrontEnd.Models.ViewModels.Admin;
@@ -44,17 +41,11 @@ public class ComplexFormViewModel
     public string? Description { get; set; }
 
     [Display(Name = "URL ảnh")]
-<<<<<<< HEAD
     public string? ImageUrl { get; set; }
 
     [Display(Name = "Ảnh tổ hợp")]
     public IFormFile? ImageFile { get; set; }
 
-=======
-    [Url(ErrorMessage = "URL không hợp lệ")]
-    public string? ImageUrl { get; set; }
-
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     public List<int> CourtTypeIds { get; set; } = [];
     public List<CourtTypeDto> CourtTypeOptions { get; set; } = [];
     public List<UserDto> Managers { get; set; } = [];
@@ -66,8 +57,45 @@ public class ComplexDetailsViewModel
     public UserDto? Manager { get; set; }
     public List<CourtDto> Courts { get; set; } = [];
     public List<CourtTypeDto> CourtTypes { get; set; } = [];
+    public List<CourtTypeDto> ComplexCourtTypes { get; set; } = [];
+    public List<ComplexCourtTypeServiceDto> ServiceOfferings { get; set; } = [];
+    public List<ServiceDto> CatalogServices { get; set; } = [];
+    public int? SelectedCourtTypeId { get; set; }
     public string? Search { get; set; }
     public string? StatusFilter { get; set; }
+}
+
+public class ServiceOfferingFormViewModel
+{
+    public int ComplexId { get; set; }
+    public int? OfferingId { get; set; }
+
+    [Required]
+    [Display(Name = "Loại sân")]
+    public int CourtTypeId { get; set; }
+
+    [Required]
+    [Display(Name = "Dịch vụ")]
+    public int ServiceId { get; set; }
+
+    [Display(Name = "Giá (0 nếu Included)")]
+    [Range(0, double.MaxValue)]
+    public decimal Price { get; set; }
+
+    [Display(Name = "Tồn kho")]
+    [Range(0, int.MaxValue)]
+    public int StockQty { get; set; }
+
+    [Required]
+    [Display(Name = "Hình thức")]
+    public string ServiceMode { get; set; } = "Optional";
+
+    [Display(Name = "Đang hoạt động")]
+    public bool IsActive { get; set; } = true;
+
+    public List<CourtTypeDto> CourtTypeOptions { get; set; } = [];
+    public List<ServiceDto> CatalogServices { get; set; } = [];
+    public List<string> ServiceModeOptions { get; set; } = ["Included", "Optional"];
 }
 
 public class CourtFormViewModel

@@ -274,7 +274,6 @@ body.auth-body {
     background: rgba(34,197,94,.15); border-color: rgba(34,197,94,.4); color: #4ade80;
 }
 
-<<<<<<< HEAD
 /* Toast notifications */
 .toast-container {
     position: fixed;
@@ -348,11 +347,6 @@ body.auth-body {
     box-shadow: 0 0 0 .2rem rgba(34,197,94,.15);
 }
 .admin-modal .form-control.is-invalid { border-color: #f87171; }
-=======
-.alert-flash { border-radius: .5rem; padding: .75rem 1rem; margin-bottom: 1rem; font-size: .875rem; }
-.alert-success-flash { background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.3); color: #4ade80; }
-.alert-error-flash { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.3); color: #f87171; }
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 
 .pagination-custom { display: flex; gap: .5rem; justify-content: center; margin-top: 1.5rem; }
 .pagination-custom a, .pagination-custom span {

@@ -50,15 +50,127 @@
     </div>
 </div>
 
+<hr class="border-secondary my-4" />
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="h6 text-white mb-1"><i class="fa-solid fa-toolbox me-2 text-warning"></i>Dịch vụ theo loại sân</h2>
+        <p class="text-secondary small mb-0">Cấu hình dịch vụ luôn cung cấp (miễn phí) và dịch vụ tùy chọn khi đặt.</p>
+    </div>
+    @if (Model.ComplexCourtTypes.Any())
+    {
+        <a asp-action="AddService" asp-route-complexId="@Model.Complex.ComplexId" asp-route-courtTypeId="@Model.SelectedCourtTypeId"
+           class="btn-primary-custom btn-sm"><i class="fa-solid fa-plus"></i> Thêm dịch vụ</a>
+    }
+</div>
+
+@if (!Model.ComplexCourtTypes.Any())
+{
+    <div class="empty-state py-4">
+        <p class="text-secondary mb-0">Thêm sân vào tổ hợp trước khi cấu hình dịch vụ theo loại sân.</p>
+    </div>
+}
+else
+{
+    <div class="filter-bar mb-3">
+        @foreach (var ct in Model.ComplexCourtTypes)
+        {
+            <a asp-action="Details" asp-route-id="@Model.Complex.ComplexId" asp-route-courtTypeId="@ct.CourtTypeId"
+               asp-route-search="@Model.Search" asp-route-status="@Model.StatusFilter"
+               class="filter-chip @(Model.SelectedCourtTypeId == ct.CourtTypeId ? "active" : "")">@ct.TypeName</a>
+        }
+    </div>
+
+    var offerings = Model.ServiceOfferings
+        .Where(o => o.CourtTypeId == Model.SelectedCourtTypeId)
+        .OrderBy(o => o.ServiceMode)
+        .ThenBy(o => o.ServiceName)
+        .ToList();
+
+    if (!offerings.Any())
+    {
+        <div class="empty-state py-4">
+            <p class="text-secondary">Chưa có dịch vụ cho loại sân này.</p>
+            <a asp-action="AddService" asp-route-complexId="@Model.Complex.ComplexId" asp-route-courtTypeId="@Model.SelectedCourtTypeId" class="btn-secondary-custom btn-sm">Thêm dịch vụ đầu tiên</a>
+        </div>
+    }
+    else
+    {
+        <div class="admin-card">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Dịch vụ</th>
+                        <th>Loại</th>
+                        <th>Hình thức</th>
+                        <th>Giá</th>
+                        <th>Tồn kho</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var o in offerings)
+                    {
+                        var (catLabel, catCss) = DisplayHelpers.GetServiceCategory(o.Category);
+                        <tr class="@(!o.IsActive ? "opacity-50" : "")">
+                            <td>
+                                <div class="fw-semibold text-white">@o.ServiceName</div>
+                                <div class="text-secondary small">@o.Unit</div>
+                            </td>
+                            <td><span class="@catCss small fw-semibold">@catLabel</span></td>
+                            <td>
+                                @if (o.ServiceMode == "Included")
+                                {
+                                    <span class="status-badge status-available">Luôn cung cấp</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge" style="background:rgba(59,130,246,.15);color:#93c5fd">Tùy chọn</span>
+                                }
+                            </td>
+                            <td>
+                                @if (o.ServiceMode == "Included")
+                                {
+                                    <span class="text-success fw-semibold">Miễn phí</span>
+                                }
+                                else
+                                {
+                                    @DisplayHelpers.FormatCurrency(o.Price)
+                                }
+                            </td>
+                            <td><span class="fw-semibold @(o.StockQty < 10 ? "text-warning" : "")">@o.StockQty</span></td>
+                            <td>@(o.IsActive ? "Hoạt động" : "Ngưng")</td>
+                            <td class="text-end">
+                                <a asp-action="EditService" asp-route-offeringId="@o.OfferingId" asp-route-complexId="@Model.Complex.ComplexId" class="btn-ghost"><i class="fa-solid fa-pen"></i></a>
+                                <form asp-action="DeleteService" method="post" class="d-inline" onsubmit="return confirm('Xóa dịch vụ khỏi loại sân này?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="offeringId" value="@o.OfferingId" />
+                                    <input type="hidden" name="complexId" value="@Model.Complex.ComplexId" />
+                                    <input type="hidden" name="courtTypeId" value="@Model.SelectedCourtTypeId" />
+                                    <button type="submit" class="btn-ghost text-danger"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+<hr class="border-secondary my-4" />
+
 <form asp-action="Details" asp-route-id="@Model.Complex.ComplexId" method="get" class="filter-bar">
+    <input type="hidden" name="courtTypeId" value="@Model.SelectedCourtTypeId" />
     <div class="filter-search">
         <i class="fa-solid fa-magnifying-glass text-secondary"></i>
         <input type="text" name="search" value="@Model.Search" placeholder="Tìm tên hoặc mã sân..." />
     </div>
-    <a asp-action="Details" asp-route-id="@Model.Complex.ComplexId" class="filter-chip @(string.IsNullOrEmpty(Model.StatusFilter) ? "active" : "")">Tất cả</a>
+    <a asp-action="Details" asp-route-id="@Model.Complex.ComplexId" asp-route-courtTypeId="@Model.SelectedCourtTypeId" class="filter-chip @(string.IsNullOrEmpty(Model.StatusFilter) ? "active" : "")">Tất cả</a>
     @foreach (var s in new[] { "Available", "Maintenance", "Inactive", "Booked" })
     {
-        <a asp-action="Details" asp-route-id="@Model.Complex.ComplexId" asp-route-search="@Model.Search" asp-route-status="@s"
+        <a asp-action="Details" asp-route-id="@Model.Complex.ComplexId" asp-route-search="@Model.Search" asp-route-status="@s" asp-route-courtTypeId="@Model.SelectedCourtTypeId"
            class="filter-chip @(Model.StatusFilter == s ? "active" : "")">@((DisplayHelpers.GetCourtStatus(s).Label))</a>
     }
 </form>

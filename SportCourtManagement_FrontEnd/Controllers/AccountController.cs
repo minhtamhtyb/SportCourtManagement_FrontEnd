@@ -3,26 +3,19 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-<<<<<<< HEAD
 using Microsoft.Extensions.Options;
 using SportCourtManagement_FrontEnd.Models.Configuration;
-=======
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
+
 using SportCourtManagement_FrontEnd.Models.DTOs;
 using SportCourtManagement_FrontEnd.Models.ViewModels.Auth;
 using SportCourtManagement_FrontEnd.Services.Interfaces;
 
 namespace SportCourtManagement_FrontEnd.Controllers;
 
-<<<<<<< HEAD
 public class AccountController(IAuthService authService, IOptions<ApiSettings> apiSettings) : Controller
 {
     private readonly bool _useMockData = apiSettings.Value.UseMockData;
 
-=======
-public class AccountController(IAuthService authService) : Controller
-{
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     [HttpGet]
     [AllowAnonymous]
     public IActionResult Login(string? returnUrl = null)
@@ -41,17 +34,12 @@ public class AccountController(IAuthService authService) : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-<<<<<<< HEAD
         var result = await authService.LoginAsync(new LoginRequest
-=======
-        var response = await authService.LoginAsync(new LoginRequest
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
         {
             Email = model.Email,
             Password = model.Password
         });
 
-<<<<<<< HEAD
         if (!result.Succeeded)
         {
             if (result.RequiresEmailVerification)
@@ -68,25 +56,11 @@ public class AccountController(IAuthService authService) : Controller
 
         await SignInUserAsync(result.Response!.User, result.Response.AccessToken, result.Response.RefreshToken);
         TempData["Success"] = $"Chào mừng {result.Response.User.FullName} quay trở lại!";
-=======
-        if (response == null)
-        {
-            ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không đúng.");
-            return View(model);
-        }
-
-        await SignInUserAsync(response.User, response.AccessToken);
-        TempData["Success"] = $"Chào mừng {response.User.FullName} quay trở lại!";
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 
         if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
             return Redirect(model.ReturnUrl);
 
-<<<<<<< HEAD
         return RedirectToRoleHome(result.Response.User.Role);
-=======
-        return RedirectToRoleHome(response.User.Role);
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     }
 
     [HttpGet]
@@ -111,15 +85,11 @@ public class AccountController(IAuthService authService) : Controller
                 Password = model.Password,
                 ConfirmPassword = model.ConfirmPassword
             });
-<<<<<<< HEAD
 
             TempData["Success"] = _useMockData
                 ? "Đăng ký thành công! Demo OTP: 123456"
                 : "Đăng ký thành công! Kiểm tra console Backend để lấy mã OTP.";
 
-=======
-            TempData["Success"] = "Đăng ký thành công! Mã OTP demo: 123456";
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
             return RedirectToAction(nameof(VerifyEmail), new { email = model.Email });
         }
         catch (InvalidOperationException ex)
@@ -127,39 +97,28 @@ public class AccountController(IAuthService authService) : Controller
             ModelState.AddModelError(string.Empty, ex.Message);
             return View(model);
         }
-<<<<<<< HEAD
         catch (HttpRequestException)
         {
             ModelState.AddModelError(string.Empty, "Không kết nối được API Backend. Hãy chạy Backend trước (port 5211).");
             return View(model);
         }
-=======
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     }
 
     [HttpGet]
     [AllowAnonymous]
-<<<<<<< HEAD
     public IActionResult VerifyEmail(string? email)
     {
         ViewBag.UseMockData = _useMockData;
         return View(new VerifyEmailViewModel { Email = email ?? TempData["VerifyEmail"]?.ToString() ?? "" });
     }
-=======
-    public IActionResult VerifyEmail(string? email) =>
-        View(new VerifyEmailViewModel { Email = email ?? "" });
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
     {
-<<<<<<< HEAD
         ViewBag.UseMockData = _useMockData;
 
-=======
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
         if (!ModelState.IsValid)
             return View(model);
 
@@ -178,14 +137,11 @@ public class AccountController(IAuthService authService) : Controller
             ModelState.AddModelError(string.Empty, ex.Message);
             return View(model);
         }
-<<<<<<< HEAD
         catch (HttpRequestException)
         {
             ModelState.AddModelError(string.Empty, "Không kết nối được API Backend. Hãy chạy Backend trước (port 5211).");
             return View(model);
         }
-=======
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     }
 
     [HttpPost]
@@ -194,10 +150,7 @@ public class AccountController(IAuthService authService) : Controller
     public async Task<IActionResult> Logout()
     {
         await authService.LogoutAsync();
-<<<<<<< HEAD
         ClearAuthSession();
-=======
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         TempData["Success"] = "Đăng xuất thành công!";
         return RedirectToAction(nameof(Login));
@@ -212,7 +165,6 @@ public class AccountController(IAuthService authService) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DevLoginAdmin()
     {
-<<<<<<< HEAD
         if (_useMockData)
         {
             var user = new UserDto
@@ -246,22 +198,6 @@ public class AccountController(IAuthService authService) : Controller
     }
 
     private async Task SignInUserAsync(UserDto user, string accessToken, string? refreshToken = null)
-=======
-        var user = new UserDto
-        {
-            UserId = 1,
-            FullName = "Super Admin",
-            Email = "admin@sportscourtms.vn",
-            Role = "Admin",
-            MembershipTier = "Platinum"
-        };
-        await SignInUserAsync(user, "dev-token");
-        TempData["Success"] = "Dev mode — Đăng nhập Admin thành công!";
-        return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-    }
-
-    private async Task SignInUserAsync(UserDto user, string token)
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     {
         var claims = new List<Claim>
         {
@@ -269,7 +205,6 @@ public class AccountController(IAuthService authService) : Controller
             new(ClaimTypes.Name, user.FullName),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Role, user.Role),
-<<<<<<< HEAD
             new(Services.Api.JwtForwardingHandler.AccessTokenClaimType, accessToken),
         };
 
@@ -289,16 +224,10 @@ public class AccountController(IAuthService authService) : Controller
 
         authProperties.StoreTokens(tokens);
 
-=======
-            new("access_token", token)
-        };
-
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(identity),
-<<<<<<< HEAD
             authProperties);
 
         await HttpContext.Session.LoadAsync();
@@ -312,9 +241,6 @@ public class AccountController(IAuthService authService) : Controller
     {
         HttpContext.Session.Remove(Services.Api.JwtForwardingHandler.SessionTokenKey);
         HttpContext.Session.Remove("refresh_token");
-=======
-            new AuthenticationProperties { IsPersistent = true });
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
     }
 
     private IActionResult RedirectToRoleHome(string? role = null)

@@ -10,6 +10,7 @@ public class MockDataStore
     private int _nextComplexId = 10;
     private int _nextCourtId = 20;
     private int _nextServiceId = 20;
+    private int _nextOfferingId = 100;
     private int _nextUserId = 20;
 
     public List<UserDto> Users { get; } =
@@ -69,6 +70,13 @@ public class MockDataStore
         new() { ServiceId = 8, ServiceName = "Thuê lưới dự phòng", Category = "Equipment", Price = 50000, Unit = "Bộ", Description = "Lưới tiêu chuẩn thi đấu", StockQty = 10, IsActive = true },
     ];
 
+    public List<ComplexCourtTypeServiceDto> ServiceOfferings { get; } =
+    [
+        new() { OfferingId = 1, ComplexId = 1, CourtTypeId = 1, CourtTypeName = "Pickleball", ServiceId = 3, ServiceName = "Nước suối Lavie", Category = "Drink", Unit = "Chai", Price = 0, StockQty = 100, ServiceMode = "Included", IsActive = true },
+        new() { OfferingId = 2, ComplexId = 1, CourtTypeId = 1, CourtTypeName = "Pickleball", ServiceId = 1, ServiceName = "Thuê vợt Pickleball", Category = "Equipment", Unit = "Giờ", Price = 30000, StockQty = 25, ServiceMode = "Optional", IsActive = true },
+        new() { OfferingId = 3, ComplexId = 1, CourtTypeId = 2, CourtTypeName = "Cầu lông", ServiceId = 3, ServiceName = "Nước suối Lavie", Category = "Drink", Unit = "Chai", Price = 0, StockQty = 80, ServiceMode = "Included", IsActive = true },
+    ];
+
     public List<RoleDto> Roles { get; } =
     [
         new() { RoleId = 1, RoleName = "Admin", Description = "Quản trị viên hệ thống — toàn quyền", UserCount = 1 },
@@ -120,5 +128,6 @@ public class MockDataStore
     public int NextComplexId() => _nextComplexId++;
     public int NextCourtId() => _nextCourtId++;
     public int NextServiceId() => _nextServiceId++;
+    public int NextOfferingId() => _nextOfferingId++;
     public int NextUserId() => _nextUserId++;
 }

@@ -41,7 +41,6 @@ public class AuthResponse
     public UserDto User { get; set; } = new();
 }
 
-<<<<<<< HEAD
 public class AuthLoginResult
 {
     public AuthResponse? Response { get; init; }
@@ -56,8 +55,6 @@ public class AuthLoginResult
         new() { ErrorMessage = message, RequiresEmailVerification = requiresVerification };
 }
 
-=======
->>>>>>> 27f494423e01f6551489a0125ff0c2254db9326e
 public class CourtTypeDto
 {
     public int CourtTypeId { get; set; }
@@ -125,6 +122,22 @@ public class ServiceDto
     public string? Unit { get; set; }
     public string? Description { get; set; }
     public int StockQty { get; set; }
+    public bool IsActive { get; set; } = true;
+}
+
+public class ComplexCourtTypeServiceDto
+{
+    public int OfferingId { get; set; }
+    public int ComplexId { get; set; }
+    public int CourtTypeId { get; set; }
+    public string CourtTypeName { get; set; } = "";
+    public int ServiceId { get; set; }
+    public string ServiceName { get; set; } = "";
+    public string Category { get; set; } = "";
+    public string Unit { get; set; } = "";
+    public decimal Price { get; set; }
+    public int StockQty { get; set; }
+    public string ServiceMode { get; set; } = "Optional";
     public bool IsActive { get; set; } = true;
 }
 

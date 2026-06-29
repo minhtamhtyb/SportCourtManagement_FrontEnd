@@ -32,6 +32,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcQ29tcGxleGVzXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/FPT UNIVERSITY/SUMMER_2026_SEASON8/PRN232/Project_PRN232/Frontend/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Areas/Admin/Views/Complexes/ServiceForm.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcQ29tcGxleGVzXFNlcnZpY2VGb3JtLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT UNIVERSITY/SUMMER_2026_SEASON8/PRN232/Project_PRN232/Frontend/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Areas/Admin/Views/Complexes/_ComplexFormModal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcQ29tcGxleGVzXF9Db21wbGV4Rm9ybU1vZGFsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/FPT UNIVERSITY/SUMMER_2026_SEASON8/PRN232/Project_PRN232/Frontend/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Areas/Admin/Views/Courts/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcQ291cnRzXENyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
