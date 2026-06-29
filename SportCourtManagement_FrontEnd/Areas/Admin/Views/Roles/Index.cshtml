@@ -6,9 +6,10 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">Quản lý vai trò & Phân quyền</h1>
-        <p class="page-subtitle">RBAC — Role-Based Access Control theo SRS</p>
+        <p class="page-subtitle">RBAC — Role-Based Access Control theo SRS. Cột <strong class="text-white">Manager</strong> = Staff được gán quản lý tổ hợp sân.</p>
     </div>
-    <a asp-action="PermissionMatrix" class="btn-secondary-custom"><i class="fa-solid fa-table"></i> Ma trận phân quyền</a>
+    <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="btn-primary-custom btn-sm"><i class="fa-solid fa-users"></i> Quản lý người dùng</a>
+    <a asp-action="PermissionMatrix" class="btn-secondary-custom btn-sm"><i class="fa-solid fa-table"></i> Ma trận đầy đủ</a>
 </div>
 
 <div class="row g-4 mb-4">

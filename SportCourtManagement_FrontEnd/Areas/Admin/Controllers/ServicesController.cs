@@ -7,7 +7,7 @@ using SportCourtManagement_FrontEnd.Services.Interfaces;
 namespace SportCourtManagement_FrontEnd.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = "AdminOrStaff")]
 public class ServicesController(IServiceCatalogService serviceCatalog) : Controller
 {
     public async Task<IActionResult> Index(string? category, string? search)

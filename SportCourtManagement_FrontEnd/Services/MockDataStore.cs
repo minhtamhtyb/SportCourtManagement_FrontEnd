@@ -97,6 +97,7 @@ public class MockDataStore
         new() { Feature = "Đánh giá", Admin = false, Manager = false, Staff = false, Coach = false, Customer = true },
         new() { Feature = "Quản lý khuyến mãi", Admin = true, Manager = false, Staff = false, Coach = false, Customer = false },
         new() { Feature = "Quản lý nhân viên", Admin = true, Manager = true, Staff = false, Coach = false, Customer = false },
+        new() { Feature = "Phân quyền hệ thống", Admin = true, Manager = false, Staff = false, Coach = false, Customer = false },
     ];
 
     public MockDataStore()

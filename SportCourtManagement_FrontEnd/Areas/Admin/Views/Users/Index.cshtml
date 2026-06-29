@@ -6,7 +6,7 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">Quản lý người dùng</h1>
-        <p class="page-subtitle">Danh sách tài khoản và phân vai trò</p>
+        <p class="page-subtitle">Danh sách tài khoản và phân vai trò — <a asp-area="Admin" asp-controller="Roles" asp-action="Index" class="text-success text-decoration-none">Xem ma trận phân quyền</a></p>
     </div>
 </div>
 
@@ -21,67 +21,105 @@
         <a asp-action="Index" asp-route-role="@r" asp-route-search="@Model.Search"
            class="filter-chip @(Model.Role == r ? "active" : "")">@r</a>
     }
+    <span class="text-secondary small ms-auto"><strong class="text-white">@Model.TotalCount</strong> người dùng</span>
 </form>
 
-<div class="admin-card">
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Người dùng</th>
-                <th>Email / SĐT</th>
-                <th>Vai trò</th>
-                <th>Hạng</th>
-                <th>Trạng thái</th>
-                <th class="text-end">Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var u in Model.Users)
-            {
-                <tr class="@(!u.IsActive ? "opacity-50" : "")">
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="@(u.AvatarUrl ?? $"https://api.dicebear.com/8.x/avataaars/svg?seed={u.UserId}")" class="rounded-circle" width="36" height="36" alt="" />
-                            <span class="fw-semibold text-white">@u.FullName</span>
-                        </div>
-                    </td>
-                    <td class="small text-secondary">
-                        <div>@u.Email</div>
-                        <div>@(u.Phone ?? "—")</div>
-                    </td>
-                    <td><span class="type-badge type-default">@u.Role</span></td>
-                    <td class="text-secondary small">@(u.MembershipTier ?? "—")</td>
-                    <td>
-                        @if (u.IsActive)
-                        { <span class="status-badge status-available">Active</span> }
-                        else
-                        { <span class="status-badge status-inactive">Vô hiệu</span> }
-                    </td>
-                    <td class="text-end">
-                        <a asp-action="Details" asp-route-id="@u.UserId" class="btn-ghost"><i class="fa-solid fa-eye"></i></a>
-                        <a asp-action="EditRoles" asp-route-id="@u.UserId" class="btn-ghost"><i class="fa-solid fa-user-gear"></i></a>
-                        <form asp-action="ToggleStatus" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@u.UserId" />
-                            <input type="hidden" name="isActive" value="@(!u.IsActive).ToString().ToLower()" />
-                            <button type="submit" class="btn-ghost" title="@(u.IsActive ? "Vô hiệu hóa" : "Kích hoạt")">
+@if (!Model.Users.Any())
+{
+    <div class="empty-state py-5">
+        <i class="fa-solid fa-users d-block"></i>
+        <p class="text-secondary">Không tìm thấy người dùng phù hợp.</p>
+    </div>
+}
+else
+{
+    <div class="admin-card">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Người dùng</th>
+                    <th>Email / SĐT</th>
+                    <th>Vai trò</th>
+                    <th>Hạng</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model.Users)
+                {
+                    <tr class="@(!u.IsActive ? "opacity-50" : "")">
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="@(u.AvatarUrl ?? $"https://api.dicebear.com/8.x/avataaars/svg?seed={u.UserId}")" class="rounded-circle" width="36" height="36" alt="" />
+                                <span class="fw-semibold text-white">@u.FullName</span>
+                            </div>
+                        </td>
+                        <td class="small text-secondary">
+                            <div>@u.Email</div>
+                            <div>@(u.Phone ?? "—")</div>
+                        </td>
+                        <td><span class="type-badge type-default">@u.Role</span></td>
+                        <td class="text-secondary small">@(u.MembershipTier ?? "—")</td>
+                        <td>
+                            @if (u.IsActive)
+                            { <span class="status-badge status-available">Active</span> }
+                            else
+                            { <span class="status-badge status-inactive">Vô hiệu</span> }
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@u.UserId" class="btn-ghost" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
+                            <button type="button" class="btn-ghost" title="Gán vai trò"
+                                    data-user-roles-edit data-user-id="@u.UserId">
+                                <i class="fa-solid fa-user-gear"></i>
+                            </button>
+                            <button type="button" class="btn-ghost" title="@(u.IsActive ? "Vô hiệu hóa" : "Kích hoạt")"
+                                    data-user-toggle-status
+                                    data-user-id="@u.UserId"
+                                    data-user-name="@u.FullName"
+                                    data-is-active="@u.IsActive.ToString().ToLower()">
                                 <i class="fa-solid @(u.IsActive ? "fa-ban text-danger" : "fa-check text-success")"></i>
                             </button>
-                        </form>
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pagination-custom">
+            @for (var p = 1; p <= Model.TotalPages; p++)
+            {
+                <a asp-action="Index" asp-route-page="@p" asp-route-search="@Model.Search" asp-route-role="@Model.Role"
+                   class="@(p == Model.Page ? "active" : "")">@p</a>
             }
-        </tbody>
-    </table>
+        </div>
+    }
+}
+
+<div class="modal fade" id="userRolesModal" tabindex="-1" aria-labelledby="userRolesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content admin-modal">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white" id="userRolesModalLabel">Gán vai trò</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body" id="userRolesModalBody">
+                <div class="text-center py-4 text-secondary">
+                    <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                    <span class="ms-2">Đang tải...</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-@if (Model.TotalPages > 1)
-{
-    <div class="pagination-custom">
-        @for (var p = 1; p <= Model.TotalPages; p++)
-        {
-            <a asp-action="Index" asp-route-page="@p" asp-route-search="@Model.Search" asp-route-role="@Model.Role"
-               class="@(p == Model.Page ? "active" : "")">@p</a>
-        }
-    </div>
+<form id="userToggleStatusForm" method="post" class="d-none">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script src="~/js/users.js" asp-append-version="true"></script>
 }

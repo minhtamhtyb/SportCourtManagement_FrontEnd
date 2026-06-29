@@ -238,6 +238,7 @@ public class UserEditRolesViewModel
 
     public List<string> RoleOptions { get; set; } = ["Admin", "Staff", "Coach", "Customer"];
     public bool IsActive { get; set; } = true;
+    public bool IsSelf { get; set; }
 }
 
 public class RoleListViewModel

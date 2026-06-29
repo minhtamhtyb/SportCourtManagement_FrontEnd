@@ -89,31 +89,25 @@ public class ApiUserService(ApiClient api) : IUserService
 {
     public async Task<PagedResult<UserDto>> GetUsersAsync(string? search, string? role, int page, int pageSize)
     {
-        var query = "api/users";
-        var parts = new List<string>();
+        var query = $"api/users?page={page}&pageSize={pageSize}";
         if (!string.IsNullOrWhiteSpace(search))
-            parts.Add($"search={Uri.EscapeDataString(search)}");
+            query += $"&search={Uri.EscapeDataString(search)}";
         if (!string.IsNullOrWhiteSpace(role))
-            parts.Add($"role={Uri.EscapeDataString(role)}");
-        if (parts.Count > 0)
-            query += "?" + string.Join("&", parts);
+            query += $"&role={Uri.EscapeDataString(role)}";
 
-        var users = (await api.GetDataAsync<List<UserSummaryApi>>(query) ?? [])
-            .Select(MapUser).ToList();
-
-        var total = users.Count;
-        var items = users.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-        var totalPages = (int)Math.Ceiling(total / (double)pageSize);
+        var result = await api.GetDataAsync<PagedUsersApi>(query);
+        if (result?.Items == null)
+            return new PagedResult<UserDto>();
 
         return new PagedResult<UserDto>
         {
-            Items = items,
-            TotalCount = total,
-            PageNumber = page,
-            PageSize = pageSize,
-            TotalPages = totalPages,
-            HasNextPage = page < totalPages,
-            HasPreviousPage = page > 1
+            Items = result.Items.Select(MapUser).ToList(),
+            TotalCount = result.TotalCount,
+            PageNumber = result.Page,
+            PageSize = result.PageSize,
+            TotalPages = result.TotalPages,
+            HasNextPage = result.Page < result.TotalPages,
+            HasPreviousPage = result.Page > 1
         };
     }
 
@@ -141,8 +135,19 @@ public class ApiUserService(ApiClient api) : IUserService
         Phone = u.Phone,
         AvatarUrl = u.AvatarUrl,
         Role = u.Role,
-        IsActive = u.IsActive
+        MembershipTier = u.MembershipTierName,
+        IsActive = u.IsActive,
+        CreatedAt = u.CreatedAt
     };
+
+    private class PagedUsersApi
+    {
+        public List<UserSummaryApi> Items { get; set; } = [];
+        public int TotalCount { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+    }
 
     private class UserSummaryApi
     {
@@ -152,7 +157,9 @@ public class ApiUserService(ApiClient api) : IUserService
         public string? Phone { get; set; }
         public string? AvatarUrl { get; set; }
         public string Role { get; set; } = "";
+        public string? MembershipTierName { get; set; }
         public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }
 
@@ -164,23 +171,9 @@ public class ApiRoleService(ApiClient api) : IRoleService
         return roles ?? [];
     }
 
-    public Task<List<PermissionMatrixRow>> GetPermissionMatrixAsync() =>
-        Task.FromResult(StaticPermissionMatrix.Rows);
-}
-
-internal static class StaticPermissionMatrix
-{
-    public static List<PermissionMatrixRow> Rows { get; } =
-    [
-        new() { Feature = "Quản lý sân", Admin = true, Manager = true, Staff = false, Coach = false, Customer = false },
-        new() { Feature = "Quản lý đặt sân", Admin = true, Manager = true, Staff = true, Coach = false, Customer = true },
-        new() { Feature = "Quản lý khách hàng", Admin = true, Manager = true, Staff = true, Coach = false, Customer = false },
-        new() { Feature = "Thống kê doanh thu", Admin = true, Manager = true, Staff = false, Coach = false, Customer = false },
-        new() { Feature = "Quản lý dịch vụ", Admin = true, Manager = true, Staff = true, Coach = false, Customer = false },
-        new() { Feature = "Quản lý lịch dạy", Admin = true, Manager = true, Staff = false, Coach = true, Customer = false },
-        new() { Feature = "Đặt sân", Admin = true, Manager = true, Staff = true, Coach = true, Customer = true },
-        new() { Feature = "Đánh giá", Admin = false, Manager = false, Staff = false, Coach = false, Customer = true },
-        new() { Feature = "Quản lý khuyến mãi", Admin = true, Manager = false, Staff = false, Coach = false, Customer = false },
-        new() { Feature = "Quản lý nhân viên", Admin = true, Manager = true, Staff = false, Coach = false, Customer = false },
-    ];
+    public async Task<List<PermissionMatrixRow>> GetPermissionMatrixAsync()
+    {
+        var rows = await api.GetDataAsync<List<PermissionMatrixRow>>("api/roles/permission-matrix");
+        return rows ?? [];
+    }
 }
