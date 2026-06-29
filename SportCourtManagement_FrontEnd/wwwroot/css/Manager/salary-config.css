@@ -6,7 +6,7 @@
     --rose-400: #fb7185;
     --rose-500: #f43f5e;
     --slate-500: #64748b;
-    
+
     --emerald-bg: rgba(16, 185, 129, 0.1);
     --secondary-bg: rgba(123, 208, 255, 0.1);
     --tertiary-bg: rgba(255, 183, 131, 0.1);
@@ -141,7 +141,7 @@
     background-color: var(--primary);
 }
 
-/* Grid Layout for Bento Config panels */
+/* Grid Layout for Bento Config panels
 .config-grid {
     display: grid;
     grid-template-cols: repeat(2, 1fr);
@@ -152,7 +152,7 @@
     .config-grid {
         grid-template-cols: 1fr;
     }
-}
+} */
 
 .glass-panel {
     background: rgba(31, 31, 39, 0.4);
@@ -160,7 +160,7 @@
     border: 1px solid rgba(70, 69, 84, 0.3);
     border-radius: 12px;
     padding: 24px;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
 }
 
 .panel-header {

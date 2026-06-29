@@ -45,7 +45,11 @@
                 <span class="legend-dot afternoon"></span><span>Afternoon 14–22h</span>
                 <span class="legend-dot evening"></span><span>Evening 22–06h</span>
             </div>
-            <button class="add-staff-btn" data-bs-toggle="modal" data-bs-target="#createShiftModal">
+            <button class="btn-secondary-custom" data-bs-toggle="modal" data-bs-target="#bulkCreateShiftModal" style="height: 38px;">
+                <span class="material-symbols-outlined">upload_file</span>
+                Xếp ca hàng loạt
+            </button>
+            <button class="add-staff-btn" data-bs-toggle="modal" data-bs-target="#createShiftModal" style="height: 38px;">
                 <span class="material-symbols-outlined">add</span>
                 Thêm ca trực
             </button>
@@ -85,40 +89,43 @@
                             </div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card morning">
+                            <div class="shift-card morning" data-shift-id="101" data-staff-id="1" data-staff-name="Nguyễn Văn A" data-date="2026-06-23" data-type="Morning" data-note="Làm thay ca Trần Thị B" title="Ghi chú: Làm thay ca Trần Thị B">
+                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                    <span class="shift-type-label">Morning</span>
+                                    <span class="material-symbols-outlined" style="font-size: 12px; opacity: 0.8;" title="Làm thay ca Trần Thị B">description</span>
+                                </div>
+                                <span class="shift-time-label">06:00–14:00</span>
+                            </div>
+                        </td>
+                        <td class="shift-cell">
+                            <div class="shift-card morning" data-shift-id="102" data-staff-id="1" data-staff-name="Nguyễn Văn A" data-date="2026-06-24" data-type="Morning">
                                 <span class="shift-type-label">Morning</span>
                                 <span class="shift-time-label">06:00–14:00</span>
                             </div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card morning">
-                                <span class="shift-type-label">Morning</span>
-                                <span class="shift-time-label">06:00–14:00</span>
-                            </div>
+                            <div class="shift-card off" data-staff-id="1" data-staff-name="Nguyễn Văn A" data-date="2026-06-25">OFF</div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card off">OFF</div>
-                        </td>
-                        <td class="shift-cell">
-                            <div class="shift-card afternoon">
+                            <div class="shift-card afternoon" data-shift-id="104" data-staff-id="1" data-staff-name="Nguyễn Văn A" data-date="2026-06-26" data-type="Afternoon">
                                 <span class="shift-type-label">Afternoon</span>
                                 <span class="shift-time-label">14:00–22:00</span>
                             </div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card afternoon">
+                            <div class="shift-card afternoon" data-shift-id="105" data-staff-id="1" data-staff-name="Nguyễn Văn A" data-date="2026-06-27" data-type="Afternoon">
                                 <span class="shift-type-label">Afternoon</span>
                                 <span class="shift-time-label">14:00–22:00</span>
                             </div>
                         </td>
                         <td class="shift-cell weekend-cell">
-                            <div class="shift-card morning">
+                            <div class="shift-card morning" data-shift-id="106" data-staff-id="1" data-staff-name="Nguyễn Văn A" data-date="2026-06-28" data-type="Morning">
                                 <span class="shift-type-label">Morning</span>
                                 <span class="shift-time-label">06:00–14:00</span>
                             </div>
                         </td>
                         <td class="shift-cell weekend-cell">
-                            <div class="shift-card off">OFF</div>
+                            <div class="shift-card off" data-staff-id="1" data-staff-name="Nguyễn Văn A" data-date="2026-06-29">OFF</div>
                         </td>
                     </tr>
 
@@ -138,40 +145,40 @@
                             </div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card afternoon">
+                            <div class="shift-card afternoon" data-shift-id="201" data-staff-id="2" data-staff-name="Trần Thị B" data-date="2026-06-23" data-type="Afternoon">
                                 <span class="shift-type-label">Afternoon</span>
                                 <span class="shift-time-label">14:00–22:00</span>
                             </div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card off">OFF</div>
+                            <div class="shift-card off" data-staff-id="2" data-staff-name="Trần Thị B" data-date="2026-06-24">OFF</div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card morning">
+                            <div class="shift-card morning" data-shift-id="203" data-staff-id="2" data-staff-name="Trần Thị B" data-date="2026-06-25" data-type="Morning">
                                 <span class="shift-type-label">Morning</span>
                                 <span class="shift-time-label">06:00–14:00</span>
                             </div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card morning">
+                            <div class="shift-card morning" data-shift-id="204" data-staff-id="2" data-staff-name="Trần Thị B" data-date="2026-06-26" data-type="Morning">
                                 <span class="shift-type-label">Morning</span>
                                 <span class="shift-time-label">06:00–14:00</span>
                             </div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card evening">
+                            <div class="shift-card evening" data-shift-id="205" data-staff-id="2" data-staff-name="Trần Thị B" data-date="2026-06-27" data-type="Evening">
                                 <span class="shift-type-label">Evening</span>
                                 <span class="shift-time-label">22:00–06:00</span>
                             </div>
                         </td>
                         <td class="shift-cell weekend-cell">
-                            <div class="shift-card evening">
+                            <div class="shift-card evening" data-shift-id="206" data-staff-id="2" data-staff-name="Trần Thị B" data-date="2026-06-28" data-type="Evening">
                                 <span class="shift-type-label">Evening</span>
                                 <span class="shift-time-label">22:00–06:00</span>
                             </div>
                         </td>
                         <td class="shift-cell weekend-cell">
-                            <div class="shift-card afternoon">
+                            <div class="shift-card afternoon" data-shift-id="207" data-staff-id="2" data-staff-name="Trần Thị B" data-date="2026-06-29" data-type="Afternoon">
                                 <span class="shift-type-label">Afternoon</span>
                                 <span class="shift-time-label">14:00–22:00</span>
                             </div>
@@ -194,37 +201,37 @@
                             </div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card evening">
+                            <div class="shift-card evening" data-shift-id="301" data-staff-id="3" data-staff-name="Lê Hoàng C" data-date="2026-06-23" data-type="Evening">
                                 <span class="shift-type-label">Evening</span>
                                 <span class="shift-time-label">22:00–06:00</span>
                             </div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card evening">
+                            <div class="shift-card evening" data-shift-id="302" data-staff-id="3" data-staff-name="Lê Hoàng C" data-date="2026-06-24" data-type="Evening">
                                 <span class="shift-type-label">Evening</span>
                                 <span class="shift-time-label">22:00–06:00</span>
                             </div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card evening">
+                            <div class="shift-card evening" data-shift-id="303" data-staff-id="3" data-staff-name="Lê Hoàng C" data-date="2026-06-25" data-type="Evening">
                                 <span class="shift-type-label">Evening</span>
                                 <span class="shift-time-label">22:00–06:00</span>
                             </div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card off">OFF</div>
+                            <div class="shift-card off" data-staff-id="3" data-staff-name="Lê Hoàng C" data-date="2026-06-26">OFF</div>
                         </td>
                         <td class="shift-cell">
-                            <div class="shift-card off">OFF</div>
+                            <div class="shift-card off" data-staff-id="3" data-staff-name="Lê Hoàng C" data-date="2026-06-27">OFF</div>
                         </td>
                         <td class="shift-cell weekend-cell">
-                            <div class="shift-card evening">
+                            <div class="shift-card evening" data-shift-id="306" data-staff-id="3" data-staff-name="Lê Hoàng C" data-date="2026-06-28" data-type="Evening">
                                 <span class="shift-type-label">Evening</span>
                                 <span class="shift-time-label">22:00–06:00</span>
                             </div>
                         </td>
                         <td class="shift-cell weekend-cell">
-                            <div class="shift-card evening">
+                            <div class="shift-card evening" data-shift-id="307" data-staff-id="3" data-staff-name="Lê Hoàng C" data-date="2026-06-29" data-type="Evening">
                                 <span class="shift-type-label">Evening</span>
                                 <span class="shift-time-label">22:00–06:00</span>
                             </div>
@@ -252,13 +259,6 @@
     </div>
 </div>
 
-<!-- Floating Action Button -->
-<div class="floating-action-container">
-    <button class="fab-btn">
-        <span class="material-symbols-outlined">send</span>
-        Lưu &amp; Phát hành Lịch
-    </button>
-</div>
 
 <!-- Create Shift Modal -->
 <div class="modal fade" id="createShiftModal" tabindex="-1" aria-labelledby="createShiftLabel" aria-hidden="true">
@@ -273,44 +273,48 @@
             </div>
             <div class="modal-body">
                 <div class="shift-form-grid">
-                    <div class="shift-form-group">
+                    <div class="shift-form-group shift-form-full">
                         <label class="shift-form-label">Nhân viên (StaffId)</label>
-                        <select class="shift-form-input">
-                            <option>-- Chọn nhân viên --</option>
-                            <option>Nguyễn Văn A</option>
-                            <option>Trần Thị B</option>
-                            <option>Lê Hoàng C</option>
+                        <select class="shift-form-input" id="createShiftStaffId">
+                            <option value="">-- Chọn nhân viên --</option>
+                            <option value="1">Nguyễn Văn A</option>
+                            <option value="2">Trần Thị B</option>
+                            <option value="3">Lê Hoàng C</option>
                         </select>
                     </div>
-                    <div class="shift-form-group">
+                    <div class="shift-form-group shift-form-full">
                         <label class="shift-form-label">Ngày (ShiftDate)</label>
-                        <input type="date" class="shift-form-input" />
+                        <input type="date" class="shift-form-input" id="createShiftDate" />
                     </div>
                     <div class="shift-form-group shift-form-full">
                         <label class="shift-form-label">Loại ca (ShiftType)</label>
                         <div class="shift-type-selector">
                             <label class="shift-type-option morning-opt">
-                                <input type="radio" name="shiftType" value="Morning" checked />
+                                <input type="radio" name="createShiftType" value="Morning" checked />
                                 <span>Morning</span>
                                 <small>06:00 – 14:00</small>
                             </label>
                             <label class="shift-type-option afternoon-opt">
-                                <input type="radio" name="shiftType" value="Afternoon" />
+                                <input type="radio" name="createShiftType" value="Afternoon" />
                                 <span>Afternoon</span>
                                 <small>14:00 – 22:00</small>
                             </label>
                             <label class="shift-type-option evening-opt">
-                                <input type="radio" name="shiftType" value="Evening" />
+                                <input type="radio" name="createShiftType" value="Evening" />
                                 <span>Evening</span>
                                 <small>22:00 – 06:00</small>
                             </label>
                         </div>
                     </div>
+                    <div class="shift-form-group shift-form-full">
+                        <label class="shift-form-label">Ghi chú (Note)</label>
+                        <textarea class="shift-form-input" id="createShiftNote" rows="2" maxlength="300" placeholder="Nhập ghi chú ca trực (tối đa 300 ký tự)..."></textarea>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer shift-modal-footer">
                 <button type="button" class="shift-btn-secondary" data-bs-dismiss="modal">Huỷ</button>
-                <button type="button" class="shift-btn-primary">
+                <button type="button" class="shift-btn-primary" id="saveCreateShiftBtn">
                     <span class="material-symbols-outlined">check</span>
                     Tạo ca trực
                 </button>
@@ -319,23 +323,718 @@
     </div>
 </div>
 
+<!-- Bulk Create Shift Modal -->
+<div class="modal fade" id="bulkCreateShiftModal" tabindex="-1" aria-labelledby="bulkCreateShiftLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shift-modal-content">
+            <div class="modal-header shift-modal-header">
+                <h5 class="modal-title" id="bulkCreateShiftLabel">
+                    <span class="material-symbols-outlined">group_add</span>
+                    Xếp ca hàng loạt (Bulk Import)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <!-- Step 1: Import & Queuing Form -->
+            <div class="modal-body" id="bulkImportStep">
+                <div class="row">
+                    <!-- Left: Manual Add Form -->
+                    <div class="col-md-5" style="border-right: 1px solid rgba(70, 69, 84, 0.2); padding-right: 20px;">
+                        <label class="shift-form-label" style="margin-bottom: 12px; font-size: 14px; color: var(--primary);">Nhập thông tin ca trực</label>
+                        <div class="quick-add-form" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="shift-form-group-item">
+                                <label class="shift-form-label" style="font-size: 12px; margin-bottom: 4px;">Nhân viên (StaffId)</label>
+                                <select class="shift-form-input" id="bulkInputStaff">
+                                    <option value="">-- Chọn nhân viên --</option>
+                                    <option value="1">Nguyễn Văn A</option>
+                                    <option value="2">Trần Thị B</option>
+                                    <option value="3">Lê Hoàng C</option>
+                                </select>
+                            </div>
+                            <div class="shift-form-group-item">
+                                <label class="shift-form-label" style="font-size: 12px; margin-bottom: 4px;">Ngày trực (ShiftDate)</label>
+                                <input type="date" class="shift-form-input" id="bulkInputDate" />
+                            </div>
+                            <div class="shift-form-group-item">
+                                <label class="shift-form-label" style="font-size: 12px; margin-bottom: 4px;">Loại ca (ShiftType)</label>
+                                <select class="shift-form-input" id="bulkInputType">
+                                    <option value="Morning">Morning (06:00 - 14:00)</option>
+                                    <option value="Afternoon">Afternoon (14:00 - 22:00)</option>
+                                    <option value="Evening">Evening (22:00 - 06:00)</option>
+                                </select>
+                            </div>
+                            <div class="shift-form-group-item">
+                                <label class="shift-form-label" style="font-size: 12px; margin-bottom: 4px;">Ghi chú (Note)</label>
+                                <input type="text" class="shift-form-input" id="bulkInputNote" maxlength="300" placeholder="Nhập ghi chú (tối đa 300 ký tự)..." />
+                            </div>
+                            <button type="button" class="shift-btn-secondary" id="addBulkRowBtn" style="justify-content: center; width: 100%; font-size: 12px; gap: 6px; padding: 10px; margin-top: 6px;">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">add</span> Thêm vào hàng đợi
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Queue Preview -->
+                    <div class="col-md-7" style="padding-left: 20px; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <label class="shift-form-label">Hàng đợi chờ gửi (<span id="bulkQueueCount">0</span>)</label>
+                            <button type="button" id="clearBulkQueueBtn" style="background: transparent; border: none; color: var(--rose-400); font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">delete_sweep</span> Xóa hết
+                            </button>
+                        </div>
+                        <div class="bulk-queue-container" id="bulkQueueContainer">
+                            <div class="bulk-queue-empty" id="bulkQueueEmpty">
+                                <span class="material-symbols-outlined" style="font-size: 32px; color: var(--on-surface-variant); opacity: 0.5;">list_alt</span>
+                                <p style="font-size: 12px; color: var(--on-surface-variant); margin-top: 6px;">Chưa có ca trực nào trong hàng đợi.</p>
+                            </div>
+                            <div class="bulk-queue-list" id="bulkQueueList" style="display: none; padding-right: 4px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Result Summary Screen (Maps to BulkCreateShiftResponse) -->
+            <div class="modal-body" id="bulkResultStep" style="display: none;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <span class="material-symbols-outlined" style="font-size: 48px; color: var(--emerald-400);" id="bulkResultMainIcon">check_circle</span>
+                    <h4 style="font-size: 18px; font-weight: 600; margin-top: 10px; color: var(--on-surface);" id="bulkResultMainTitle">Hoàn tất xếp ca hàng loạt</h4>
+                    <p style="font-size: 13px; color: var(--on-surface-variant); margin: 4px 0 0 0;">Kết quả trả về từ máy chủ (BulkCreateShiftResponse)</p>
+                </div>
+
+                <div class="row g-3" style="margin-bottom: 24px;">
+                    <div class="col-6">
+                        <div class="stat-card glass-panel" style="background-color: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.2); padding: 16px; border-radius: 8px;">
+                            <span class="stat-label" style="color: var(--emerald-400); font-size: 11px;">THÀNH CÔNG (Created)</span>
+                            <span class="stat-value" id="bulkResultCreatedCount" style="color: var(--emerald-400); font-size: 32px; margin-top: 4px;">0</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card glass-panel" style="background-color: rgba(244, 63, 94, 0.08); border-color: rgba(244, 63, 94, 0.2); padding: 16px; border-radius: 8px;">
+                            <span class="stat-label" style="color: var(--rose-400); font-size: 11px;">BỎ QUA / LỖI (Skipped)</span>
+                            <span class="stat-value" id="bulkResultSkippedCount" style="color: var(--rose-400); font-size: 32px; margin-top: 4px;">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Errors feedback list -->
+                <div id="bulkErrorsSection" style="display: none;">
+                    <label class="shift-form-label" style="color: var(--rose-400); display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">warning</span>
+                        Chi tiết lỗi ghi nhận từ Server
+                    </label>
+                    <div class="bulk-errors-list" id="bulkErrorsList"></div>
+                </div>
+            </div>
+
+            <!-- Footer controls -->
+            <div class="modal-footer shift-modal-footer">
+                <!-- Footer step 1 -->
+                <div id="bulkImportFooter" style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
+                    <button type="button" class="shift-btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="shift-btn-primary" id="submitBulkBtn" disabled>
+                        <span class="material-symbols-outlined">send</span> Gửi lên Server
+                    </button>
+                </div>
+                <!-- Footer step 2 -->
+                <div id="bulkResultFooter" style="display: none; width: 100%; justify-content: flex-end;">
+                    <button type="button" class="shift-btn-primary" id="finishBulkBtn">
+                        <span class="material-symbols-outlined">done_all</span> Xong &amp; Cập nhật Grid
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Shift Modal -->
+<div class="modal fade" id="editShiftModal" tabindex="-1" aria-labelledby="editShiftLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shift-modal-content">
+            <div class="modal-header shift-modal-header">
+                <h5 class="modal-title" id="editShiftLabel">
+                    <span class="material-symbols-outlined">edit_calendar</span>
+                    Chỉnh sửa ca trực
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editShiftId" />
+                <div class="shift-form-grid">
+                    <div class="shift-form-group">
+                        <label class="shift-form-label">Nhân viên (Không thể sửa)</label>
+                        <select class="shift-form-input" id="editShiftStaffId" disabled style="opacity: 0.7; cursor: not-allowed;">
+                            <option value="1">Nguyễn Văn A</option>
+                            <option value="2">Trần Thị B</option>
+                            <option value="3">Lê Hoàng C</option>
+                        </select>
+                    </div>
+                    <div class="shift-form-group">
+                        <label class="shift-form-label">Ngày (Không thể sửa)</label>
+                        <input type="date" class="shift-form-input" id="editShiftDate" readonly style="opacity: 0.7; cursor: not-allowed;" />
+                    </div>
+                    <div class="shift-form-group shift-form-full">
+                        <label class="shift-form-label">Loại ca (ShiftType)</label>
+                        <div class="shift-type-selector">
+                            <label class="shift-type-option morning-opt">
+                                <input type="radio" name="editShiftType" value="Morning" id="editShiftMorning" />
+                                <span>Morning</span>
+                                <small>06:00 – 14:00</small>
+                            </label>
+                            <label class="shift-type-option afternoon-opt">
+                                <input type="radio" name="editShiftType" value="Afternoon" id="editShiftAfternoon" />
+                                <span>Afternoon</span>
+                                <small>14:00 – 22:00</small>
+                            </label>
+                            <label class="shift-type-option evening-opt">
+                                <input type="radio" name="editShiftType" value="Evening" id="editShiftEvening" />
+                                <span>Evening</span>
+                                <small>22:00 – 06:00</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="shift-form-group shift-form-full">
+                        <label class="shift-form-label">Ghi chú (Note)</label>
+                        <textarea class="shift-form-input" id="editShiftNote" rows="2" maxlength="300" placeholder="Nhập ghi chú ca trực (tối đa 300 ký tự)..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer shift-modal-footer">
+                <button type="button" class="shift-btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                <button type="button" class="shift-btn-primary" id="saveEditShiftBtn">
+                    <span class="material-symbols-outlined">save</span>
+                    Lưu thay đổi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Shift Modal -->
+<div class="modal fade" id="deleteShiftModal" tabindex="-1" aria-labelledby="deleteShiftLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content shift-modal-content">
+            <div class="modal-header shift-modal-header" style="border-bottom: none; padding-bottom: 0;">
+                <h5 class="modal-title" id="deleteShiftLabel" style="color: var(--rose-400);">
+                    <span class="material-symbols-outlined" style="color: var(--rose-400);">warning</span>
+                    Xác nhận xoá
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding-top: 10px;">
+                <p>Bạn có chắc chắn muốn xoá ca trực này của <strong id="deleteShiftStaffName"></strong>?</p>
+                <input type="hidden" id="deleteShiftId" />
+            </div>
+            <div class="modal-footer shift-modal-footer" style="border-top: none; padding-top: 0;">
+                <button type="button" class="shift-btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                <button type="button" class="btn-primary-custom" id="confirmDeleteShiftBtn" style="background-color: var(--rose-500); color: white;">
+                    <span class="material-symbols-outlined">delete</span>
+                    Xoá ca
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Context Menu -->
+<div id="context-menu" class="context-menu" style="display: none;">
+    <div class="context-header">
+        <p class="context-title" id="contextMenuTitle">Tùy chọn ca trực</p>
+    </div>
+    <button class="context-item" id="contextEditBtn">
+        <span class="material-symbols-outlined">edit</span>
+        Chỉnh sửa ca trực
+    </button>
+    <button class="context-item danger" id="contextDeleteBtn">
+        <span class="material-symbols-outlined">delete</span>
+        Xoá ca trực
+    </button>
+</div>
+
 @section Scripts {
     <script>
-        // Context menu (right-click on shift card)
-        document.querySelectorAll('.shift-card:not(.off)').forEach(card => {
-            card.addEventListener('contextmenu', e => {
+        let activeCard = null;
+
+        // Toast Notification Helper
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+            
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            
+            const icon = type === 'success' ? 'check_circle' : (type === 'error' ? 'error' : 'info');
+            toast.innerHTML = `
+                <span class="material-symbols-outlined">${icon}</span>
+                <div>${message}</div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Use Event Delegation for Table interaction to handle swaps seamlessly
+        const tableBody = document.querySelector('.shift-table tbody');
+
+        // Right click handler for context menu
+        tableBody.addEventListener('contextmenu', function(e) {
+            const card = e.target.closest('.shift-card');
+            if (card && !card.classList.contains('off')) {
                 e.preventDefault();
+                activeCard = card;
                 const menu = document.getElementById('context-menu');
                 if (menu) {
+                    const staffName = card.dataset.staffName;
+                    document.getElementById('contextMenuTitle').textContent = staffName;
+                    
                     menu.style.display = 'block';
-                    menu.style.left = e.pageX + 'px';
-                    menu.style.top = e.pageY + 'px';
+                    menu.style.left = e.clientX + 'px';
+                    menu.style.top = e.clientY + 'px';
                 }
-            });
+            }
         });
+
+        // Left click handler: OFF cards to quickly add shift, Active cards to show actions menu
+        tableBody.addEventListener('click', function(e) {
+            const card = e.target.closest('.shift-card');
+            if (card) {
+                if (card.classList.contains('off')) {
+                    const staffId = card.dataset.staffId;
+                    const date = card.dataset.date;
+
+                    if (staffId && date) {
+                        document.getElementById('createShiftStaffId').value = staffId;
+                        document.getElementById('createShiftDate').value = date;
+                        
+                        const createModal = new bootstrap.Modal(document.getElementById('createShiftModal'));
+                        createModal.show();
+                    }
+                } else {
+                    // Show options menu on left click as well
+                    e.stopPropagation(); // Stop bubbling to prevent closing immediately
+                    activeCard = card;
+                    const menu = document.getElementById('context-menu');
+                    if (menu) {
+                        const staffName = card.dataset.staffName;
+                        document.getElementById('contextMenuTitle').textContent = staffName;
+                        
+                        menu.style.display = 'block';
+                        menu.style.left = e.clientX + 'px';
+                        menu.style.top = e.clientY + 'px';
+                    }
+                }
+            }
+        });
+
+        // Close context menu when clicking outside
         document.addEventListener('click', () => {
             const menu = document.getElementById('context-menu');
             if (menu) menu.style.display = 'none';
+        });
+
+        // Trigger Edit from Context Menu
+        document.getElementById('contextEditBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!activeCard) return;
+
+            // Fill edit fields
+            document.getElementById('editShiftId').value = activeCard.dataset.shiftId;
+            document.getElementById('editShiftStaffId').value = activeCard.dataset.staffId;
+            document.getElementById('editShiftDate').value = activeCard.dataset.date;
+            document.getElementById('editShiftNote').value = activeCard.dataset.note || '';
+            
+            const type = activeCard.dataset.type;
+            if (type === 'Morning') document.getElementById('editShiftMorning').checked = true;
+            else if (type === 'Afternoon') document.getElementById('editShiftAfternoon').checked = true;
+            else if (type === 'Evening') document.getElementById('editShiftEvening').checked = true;
+
+            const editModal = new bootstrap.Modal(document.getElementById('editShiftModal'));
+            editModal.show();
+        });
+
+        // Trigger Delete from Context Menu
+        document.getElementById('contextDeleteBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!activeCard) return;
+
+            document.getElementById('deleteShiftId').value = activeCard.dataset.shiftId;
+            document.getElementById('deleteShiftStaffName').textContent = activeCard.dataset.staffName;
+
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteShiftModal'));
+            deleteModal.show();
+        });
+
+        // Save Edit
+        document.getElementById('saveEditShiftBtn').addEventListener('click', () => {
+            if (!activeCard) return;
+
+            const staffId = document.getElementById('editShiftStaffId').value;
+            const staffNameOption = document.querySelector(`#editShiftStaffId option[value="${staffId}"]`);
+            const staffName = staffNameOption ? staffNameOption.textContent : activeCard.dataset.staffName;
+            const date = document.getElementById('editShiftDate').value;
+            const type = document.querySelector('input[name="editShiftType"]:checked').value;
+            const note = document.getElementById('editShiftNote').value;
+
+            const timingMap = {
+                'Morning': '06:00–14:00',
+                'Afternoon': '14:00–22:00',
+                'Evening': '22:00–06:00'
+            };
+
+            // Update card attributes & visual styles
+            activeCard.className = `shift-card ${type.toLowerCase()}`;
+            activeCard.dataset.type = type;
+            activeCard.dataset.date = date;
+            activeCard.dataset.staffId = staffId;
+            activeCard.dataset.staffName = staffName;
+            activeCard.dataset.note = note;
+            activeCard.title = note ? `Ghi chú: ${note}` : '';
+
+            const noteIconHtml = note ? `<span class="material-symbols-outlined" style="font-size: 12px; opacity: 0.8;" title="${note}">description</span>` : '';
+            activeCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span class="shift-type-label">${type}</span>
+                    ${noteIconHtml}
+                </div>
+                <span class="shift-time-label">${timingMap[type]}</span>
+            `;
+
+            // Hide modal
+            const modalEl = document.getElementById('editShiftModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            showToast(`Cập nhật ca trực của ${staffName} thành công!`);
+        });
+
+        // Confirm Delete
+        document.getElementById('confirmDeleteShiftBtn').addEventListener('click', () => {
+            if (!activeCard) return;
+
+            const staffName = activeCard.dataset.staffName;
+
+            // Reset active card back to OFF
+            activeCard.className = 'shift-card off';
+            activeCard.removeAttribute('data-shift-id');
+            activeCard.removeAttribute('data-type');
+            activeCard.innerHTML = 'OFF';
+
+            const modalEl = document.getElementById('deleteShiftModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            showToast(`Đã xoá ca trực của ${staffName}!`, 'error');
+        });
+
+        // Save Create
+        document.getElementById('saveCreateShiftBtn').addEventListener('click', () => {
+            const staffId = document.getElementById('createShiftStaffId').value;
+            const type = document.querySelector('input[name="createShiftType"]:checked').value;
+            const date = document.getElementById('createShiftDate').value;
+            const note = document.getElementById('createShiftNote').value;
+
+            if (!staffId) {
+                showToast('Vui lòng chọn nhân viên!', 'error');
+                return;
+            }
+            if (!date) {
+                showToast('Vui lòng chọn ngày!', 'error');
+                return;
+            }
+
+            const staffNameOption = document.querySelector(`#createShiftStaffId option[value="${staffId}"]`);
+            const staffName = staffNameOption ? staffNameOption.textContent : '';
+
+            const timingMap = {
+                'Morning': '06:00–14:00',
+                'Afternoon': '14:00–22:00',
+                'Evening': '22:00–06:00'
+            };
+
+            const targetCell = document.querySelector(`.shift-card[data-staff-id="${staffId}"][data-date="${date}"]`);
+            let assigned = false;
+
+            if (targetCell) {
+                const mockShiftId = Math.floor(Math.random() * 900) + 100;
+                targetCell.className = `shift-card ${type.toLowerCase()}`;
+                targetCell.dataset.shiftId = mockShiftId;
+                targetCell.dataset.type = type;
+                targetCell.dataset.note = note;
+                targetCell.title = note ? `Ghi chú: ${note}` : '';
+
+                const noteIconHtml = note ? `<span class="material-symbols-outlined" style="font-size: 12px; opacity: 0.8;" title="${note}">description</span>` : '';
+                targetCell.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span class="shift-type-label">${type}</span>
+                        ${noteIconHtml}
+                    </div>
+                    <span class="shift-time-label">${timingMap[type]}</span>
+                `;
+                assigned = true;
+            }
+
+            const modalEl = document.getElementById('createShiftModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            // Reset modal form inputs
+            document.getElementById('createShiftStaffId').value = '';
+            document.getElementById('createShiftDate').value = '';
+            document.getElementById('createShiftNote').value = '';
+
+            if (assigned) {
+                showToast(`Đã thêm ca trực cho ${staffName} thành công!`);
+            } else {
+                showToast('Không thể thêm ca trực. Vui lòng kiểm tra lại!', 'error');
+            }
+        });
+        // --- BULK CREATE SHIFT INTERACTIVE LOGIC ---
+        let bulkQueue = [];
+
+        // UI state selectors
+        const bulkImportStep = document.getElementById('bulkImportStep');
+        const bulkResultStep = document.getElementById('bulkResultStep');
+        const bulkImportFooter = document.getElementById('bulkImportFooter');
+        const bulkResultFooter = document.getElementById('bulkResultFooter');
+        const submitBulkBtn = document.getElementById('submitBulkBtn');
+        const bulkQueueList = document.getElementById('bulkQueueList');
+        const bulkQueueEmpty = document.getElementById('bulkQueueEmpty');
+        const bulkQueueCount = document.getElementById('bulkQueueCount');
+
+        // Update queue counts & list rendering
+        function renderBulkQueue() {
+            bulkQueueCount.textContent = bulkQueue.length;
+            if (bulkQueue.length === 0) {
+                bulkQueueEmpty.style.display = 'flex';
+                bulkQueueList.style.display = 'none';
+                submitBulkBtn.disabled = true;
+            } else {
+                bulkQueueEmpty.style.display = 'none';
+                bulkQueueList.style.display = 'block';
+                submitBulkBtn.disabled = false;
+
+                bulkQueueList.innerHTML = '';
+                bulkQueue.forEach((item, index) => {
+                    const el = document.createElement('div');
+                    el.className = 'bulk-queue-item';
+                    const noteHtml = item.note ? `<div style="color: var(--on-surface-variant); font-size: 11px; margin-top: 4px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px;">Ghi chú: ${item.note}</div>` : '';
+                    el.innerHTML = `
+                        <div class="bulk-queue-item-info" style="width: 85%;">
+                            <strong style="color: var(--on-surface); font-size: 13px;">${item.staffName}</strong>
+                            <span style="color: var(--on-surface-variant); font-size: 11px;">
+                                ${item.date} &bull; <span class="type-badge ${item.type.toLowerCase()}" style="font-size: 9px; padding: 2px 6px;">${item.type}</span>
+                            </span>
+                            ${noteHtml}
+                        </div>
+                        <button type="button" class="bulk-queue-item-remove" data-index="${index}">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+                        </button>
+                    `;
+                    bulkQueueList.appendChild(el);
+                });
+            }
+        }
+
+        // Add manually
+        document.getElementById('addBulkRowBtn').addEventListener('click', () => {
+            const staffId = document.getElementById('bulkInputStaff').value;
+            const staffNameOption = document.querySelector(`#bulkInputStaff option[value="${staffId}"]`);
+            const date = document.getElementById('bulkInputDate').value;
+            const type = document.getElementById('bulkInputType').value;
+            const note = document.getElementById('bulkInputNote').value;
+
+            if (!staffId || !date) {
+                showToast('Vui lòng chọn đầy đủ Nhân viên và Ngày!', 'error');
+                return;
+            }
+
+            const staffName = staffNameOption.textContent;
+
+            // Check duplicate in queue
+            const isDup = bulkQueue.some(x => x.staffId === staffId && x.date === date && x.type === type);
+            if (isDup) {
+                showToast(`Nhân viên ${staffName} đã có ca này trong hàng đợi!`, 'error');
+                return;
+            }
+
+            bulkQueue.push({ staffId, staffName, date, type, note });
+            renderBulkQueue();
+            
+            // Clear date and note for next entry
+            document.getElementById('bulkInputDate').value = '';
+            document.getElementById('bulkInputNote').value = '';
+        });
+
+        // Remove single queue item
+        bulkQueueList.addEventListener('click', function(e) {
+            const removeBtn = e.target.closest('.bulk-queue-item-remove');
+            if (removeBtn) {
+                const index = parseInt(removeBtn.dataset.index);
+                bulkQueue.splice(index, 1);
+                renderBulkQueue();
+            }
+        });
+
+        // Clear queue
+        document.getElementById('clearBulkQueueBtn').addEventListener('click', () => {
+            bulkQueue = [];
+            renderBulkQueue();
+        });
+
+
+
+        // Submit queue to simulation bulk API
+        submitBulkBtn.addEventListener('click', () => {
+            if (bulkQueue.length === 0) return;
+
+            submitBulkBtn.disabled = true;
+            submitBulkBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width: 14px; height: 14px; margin-right: 6px;"></span> Đang xử lý...`;
+
+            // Simulate Server processing response (BulkCreateShiftResponse)
+            setTimeout(() => {
+                let response = {
+                    created: 0,
+                    skipped: 0,
+                    errors: [],
+                    createdShifts: []
+                };
+
+                const timingMap = {
+                    'Morning': '06:00–14:00',
+                    'Afternoon': '14:00–22:00',
+                    'Evening': '22:00–06:00'
+                };
+
+                let processedInBatch = {};
+
+                bulkQueue.forEach(item => {
+                    // Mock validation rules mirroring CreateShiftBulkAsync:
+                    // 1. Exists in DB mock (e.g. Nguyễn Văn A ca Morning ngày 23/06 đã có sẵn)
+                    if (item.staffId === "1" && item.date === "2026-06-23" && item.type === "Morning") {
+                        response.skipped++;
+                        response.errors.push(`Nhân viên ${item.staffName} đã được xếp ca ${item.type} ngày ${item.date} trước đó.`);
+                        return;
+                    }
+
+                    // 2. Duplicate in batch mock
+                    const batchKey = `${item.staffId}-${item.date}-${item.type}`;
+                    if (processedInBatch[batchKey]) {
+                        response.skipped++;
+                        response.errors.push(`Nhân viên ${item.staffName} có ca ${item.type} ngày ${item.date} bị trùng lặp trong danh sách gửi lên.`);
+                        return;
+                    }
+                    processedInBatch[batchKey] = true;
+
+                    // 3. User is inactive check mock (e.g. Staff ID 3 date 26/06 is inactive)
+                    if (item.staffId === "3" && item.date === "2026-06-26") {
+                        response.skipped++;
+                        response.errors.push(`Nhân viên ${item.staffName} đang bị khóa/ngưng hoạt động.`);
+                        return;
+                    }
+
+                    // Successful Shift
+                    response.created++;
+                    response.createdShifts.push({
+                        staffId: item.staffId,
+                        staffName: item.staffName,
+                        date: item.date,
+                        type: item.type,
+                        timing: timingMap[item.type],
+                        note: item.note || ''
+                    });
+                });
+
+                // Apply successful creations directly into the grid
+                response.createdShifts.forEach(shift => {
+                    const cell = document.querySelector(`.shift-card[data-staff-id="${shift.staffId}"][data-date="${shift.date}"]`);
+                    if (cell) {
+                        const mockShiftId = Math.floor(Math.random() * 900) + 100;
+                        cell.className = `shift-card ${shift.type.toLowerCase()}`;
+                        cell.dataset.shiftId = mockShiftId;
+                        cell.dataset.type = shift.type;
+                        cell.dataset.note = shift.note;
+                        cell.title = shift.note ? `Ghi chú: ${shift.note}` : '';
+
+                        const noteIconHtml = shift.note ? `<span class="material-symbols-outlined" style="font-size: 12px; opacity: 0.8;" title="${shift.note}">description</span>` : '';
+                        cell.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <span class="shift-type-label">${shift.type}</span>
+                                ${noteIconHtml}
+                            </div>
+                            <span class="shift-time-label">${shift.timing}</span>
+                        `;
+                    }
+                });
+
+                // Render Results
+                document.getElementById('bulkResultCreatedCount').textContent = response.created;
+                document.getElementById('bulkResultSkippedCount').textContent = response.skipped;
+
+                const mainIcon = document.getElementById('bulkResultMainIcon');
+                const mainTitle = document.getElementById('bulkResultMainTitle');
+                if (response.skipped === 0) {
+                    mainIcon.textContent = 'check_circle';
+                    mainIcon.style.color = 'var(--emerald-400)';
+                    mainTitle.textContent = 'Xử lý thành công toàn bộ!';
+                } else if (response.created === 0) {
+                    mainIcon.textContent = 'cancel';
+                    mainIcon.style.color = 'var(--rose-400)';
+                    mainTitle.textContent = 'Lỗi! Không xếp ca nào thành công.';
+                } else {
+                    mainIcon.textContent = 'warning';
+                    mainIcon.style.color = 'var(--orange-400)';
+                    mainTitle.textContent = 'Hoàn tất với một số cảnh báo';
+                }
+
+                // Render errors list
+                const errorsSection = document.getElementById('bulkErrorsSection');
+                const errorsList = document.getElementById('bulkErrorsList');
+                if (response.errors.length > 0) {
+                    errorsSection.style.display = 'block';
+                    errorsList.innerHTML = '';
+                    response.errors.forEach(err => {
+                        const errItem = document.createElement('div');
+                        errItem.className = 'bulk-error-item';
+                        errItem.innerHTML = `
+                            <span class="material-symbols-outlined">error_outline</span>
+                            <div>${err}</div>
+                        `;
+                        errorsList.appendChild(errItem);
+                    });
+                } else {
+                    errorsSection.style.display = 'none';
+                }
+
+                // Transition screen steps
+                bulkImportStep.style.display = 'none';
+                bulkResultStep.style.display = 'block';
+                bulkImportFooter.style.display = 'none';
+                bulkResultFooter.style.display = 'flex';
+
+                // Reset submit button state
+                submitBulkBtn.disabled = false;
+                submitBulkBtn.innerHTML = `<span class="material-symbols-outlined">send</span> Gửi lên Server`;
+
+                showToast(`Đã xử lý xong: ${response.created} thành công, ${response.skipped} bỏ qua.`);
+            }, 1200);
+        });
+
+        // Finish Step 2: Clean and close modal
+        document.getElementById('finishBulkBtn').addEventListener('click', () => {
+            // Close Modal
+            const modalEl = document.getElementById('bulkCreateShiftModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            // Clear queue
+            bulkQueue = [];
+            renderBulkQueue();
+
+            // Reset step screens
+            bulkImportStep.style.display = 'block';
+            bulkResultStep.style.display = 'none';
+            bulkImportFooter.style.display = 'flex';
+            bulkResultFooter.style.display = 'none';
         });
     </script>
 }

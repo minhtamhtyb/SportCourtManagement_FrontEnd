@@ -689,7 +689,7 @@
     background-color: var(--primary-bg-5);
 }
 
-/* Stats Bento Grid */
+/* Stats Bento Grid
 .stats-grid {
     display: grid;
     grid-template-cols: repeat(4, 1fr);
@@ -707,7 +707,7 @@
     .stats-grid {
         grid-template-cols: 1fr;
     }
-}
+} */
 
 .stat-card {
     padding: 16px;
@@ -769,14 +769,6 @@
 .progress-bar-fill {
     background-color: var(--secondary);
     height: 100%;
-}
-
-/* Floating Action Button */
-.floating-action-container {
-    position: fixed;
-    bottom: 32px;
-    right: 32px;
-    z-index: 50;
 }
 
 .fab-btn {
@@ -914,4 +906,228 @@
 
 .pagination-btn span {
     font-size: 18px;
+}
+
+/* Custom Toast Notification */
+.toast-notification {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background-color: var(--surface-container-highest, #2a2a35);
+    border-left: 4px solid var(--primary);
+    color: var(--on-surface);
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    animation: slideIn 0.3s ease forwards, fadeOut 0.3s ease 2.7s forwards;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(70, 69, 84, 0.2);
+    border-left: 4px solid var(--primary);
+}
+
+.toast-notification.success {
+    border-left-color: var(--emerald-400);
+}
+.toast-notification.success span {
+    color: var(--emerald-400);
+}
+
+.toast-notification.error {
+    border-left-color: var(--rose-400);
+}
+.toast-notification.error span {
+    color: var(--rose-400);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* Day Checkbox Custom Styling for Multiple Days Mode */
+.day-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--on-surface);
+    cursor: pointer;
+    background-color: rgba(19, 19, 27, 0.4);
+    border: 1px solid rgba(70, 69, 84, 0.3);
+    padding: 8px 10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.day-checkbox-label:hover {
+    border-color: rgba(192, 193, 255, 0.4);
+    background-color: var(--surface-container-high);
+}
+
+.day-checkbox-label:has(input:checked) {
+    border-color: var(--primary);
+    background-color: rgba(192, 193, 255, 0.08);
+    color: var(--primary);
+}
+
+.day-checkbox-label input[type="checkbox"] {
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+/* Bulk Import Modal Custom Styling */
+.excel-dropzone {
+    border: 2px dashed rgba(70, 69, 84, 0.4);
+    border-radius: 12px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    background-color: rgba(19, 19, 27, 0.2);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.excel-dropzone:hover, .excel-dropzone.dragover {
+    border-color: var(--primary);
+    background-color: rgba(192, 193, 255, 0.05);
+}
+
+.download-template-link:hover {
+    color: var(--primary) !important;
+    text-decoration: underline !important;
+}
+
+.bulk-queue-container {
+    border: 1px solid rgba(70, 69, 84, 0.3);
+    border-radius: 10px;
+    background-color: rgba(19, 19, 27, 0.3);
+    flex-grow: 1;
+    min-height: 250px;
+    max-height: 350px;
+    overflow-y: auto;
+    padding: 12px;
+}
+
+.bulk-queue-empty {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.bulk-queue-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: var(--surface-container-high, #2a2a35);
+    border: 1px solid rgba(70, 69, 84, 0.2);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--on-surface);
+}
+
+.bulk-queue-item:hover {
+    border-color: rgba(192, 193, 255, 0.3);
+}
+
+.bulk-queue-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bulk-queue-item-remove {
+    background: transparent;
+    border: none;
+    color: var(--on-surface-variant);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.15s;
+}
+
+.bulk-queue-item-remove:hover {
+    color: var(--rose-400);
+    background-color: rgba(244, 63, 94, 0.1);
+}
+
+.bulk-errors-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid rgba(244, 63, 94, 0.2);
+    border-radius: 8px;
+    background-color: rgba(244, 63, 94, 0.02);
+    padding: 8px 12px;
+}
+
+.bulk-error-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: #fda4af;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(244, 63, 94, 0.1);
+    text-align: left;
+}
+
+.bulk-error-item:last-child {
+    border-bottom: none;
+}
+
+.bulk-error-item span {
+    font-size: 16px;
+    color: var(--rose-400);
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+/* Secondary Button styling for shifts view */
+.btn-secondary-custom {
+    background-color: var(--surface-container-high);
+    color: var(--on-surface);
+    border: 1px solid rgba(70, 69, 84, 0.3);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary-custom:hover {
+    background-color: var(--surface-container-highest);
 }
