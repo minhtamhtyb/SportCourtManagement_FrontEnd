@@ -33,6 +33,7 @@ public class ComplexFormViewModel
     public string? Phone { get; set; }
 
     [Display(Name = "Mã quản lý")]
+    [Required(ErrorMessage = "Vui lòng chọn quản lý phụ trách")]
     public int? ManagerId { get; set; }
 
     public string? ManagerName { get; set; }
@@ -58,11 +59,16 @@ public class ComplexDetailsViewModel
     public List<CourtDto> Courts { get; set; } = [];
     public List<CourtTypeDto> CourtTypes { get; set; } = [];
     public List<CourtTypeDto> ComplexCourtTypes { get; set; } = [];
-    public List<ComplexCourtTypeServiceDto> ServiceOfferings { get; set; } = [];
-    public List<ServiceDto> CatalogServices { get; set; } = [];
-    public int? SelectedCourtTypeId { get; set; }
     public string? Search { get; set; }
     public string? StatusFilter { get; set; }
+}
+
+public class ComplexServicesViewModel
+{
+    public CourtComplexDto Complex { get; set; } = new();
+    public List<CourtTypeDto> ComplexCourtTypes { get; set; } = [];
+    public List<ComplexCourtTypeServiceDto> ServiceOfferings { get; set; } = [];
+    public int? SelectedCourtTypeId { get; set; }
 }
 
 public class ServiceOfferingFormViewModel

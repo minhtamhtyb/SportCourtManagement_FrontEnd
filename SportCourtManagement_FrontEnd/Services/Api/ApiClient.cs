@@ -132,7 +132,16 @@ public class ApiClient(HttpClient http, IHttpContextAccessor httpContextAccessor
     private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
     {
         await ApplyAuthHeaderAsync(request, ct);
-        return await http.SendAsync(request, ct);
+        try
+        {
+            return await http.SendAsync(request, ct);
+        }
+        catch (HttpRequestException ex) when (ex.InnerException is System.Net.Sockets.SocketException)
+        {
+            var baseUrl = http.BaseAddress?.ToString().TrimEnd('/') ?? "backend";
+            throw new InvalidOperationException(
+                $"Không kết nối được API tại {baseUrl}. Hãy chạy SportCourtManagent_Server trước (dotnet run --launch-profile http).", ex);
+        }
     }
 
     private async Task ApplyAuthHeaderAsync(HttpRequestMessage request, CancellationToken ct)
@@ -186,7 +195,7 @@ public class ApiClient(HttpClient http, IHttpContextAccessor httpContextAccessor
         {
             var msg = response.StatusCode == System.Net.HttpStatusCode.Unauthorized
                 ? "Backend từ chối yêu cầu (401). Token API không hợp lệ hoặc đã hết hạn — hãy đăng xuất và đăng nhập lại."
-                : $"API trả về phản hồi rỗng (HTTP {(int)response.StatusCode}). Kiểm tra Backend đang chạy tại port 5211.";
+                : $"API trả về phản hồi rỗng (HTTP {(int)response.StatusCode}). Kiểm tra Backend đang chạy tại http://localhost:5000.";
             return (null, msg);
         }
 

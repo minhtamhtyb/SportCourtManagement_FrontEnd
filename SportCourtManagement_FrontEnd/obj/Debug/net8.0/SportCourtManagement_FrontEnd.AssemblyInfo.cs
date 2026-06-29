@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SportCourtManagement_FrontEnd")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bbd4f97f2fde0afc244b047ab06a3bc53277e565")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+897b230dba32095a657848c31d11ee0be4aaaf29")]
 [assembly: System.Reflection.AssemblyProductAttribute("SportCourtManagement_FrontEnd")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SportCourtManagement_FrontEnd")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -35,6 +35,7 @@
                 <option value="@m.UserId">@m.FullName — @m.Email (@m.Role)</option>
             }
         </select>
+        <span asp-validation-for="ManagerId" class="text-danger small field-error"></span>
         @if (!Model.Managers.Any())
         {
             <div class="form-text text-warning small">Chưa có tài khoản Staff (quản lý) trong hệ thống.</div>

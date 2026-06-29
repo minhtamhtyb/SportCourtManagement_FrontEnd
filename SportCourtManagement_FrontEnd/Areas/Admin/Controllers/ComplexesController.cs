@@ -114,7 +114,7 @@ public class ComplexesController(
         }
     }
 
-    public async Task<IActionResult> Details(int id, string? search, string? status, int? courtTypeId)
+    public async Task<IActionResult> Details(int id, string? search, string? status)
     {
         var complex = await courtService.GetComplexByIdAsync(id);
         if (complex == null) return NotFound();
@@ -123,8 +123,6 @@ public class ComplexesController(
         var complexCourtTypes = allCourtTypes
             .Where(t => complex.CourtTypeIds.Contains(t.CourtTypeId))
             .ToList();
-
-        var selectedCourtTypeId = courtTypeId ?? complexCourtTypes.FirstOrDefault()?.CourtTypeId;
 
         var vm = new ComplexDetailsViewModel
         {
@@ -135,11 +133,28 @@ public class ComplexesController(
             Courts = await courtService.GetCourtsByComplexAsync(id, search, status),
             CourtTypes = allCourtTypes,
             ComplexCourtTypes = complexCourtTypes,
-            ServiceOfferings = await offeringService.GetByComplexAsync(id),
-            CatalogServices = await serviceCatalog.GetServicesAsync(null, null),
-            SelectedCourtTypeId = selectedCourtTypeId,
             Search = search,
             StatusFilter = status
+        };
+        return View(vm);
+    }
+
+    public async Task<IActionResult> Services(int id, int? courtTypeId)
+    {
+        var complex = await courtService.GetComplexByIdAsync(id);
+        if (complex == null) return NotFound();
+
+        var allCourtTypes = await courtService.GetCourtTypesAsync();
+        var complexCourtTypes = allCourtTypes
+            .Where(t => complex.CourtTypeIds.Contains(t.CourtTypeId))
+            .ToList();
+
+        var vm = new ComplexServicesViewModel
+        {
+            Complex = complex,
+            ComplexCourtTypes = complexCourtTypes,
+            ServiceOfferings = await offeringService.GetByComplexAsync(id),
+            SelectedCourtTypeId = courtTypeId ?? complexCourtTypes.FirstOrDefault()?.CourtTypeId
         };
         return View(vm);
     }
@@ -153,8 +168,10 @@ public class ComplexesController(
         var complexCourtTypes = allCourtTypes.Where(t => complex.CourtTypeIds.Contains(t.CourtTypeId)).ToList();
         if (complexCourtTypes.Count == 0)
         {
+            if (IsAjaxRequest())
+                return BadRequest(new { success = false, message = "Tổ hợp chưa có sân — hãy thêm sân trước khi cấu hình dịch vụ." });
             TempData["Error"] = "Tổ hợp chưa có sân — hãy thêm sân trước khi cấu hình dịch vụ.";
-            return RedirectToAction(nameof(Details), new { id = complexId });
+            return RedirectToAction(nameof(Services), new { id = complexId });
         }
 
         var vm = new ServiceOfferingFormViewModel
@@ -164,6 +181,8 @@ public class ComplexesController(
             CourtTypeOptions = complexCourtTypes,
             CatalogServices = await serviceCatalog.GetServicesAsync(null, null)
         };
+
+        if (IsAjaxRequest()) return PartialView("_ServiceFormModal", vm);
         return View("ServiceForm", vm);
     }
 
@@ -173,10 +192,8 @@ public class ComplexesController(
     {
         if (!ModelState.IsValid)
         {
-            var complexInvalid = await courtService.GetComplexByIdAsync(model.ComplexId);
-            model.CourtTypeOptions = (await courtService.GetCourtTypesAsync())
-                .Where(t => complexInvalid?.CourtTypeIds.Contains(t.CourtTypeId) == true).ToList();
-            model.CatalogServices = await serviceCatalog.GetServicesAsync(null, null);
+            if (IsAjaxRequest()) return JsonValidationErrors();
+            await PopulateServiceFormOptions(model);
             return View("ServiceForm", model);
         }
 
@@ -195,16 +212,17 @@ public class ComplexesController(
                 IsActive = model.IsActive
             });
 
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Thêm dịch vụ cho loại sân thành công!" });
             TempData["Success"] = "Thêm dịch vụ cho loại sân thành công!";
-            return RedirectToAction(nameof(Details), new { id = model.ComplexId, courtTypeId = model.CourtTypeId });
+            return RedirectToAction(nameof(Services), new { id = model.ComplexId, courtTypeId = model.CourtTypeId });
         }
         catch (Exception ex)
         {
+            if (IsAjaxRequest())
+                return StatusCode(400, new { success = false, message = ex.Message });
             ModelState.AddModelError(string.Empty, ex.Message);
-            var complex = await courtService.GetComplexByIdAsync(model.ComplexId);
-            var allCourtTypes = await courtService.GetCourtTypesAsync();
-            model.CourtTypeOptions = allCourtTypes.Where(t => complex?.CourtTypeIds.Contains(t.CourtTypeId) == true).ToList();
-            model.CatalogServices = await serviceCatalog.GetServicesAsync(null, null);
+            await PopulateServiceFormOptions(model);
             return View("ServiceForm", model);
         }
     }
@@ -232,6 +250,8 @@ public class ComplexesController(
                 .Where(t => complex.CourtTypeIds.Contains(t.CourtTypeId)).ToList(),
             CatalogServices = await serviceCatalog.GetServicesAsync(null, null)
         };
+
+        if (IsAjaxRequest()) return PartialView("_ServiceFormModal", vm);
         return View("ServiceForm", vm);
     }
 
@@ -241,7 +261,8 @@ public class ComplexesController(
     {
         if (!ModelState.IsValid)
         {
-            model.CatalogServices = await serviceCatalog.GetServicesAsync(null, null);
+            if (IsAjaxRequest()) return JsonValidationErrors();
+            await PopulateServiceFormOptions(model);
             return View("ServiceForm", model);
         }
 
@@ -256,13 +277,17 @@ public class ComplexesController(
                 IsActive = model.IsActive
             });
 
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Cập nhật dịch vụ thành công!" });
             TempData["Success"] = "Cập nhật dịch vụ thành công!";
-            return RedirectToAction(nameof(Details), new { id = model.ComplexId, courtTypeId = model.CourtTypeId });
+            return RedirectToAction(nameof(Services), new { id = model.ComplexId, courtTypeId = model.CourtTypeId });
         }
         catch (Exception ex)
         {
+            if (IsAjaxRequest())
+                return StatusCode(400, new { success = false, message = ex.Message });
             ModelState.AddModelError(string.Empty, ex.Message);
-            model.CatalogServices = await serviceCatalog.GetServicesAsync(null, null);
+            await PopulateServiceFormOptions(model);
             return View("ServiceForm", model);
         }
     }
@@ -274,13 +299,17 @@ public class ComplexesController(
         try
         {
             await offeringService.DeleteAsync(offeringId);
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Đã xóa dịch vụ khỏi loại sân." });
             TempData["Success"] = "Đã xóa dịch vụ khỏi loại sân.";
         }
         catch (Exception ex)
         {
+            if (IsAjaxRequest())
+                return Json(new { success = false, message = ex.Message });
             TempData["Error"] = ex.Message;
         }
-        return RedirectToAction(nameof(Details), new { id = complexId, courtTypeId });
+        return RedirectToAction(nameof(Services), new { id = complexId, courtTypeId });
     }
 
     [HttpPost]
@@ -349,6 +378,14 @@ public class ComplexesController(
     {
         vm.CourtTypeOptions = await courtService.GetCourtTypesAsync();
         vm.Managers = await courtService.GetManagersAsync();
+    }
+
+    private async Task PopulateServiceFormOptions(ServiceOfferingFormViewModel model)
+    {
+        var complex = await courtService.GetComplexByIdAsync(model.ComplexId);
+        model.CourtTypeOptions = (await courtService.GetCourtTypesAsync())
+            .Where(t => complex?.CourtTypeIds.Contains(t.CourtTypeId) == true).ToList();
+        model.CatalogServices = await serviceCatalog.GetServicesAsync(null, null);
     }
 
     private async Task ApplyImageUploadAsync(ComplexFormViewModel model)
