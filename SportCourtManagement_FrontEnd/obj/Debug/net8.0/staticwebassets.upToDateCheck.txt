@@ -1,4 +1,5 @@
 wwwroot\css\Manager\attendance.css
+wwwroot\css\Manager\maintenance.css
 wwwroot\css\Manager\manager-layout.css
 wwwroot\css\Manager\salary-config.css
 wwwroot\css\Manager\shifts.css
@@ -63,4 +64,3 @@ wwwroot\lib\jquery\dist\jquery.js
 wwwroot\lib\jquery\dist\jquery.min.js
 wwwroot\lib\jquery\dist\jquery.min.map
 wwwroot\lib\jquery\LICENSE.txt
-wwwroot\css\Manager\maintenance.css

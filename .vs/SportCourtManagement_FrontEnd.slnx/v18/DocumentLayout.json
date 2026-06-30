@@ -3,36 +3,20 @@
   "WorkspaceRootPath": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\views\\maintenance\\maintenance.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\views\\maintenance\\maintenance.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\views\\manager\\shifts.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\views\\manager\\shifts.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\controllers\\managercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\controllers\\managercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\views\\shared\\_managerlayout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\views\\shared\\_managerlayout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\views\\_viewstart.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\views\\_viewstart.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\views\\shared\\_validationscriptspartial.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\views\\shared\\_validationscriptspartial.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\views\\_viewimports.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\views\\_viewimports.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\views\\shared\\error.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\views\\shared\\error.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\controllers\\maintenancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\controllers\\maintenancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -47,99 +31,54 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "ManagerController.cs",
-              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Controllers\\ManagerController.cs",
-              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Controllers\\ManagerController.cs",
-              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Controllers\\ManagerController.cs",
-              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Controllers\\ManagerController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
+              "Title": "Maintenance.cshtml",
+              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Maintenance\\Maintenance.cshtml",
+              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Views\\Maintenance\\Maintenance.cshtml",
+              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Maintenance\\Maintenance.cshtml",
+              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Views\\Maintenance\\Maintenance.cshtml",
+              "ViewState": "AgIAALkBAAAAAAAAAAAAADcAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-06-30T05:55:04.525Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MaintenanceController.cs",
+              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Controllers\\MaintenanceController.cs",
+              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Controllers\\MaintenanceController.cs",
+              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Controllers\\MaintenanceController.cs",
+              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Controllers\\MaintenanceController.cs",
+              "ViewState": "AgIAAEUAAAAAAAAAAAAYwCEAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-28T14:32:48.131Z",
+              "WhenOpened": "2026-06-30T05:52:01.573Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "_ManagerLayout.cshtml",
-              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Shared\\_ManagerLayout.cshtml",
-              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Views\\Shared\\_ManagerLayout.cshtml",
-              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Shared\\_ManagerLayout.cshtml",
-              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Views\\Shared\\_ManagerLayout.cshtml",
-              "ViewState": "AgIAAB4AAAAAAAAAAAAAAGUAAAAAAAAAAAAAAA==",
+              "Title": "Shifts.cshtml",
+              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Manager\\Shifts.cshtml",
+              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Views\\Manager\\Shifts.cshtml",
+              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Manager\\Shifts.cshtml",
+              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Views\\Manager\\Shifts.cshtml",
+              "ViewState": "AgIAAOkBAAAAAAAAAAAAACACAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-28T13:10:18.957Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "_ViewStart.cshtml",
-              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\_ViewStart.cshtml",
-              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Views\\_ViewStart.cshtml",
-              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\_ViewStart.cshtml",
-              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Views\\_ViewStart.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-28T13:03:46.26Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "_ViewImports.cshtml",
-              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\_ViewImports.cshtml",
-              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Views\\_ViewImports.cshtml",
-              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\_ViewImports.cshtml",
-              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Views\\_ViewImports.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-28T13:03:42.716Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "Error.cshtml",
-              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Shared\\Error.cshtml",
-              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Views\\Shared\\Error.cshtml",
-              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Shared\\Error.cshtml",
-              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Views\\Shared\\Error.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-28T13:03:36.867Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "_ValidationScriptsPartial.cshtml",
-              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Shared\\_ValidationScriptsPartial.cshtml",
-              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Views\\Shared\\_ValidationScriptsPartial.cshtml",
-              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Shared\\_ValidationScriptsPartial.cshtml",
-              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Views\\Shared\\_ValidationScriptsPartial.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-28T13:03:35.971Z"
+              "WhenOpened": "2026-06-29T16:58:33.485Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "_Layout.cshtml",
-              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Shared\\_Layout.cshtml",
-              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Views\\Shared\\_Layout.cshtml",
-              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Shared\\_Layout.cshtml",
-              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Views\\Shared\\_Layout.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-28T13:03:25.483Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Program.cs",
-              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Program.cs",
-              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Program.cs",
-              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAACDAAAAAAAAAA==",
+              "Title": "ManagerController.cs",
+              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Controllers\\ManagerController.cs",
+              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Controllers\\ManagerController.cs",
+              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Controllers\\ManagerController.cs",
+              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Controllers\\ManagerController.cs",
+              "ViewState": "AgIAAI0AAAAAAAAAAAAowEgAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-24T14:39:35.941Z"
+              "WhenOpened": "2026-06-29T16:58:13.844Z",
+              "EditorCaption": ""
             }
           ]
         },
