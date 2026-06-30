@@ -1,0 +1,413 @@
+@model SportCourtManagement_FrontEnd.Models.ViewModels.CourtDetailViewModel
+
+@{
+    ViewData["Title"] = Model.Court.CourtName;
+}
+
+<main class="sc-container py-4">
+    <!-- Breadcrumb -->
+    <nav class="sc-breadcrumb">
+        <a asp-controller="Courts" asp-action="Index">Trang chủ</a>
+        <span>›</span>
+        <a asp-controller="Courts" asp-action="Index">Tìm sân</a>
+        <span>›</span>
+        <span class="text-white fw-medium">@Model.Court.CourtName</span>
+    </nav>
+
+    <!-- TempData Toast Notifications -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success bg-opacity-10 border-success text-success mb-4" role="alert">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger bg-opacity-10 border-danger text-danger mb-4" role="alert">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <!-- Gallery Grid -->
+    <div class="sc-gallery-grid mb-4">
+        <!-- Main Image -->
+        <div class="sc-gallery-main">
+            @if (!string.IsNullOrEmpty(Model.Court.ImageUrl))
+            {
+                <img src="~/images/courts/@Model.Court.ImageUrl" alt="@Model.Court.CourtName" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+            }
+            else
+            {
+                <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: var(--sc-text-secondary);">
+                    <h3><i class="bi bi-dribbble me-1"></i> @Model.Court.CourtName</h3>
+                </div>
+            }
+            <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(0deg, rgba(15,17,23,0.6) 0%, rgba(15,17,23,0) 100%); pointer-events: none;"></div>
+        </div>
+        <!-- Thumbnail -->
+        <div class="sc-gallery-thumb d-flex flex-column gap-1" style="height: 100%;">
+            @if (Model.Court.Images != null && Model.Court.Images.Count > 1)
+            {
+                var secondaryImages = Model.Court.Images.Where(img => img.ImageUrl != Model.Court.ImageUrl).Take(2).ToList();
+                if (secondaryImages.Count == 0)
+                {
+                    secondaryImages = Model.Court.Images.Where(img => !img.IsPrimary).Take(2).ToList();
+                }
+                if (secondaryImages.Count == 0)
+                {
+                    secondaryImages = Model.Court.Images.Take(2).ToList();
+                }
+
+                foreach (var img in secondaryImages)
+                {
+                    <div class="position-relative overflow-hidden flex-grow-1" style="height: calc(50% - 2px);">
+                        <img src="~/images/courts/@img.ImageUrl" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                        <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(79, 110, 247, 0.05); pointer-events: none;"></div>
+                    </div>
+                }
+            }
+            else if (Model.Court.Images != null && Model.Court.Images.Count == 1)
+            {
+                <div class="position-relative overflow-hidden h-100">
+                    <img src="~/images/courts/@Model.Court.Images[0].ImageUrl" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(79, 110, 247, 0.15); border: 2px solid var(--sc-blue); pointer-events: none;"></div>
+                </div>
+            }
+            else
+            {
+                <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background-color: #0D121F; border: 1px solid var(--sc-border);">
+                    <span class="text-sc-muted">No Image</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Two-column Layout -->
+    <div class="sc-layout-wrapper">
+        <!-- LEFT COLUMN: Court Info -->
+        <div class="sc-main-col">
+            <!-- Header Title & Badges -->
+            <h1 class="font-outfit text-white mb-2" style="font-weight: 800; font-size: 28px; letter-spacing: -0.5px;">
+                @Model.Court.CourtName
+            </h1>
+
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                <span class="sc-badge sc-badge-blue"><i class="bi bi-dribbble me-1"></i> @Model.Court.CourtType.TypeName</span>
+                @if (Model.Court.Status.Equals("Available", StringComparison.OrdinalIgnoreCase))
+                {
+                    <span class="sc-badge sc-badge-green">Còn trống</span>
+                }
+                else
+                {
+                    <span class="sc-badge sc-badge-red">@Model.Court.Status</span>
+                }
+                <span class="sc-badge sc-badge-muted"><i class="bi bi-clipboard me-1"></i> Mã: @Model.Court.CourtCode</span>
+            </div>
+
+            <!-- Rating & Details -->
+            <div class="d-flex flex-wrap align-items-center gap-x-4 gap-y-2 mb-4" style="font-size: 13.5px; color: var(--sc-text-secondary);">
+                <div class="d-flex align-items-center gap-1">
+                    <span class="text-sc-amber"><i class="bi bi-star-fill"></i></span>
+                    <span class="text-white fw-bold">@Model.Court.ReviewSummary.AverageRating.ToString("0.0")</span>
+                    <span>(@Model.Court.ReviewSummary.TotalReviews đánh giá)</span>
+                </div>
+                <span>•</span>
+                <div class="d-flex align-items-center gap-1">
+                    <span><i class="bi bi-geo-alt-fill"></i></span>
+                    <span>Vị trí: @Model.Court.Location</span>
+                </div>
+                <span>•</span>
+                <div class="d-flex align-items-center gap-1">
+                    <span><i class="bi bi-clock"></i></span>
+                    <span>Giờ mở cửa: @Model.Court.OpenTime.ToString("HH:mm") – @Model.Court.CloseTime.ToString("HH:mm")</span>
+                </div>
+            </div>
+
+            <!-- Tab System Navigation -->
+            <div class="sc-tab-container">
+                <button class="sc-tab-btn active" data-tab="info"><i class="bi bi-info-circle me-1"></i> Thông tin sân</button>
+                <button class="sc-tab-btn" data-tab="amenities"><i class="bi bi-stars me-1"></i> Tiện ích</button>
+                <button class="sc-tab-btn" data-tab="pricing"><i class="bi bi-tag me-1"></i> Bảng giá</button>
+                <button class="sc-tab-btn" data-tab="reviews"><i class="bi bi-star me-1"></i> Đánh giá (@Model.Court.ReviewSummary.TotalReviews)</button>
+            </div>
+
+            <!-- TAB CONTENTS -->
+            <!-- Tab 1: Info -->
+            <div id="tab-info" class="sc-tab-content">
+                <p class="text-sc-muted mb-4" style="font-size: 14.5px; line-height: 1.7;">
+                    @Model.Court.Description
+                </p>
+                <div class="sc-info-grid">
+                    <div class="sc-info-card">
+                        <div class="text-sc-muted font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Địa chỉ sân đấu</div>
+                        <div class="text-white fw-bold" style="font-size: 14px;"><i class="bi bi-geo-alt-fill me-1"></i> @Model.Court.Location</div>
+                    </div>
+                    <div class="sc-info-card">
+                        <div class="text-sc-muted font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Khung giờ hoạt động</div>
+                        <div class="text-white fw-bold" style="font-size: 14px;"><i class="bi bi-clock me-1"></i> @Model.Court.OpenTime.ToString("HH:mm") – @Model.Court.CloseTime.ToString("HH:mm")</div>
+                    </div>
+                    <div class="sc-info-card">
+                        <div class="text-sc-muted font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Mặt sân & Sức chứa</div>
+                        <div class="text-sc-green fw-bold" style="font-size: 14px;"><i class="bi bi-lightning-fill me-1"></i> Mặt @(Model.Court.Surface ?? "PVC") (Tối đa @(Model.Court.Capacity ?? 4) người)</div>
+                    </div>
+                    <div class="sc-info-card">
+                        <div class="text-sc-muted font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Phụ thu cuối tuần</div>
+                        <div class="text-sc-amber fw-bold" style="font-size: 14px;"><i class="bi bi-fire me-1"></i> +30% (T7 & CN)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Amenities -->
+            <div id="tab-amenities" class="sc-tab-content" style="display: none;">
+                <p class="text-sc-muted mb-3" style="font-size: 14px;">Các tiện ích đi kèm tại sân @Model.Court.CourtName:</p>
+                <div class="row g-3">
+                    <div class="col-sm-4">
+                        <div class="p-3 sc-card text-center text-sc-muted" style="font-size: 13.5px; background-color: rgba(255,255,255,0.02);"><i class="bi bi-wind me-1"></i> Điều hòa toàn diện</div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="p-3 sc-card text-center text-sc-muted" style="font-size: 13.5px; background-color: rgba(255,255,255,0.02);"><i class="bi bi-lightbulb me-1"></i> Hệ thống chiếu sáng LED</div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="p-3 sc-card text-center text-sc-muted" style="font-size: 13.5px; background-color: rgba(255,255,255,0.02);"><i class="bi bi-people me-1"></i> Khán đài mini</div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="p-3 sc-card text-center text-sc-muted" style="font-size: 13.5px; background-color: rgba(255,255,255,0.02);"><i class="bi bi-droplet me-1"></i> Phòng tắm & Thay đồ</div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="p-3 sc-card text-center text-sc-muted" style="font-size: 13.5px; background-color: rgba(255,255,255,0.02);"><i class="bi bi-p-circle me-1"></i> Bãi đỗ xe rộng rãi</div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="p-3 sc-card text-center text-sc-muted" style="font-size: 13.5px; background-color: rgba(255,255,255,0.02);"><i class="bi bi-camera-video me-1"></i> An ninh giám sát 24/7</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Pricing -->
+            <div id="tab-pricing" class="sc-tab-content" style="display: none;">
+                <p class="text-sc-muted mb-3" style="font-size: 14px;">Bảng giá đặt sân chi tiết theo khung giờ:</p>
+                <div class="sc-card" style="background-color: rgba(255,255,255,0.01);">
+                    <table class="sc-table text-white" style="font-size: 13.5px;">
+                        <thead>
+                            <tr>
+                                <th>Khung giờ</th>
+                                <th>Ngày thường (Weekday)</th>
+                                <th>Cuối tuần (Weekend)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Court.Pricings != null && Model.Court.Pricings.Count > 0)
+                            {
+                                foreach (var price in Model.Court.Pricings)
+                                {
+                                    var weekendPrice = price.Price * price.PeakMultiplier;
+                                    <tr>
+                                        <td>@price.SlotName (@price.StartTime.ToString("HH:mm") - @price.EndTime.ToString("HH:mm"))</td>
+                                        <td class="text-sc-green fw-bold">@price.Price.ToString("N0")đ</td>
+                                        <td class="text-sc-amber fw-bold">@weekendPrice.ToString("N0")đ</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center text-sc-muted">Bảng giá đang được cập nhật.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 4: Reviews -->
+            <div id="tab-reviews" class="sc-tab-content" style="display: none;">
+                <!-- Review Summary Statistics -->
+                <div class="sc-card p-4 mb-4" style="background-color: rgba(255,255,255,0.01);">
+                    <div class="row align-items-center g-4">
+                        <div class="col-sm-4 text-center">
+                            <h1 class="text-white mb-1 font-outfit" style="font-weight: 800; font-size: 48px;">
+                                @Model.Court.ReviewSummary.AverageRating.ToString("0.0")
+                            </h1>
+                            <div class="d-flex justify-content-center gap-0.5 mb-2">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    var filled = i <= Math.Round(Model.Court.ReviewSummary.AverageRating);
+                                    <span class="sc-star @(filled ? "sc-star-filled" : "")" style="font-size: 18px;"><i class="bi bi-star-fill"></i></span>
+                                }
+                            </div>
+                            <span class="text-sc-muted text-sm">@Model.Court.ReviewSummary.TotalReviews đánh giá công khai</span>
+                        </div>
+                        <div class="col-sm-8 border-start border-secondary" style="border-start-color: rgba(255,255,255,0.05) !important;">
+                            @foreach (var star in new[] { 5, 4, 3, 2, 1 })
+                            {
+                                Model.Court.ReviewSummary.RatingDistribution.TryGetValue(star, out var count);
+                                var percent = Model.Court.ReviewSummary.TotalReviews > 0 ? (count * 100 / Model.Court.ReviewSummary.TotalReviews) : 0;
+                                <div class="d-flex align-items-center gap-3 mb-2" style="font-size: 13px;">
+                                    <span class="text-sc-muted" style="width: 20px;">@star<i class="bi bi-star-fill" style="font-size: 10px;"></i></span>
+                                    <div class="progress flex-grow-1" style="height: 6px; background-color: #141B2D; border-radius: 3px;">
+                                        <div class="progress-bar" role="progressbar" style="width: @percent%; background-color: var(--sc-amber-light); border-radius: 3px;" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <span class="text-sc-muted" style="width: 30px; text-align: right;">@count</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Review Form (Only show if logged in) -->
+                @{
+                    var hasJwtCookie = !string.IsNullOrEmpty(Context.Request.Cookies["jwt"]) 
+                                    || !string.IsNullOrEmpty(Context.Request.Cookies["AccessToken"]);
+                    var isLoggedIn = hasJwtCookie || (User.Identity?.IsAuthenticated ?? false);
+                }
+
+                @if (isLoggedIn)
+                {
+                    <div class="sc-card p-4 mb-4" style="background-color: #0D121F;">
+                        <h5 class="font-outfit text-white mb-3" style="font-weight: 700;"><i class="bi bi-pencil-square me-1"></i> Viết đánh giá của bạn</h5>
+                        <form asp-action="SubmitReview" asp-controller="Courts" asp-route-id="@Model.Court.CourtId" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-3">
+                                <label class="form-label text-sc-muted" style="font-size: 12px; font-weight: 600;">MÃ ĐẶT SÂN (BOOKING ID)</label>
+                                <input type="number" name="bookingId" required placeholder="Nhập ID lịch đặt đã hoàn thành (VD: 12)" class="sc-input" />
+                                <div class="form-text text-sc-muted" style="font-size: 11px;">Bạn chỉ có thể đánh giá những buổi chơi đã hoàn thành của chính mình.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-sc-muted d-block" style="font-size: 12px; font-weight: 600;">ĐÁNH GIÁ SAO</label>
+                                <div class="d-flex gap-1">
+                                    <input type="hidden" name="rating" id="review-rating" value="5" />
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <span class="sc-star-interactive sc-star-filled" data-value="@i"><i class="bi bi-star-fill"></i></span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-sc-muted" style="font-size: 12px; font-weight: 600;">BÌNH LUẬN</label>
+                                <textarea name="comment" rows="3" placeholder="Chia sẻ trải nghiệm của bạn về chất lượng sân, ánh sáng, phục vụ..." class="sc-input"></textarea>
+                            </div>
+
+                            <button type="submit" class="sc-btn sc-btn-primary py-2 px-4">Gửi đánh giá</button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="sc-card p-4 mb-4 text-center" style="background-color: #0D121F; border-style: dashed; border-color: rgba(255,255,255,0.15);">
+                        <span class="fs-4 mb-2 d-block"><i class="bi bi-lock-fill"></i></span>
+                        <h6 class="text-white mb-2 font-outfit" style="font-weight: 700;">Đăng nhập để đánh giá</h6>
+                        <p class="text-sc-muted small mb-3">Bạn cần đăng nhập để có thể đánh giá và chia sẻ trải nghiệm về sân đấu này.</p>
+                        <a href="#" class="sc-btn sc-btn-primary py-2 px-4" style="font-size: 13px; border-radius: 8px;">Đăng nhập ngay</a>
+                    </div>
+                }
+
+                <!-- Reviews List Container (AJAX loaded / initial render) -->
+                <div id="reviews-list-container">
+                    @await Html.PartialAsync("_ReviewList", Model.ReviewsResult)
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Booking Sidebar -->
+        <div class="sc-side-col">
+            <div class="sc-booking-sidebar">
+                <div class="sc-card p-4" style="background-color: #0D121F;">
+                    <!-- Base Price Header -->
+                    <div class="pb-3 mb-4 border-bottom" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
+                        <div class="d-flex align-items-baseline gap-1 mb-2">
+                            <span id="booking-price" class="font-outfit text-sc-green" style="font-weight: 900; font-size: 26px; line-height: 1;">
+                                @(Model.Court.Pricings?.FirstOrDefault()?.Price.ToString("N0") ?? "---")đ
+                            </span>
+                            <span class="text-sc-muted" style="font-size: 13px;">/giờ</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2" style="font-size: 12px;">
+                            <span class="sc-badge sc-badge-green" style="padding: 2px 8px;">Còn trống</span>
+                            <span class="text-sc-muted">• Đặt lịch tức thì <i class="bi bi-lightning-fill"></i></span>
+                        </div>
+                    </div>
+
+                    <!-- Date Selection -->
+                    <div class="mb-3">
+                        <label for="booking-date" class="form-label text-sc-muted font-inter mb-2" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                            <i class="bi bi-calendar3 me-1"></i> Ngày chơi
+                        </label>
+                        <input type="date" id="booking-date" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="sc-input" style="color-scheme: dark;" />
+                    </div>
+
+                    <!-- Grid of Available Slots -->
+                    <div class="mb-4">
+                        <label class="form-label text-sc-muted font-inter mb-2" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                            <i class="bi bi-clock me-1"></i> Khung giờ đặt
+                        </label>
+                        <input type="hidden" id="court-id" value="@Model.Court.CourtId" />
+                        <input type="hidden" id="selected-slot-id" name="SlotId" value="" />
+
+                        <div id="slots-container" class="sc-slot-grid">
+                            @await Html.PartialAsync("_AvailabilitySlots", Model.Availability)
+                        </div>
+                    </div>
+
+                    <!-- Booking Selection Display Info -->
+                    <div class="p-3 mb-4 rounded" style="background-color: #141B2D; font-size: 13px; border: 1px solid var(--sc-border);">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-sc-muted">Khung giờ đã chọn:</span>
+                            <span id="selected-slot-label" class="text-white fw-bold">-- Chưa chọn --</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-sc-muted">Chính sách trả sân:</span>
+                            <span class="text-sc-red fw-bold">Không hỗ trợ hủy/hoàn tiền</span>
+                        </div>
+                    </div>
+
+                    <!-- Booking Action Button -->
+                    <button class="sc-btn sc-btn-gradient w-100 py-3 font-outfit" style="font-size: 15px; font-weight: 700;" onclick="alert('Tính năng đặt sân (Booking) đang được phát triển.')">
+                        <i class="bi bi-lightning-fill me-1"></i> Đặt sân đấu ngay
+                    </button>
+
+                    <!-- Policy Notes -->
+                    <div class="mt-4 space-y-2 text-sc-muted" style="font-size: 12px; line-height: 1.5;">
+                        <div class="d-flex gap-2">
+                            <span><i class="bi bi-lock-fill"></i></span>
+                            <span>Chính sách: Không hỗ trợ hủy lịch đặt sân và hoàn trả chi phí sau khi thanh toán thành công.</span>
+                        </div>
+                        <div class="d-flex gap-2 mt-1">
+                            <span><i class="bi bi-envelope-fill"></i></span>
+                            <span>Xác nhận thông tin tức thì qua tài khoản đăng ký.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assistance Card -->
+                <div class="sc-card p-4 mt-3" style="background-color: #0D121F;">
+                    <h6 class="text-white font-outfit mb-2" style="font-weight: 700;"><i class="bi bi-telephone-fill me-1"></i> Hỗ trợ đặt sân nhanh</h6>
+                    <p class="text-sc-muted mb-3" style="font-size: 13px; line-height: 1.5;">
+                        Gặp khó khăn khi lựa chọn hoặc thanh toán đặt sân? Gọi ngay cho chúng tôi.
+                    </p>
+                    <a href="tel:19001234" class="sc-btn sc-btn-secondary w-100 py-2 d-flex justify-content-center gap-2 text-sc-blue-light" style="font-size: 13px;">
+                        <span><i class="bi bi-telephone-fill me-1"></i> Hotline:</span> <strong>1900 1234</strong>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Similar Courts Section -->
+    <section class="mt-5 pt-4">
+        <h3 class="font-outfit text-white mb-4 pl-3" style="font-weight: 800; font-size: 20px; border-left: 3px solid var(--sc-blue);">
+            Sân đấu tương tự — @Model.Court.CourtType.TypeName
+        </h3>
+        <div class="row g-4">
+            @foreach (var court in Model.SimilarCourts)
+            {
+                <div class="col-md-6 col-lg-4 d-flex align-items-stretch">
+                    @await Html.PartialAsync("_CourtCard", court)
+                </div>
+            }
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script src="~/js/courts.js" asp-append-version="true"></script>
+}

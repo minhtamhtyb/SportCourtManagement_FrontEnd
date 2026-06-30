@@ -1,0 +1,39 @@
+@model SportCourtManagement_FrontEnd.Models.Courts.CourtAvailabilityDto
+
+@if (Model.Slots == null || Model.Slots.Count == 0)
+{
+    <div class="text-center py-4 text-sc-muted" style="grid-column: span 3;">
+        <i class="bi bi-inbox me-1"></i> Không có khung giờ hoạt động nào trong ngày này.
+    </div>
+}
+else
+{
+    @foreach (var slot in Model.Slots)
+    {
+        var isAvailable = slot.Status.Equals("Available", StringComparison.OrdinalIgnoreCase);
+        var isMaintenance = slot.Status.Equals("Maintenance", StringComparison.OrdinalIgnoreCase);
+        var isBooked = slot.Status.Equals("Booked", StringComparison.OrdinalIgnoreCase);
+
+        string statusClass = "sc-slot-available";
+        if (isBooked) statusClass = "sc-slot-booked";
+        if (isMaintenance) statusClass = "sc-slot-maintenance";
+
+        <div class="sc-slot-btn @statusClass" 
+             data-slot-id="@slot.SlotId" 
+             data-slot-name="@slot.SlotName (@slot.StartTime.ToString("HH:mm") - @slot.EndTime.ToString("HH:mm"))"
+             data-price="@slot.Price"
+             title="@(isAvailable ? "Bấm để chọn đặt" : slot.Status)">
+            <div>@slot.StartTime.ToString("HH:mm") - @slot.EndTime.ToString("HH:mm")</div>
+            <div style="font-size: 10px; opacity: 0.8; margin-top: 2px;">
+                @if (isAvailable)
+                {
+                    @(slot.Price.ToString("N0") + "đ")
+                }
+                else
+                {
+                    @slot.Status
+                }
+            </div>
+        </div>
+    }
+}
