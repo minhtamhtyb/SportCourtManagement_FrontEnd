@@ -1,0 +1,178 @@
+@model SportCourtManagement_FrontEnd.Models.Bookings.BookingResponseDto
+
+@{
+    ViewData["Title"] = "Thanh toán - Mã đặt sân #" + Model.BookingId;
+}
+
+<main class="sc-container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="sc-card p-4" style="background-color: #0D121F; border: 1px solid rgba(79, 110, 247, 0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+                
+                <!-- Header Icon & Status -->
+                <div class="text-center pb-4 mb-4 border-bottom" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-circle mb-3" style="width: 60px; height: 60px; font-size: 28px;">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+                    <h3 class="text-white font-outfit fw-bold mb-1">Thanh Toán Đặt Sân</h3>
+                    <p class="text-sc-muted mb-0 small">Vui lòng thanh toán để hoàn tất đăng ký giữ chỗ sân đấu của bạn.</p>
+                </div>
+
+                <!-- Booking Info Summary -->
+                <div class="p-3 rounded mb-4" style="background-color: #141B2D; border: 1px solid var(--sc-border); font-size: 13.5px;">
+                    <h6 class="text-white font-outfit mb-3" style="font-weight: 700;">Tóm tắt đơn hàng</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-sc-muted">Sân đấu:</span>
+                        <span class="text-white fw-bold">@Model.CourtName</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-sc-muted">Ngày chơi:</span>
+                        <span class="text-white fw-semibold">@Model.BookingDate.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-sc-muted">Khung giờ:</span>
+                        <span class="text-white fw-semibold">
+                            @foreach (var slot in Model.Slots)
+                            {
+                                <span>@slot.StartTime - @slot.EndTime</span>
+                            }
+                        </span>
+                    </div>
+                    <hr style="border-color: rgba(255,255,255,0.05); margin: 12px 0;" />
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-sc-muted">Tiền thuê sân:</span>
+                        <span class="text-white">@Model.SubTotalAmount.ToString("N0")đ</span>
+                    </div>
+                    @if (Model.ServicesAmount > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-sc-muted">Dịch vụ phụ trợ:</span>
+                            <span class="text-white">@Model.ServicesAmount.ToString("N0")đ</span>
+                        </div>
+                    }
+                    @if (Model.DiscountAmount > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-2 text-sc-amber">
+                            <span>Khuyến mãi áp dụng:</span>
+                            <span>-@Model.DiscountAmount.ToString("N0")đ</span>
+                        </div>
+                    }
+                    <div class="d-flex justify-content-between align-items-baseline mt-3 pt-2 border-top" style="border-top-style: dashed; border-top-color: rgba(255,255,255,0.05) !important;">
+                        <span class="text-white fw-bold" style="font-size: 15px;">Tổng cộng:</span>
+                        <span class="font-outfit text-sc-green fw-black" style="font-size: 24px; font-weight: 900;">@Model.TotalAmount.ToString("N0")đ</span>
+                    </div>
+                </div>
+
+                <!-- Form Selection -->
+                <form asp-action="Payment" asp-controller="Bookings" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="bookingId" value="@Model.BookingId" />
+
+                    <h6 class="text-white font-outfit mb-3" style="font-weight: 700;">Chọn phương thức thanh toán</h6>
+
+                    <!-- Payment methods selection grid -->
+                    <div class="d-flex flex-column gap-3 mb-4">
+                        <!-- VNPay Option -->
+                        <label class="sc-payment-option-label" for="payment-vnpay">
+                            <input type="radio" id="payment-vnpay" name="paymentMethod" value="VNPay" checked style="display:none;" />
+                            <div class="sc-payment-card d-flex align-items-center gap-3 p-3 rounded active">
+                                <div class="sc-radio-indicator"></div>
+                                <div class="bg-white p-1 rounded" style="width: 48px; height: 32px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <span class="fw-bold text-primary font-monospace" style="font-size: 11px;">VNPAY</span>
+                                </div>
+                                <div>
+                                    <div class="text-white fw-bold" style="font-size: 14px;">Cổng thanh toán VNPay</div>
+                                    <div class="text-sc-muted" style="font-size: 12px;">Hỗ trợ thẻ ATM nội địa & QR Code ngân hàng</div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- MoMo Option -->
+                        <label class="sc-payment-option-label" for="payment-momo">
+                            <input type="radio" id="payment-momo" name="paymentMethod" value="MoMo" style="display:none;" />
+                            <div class="sc-payment-card d-flex align-items-center gap-3 p-3 rounded">
+                                <div class="sc-radio-indicator"></div>
+                                <div class="p-1 rounded" style="width: 48px; height: 32px; background-color: #A50064; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <span class="fw-bold text-white font-monospace" style="font-size: 10px;">MOMO</span>
+                                </div>
+                                <div>
+                                    <div class="text-white fw-bold" style="font-size: 14px;">Ví điện tử MoMo</div>
+                                    <div class="text-sc-muted" style="font-size: 12px;">Thanh toán nhanh qua ví điện tử MoMo trên di động</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Actions -->
+                    <button type="submit" class="sc-btn sc-btn-gradient w-100 py-3 font-outfit" style="font-size: 16px; font-weight: 700; border-radius: 12px;">
+                        <i class="bi bi-shield-lock-fill me-1"></i> Tiến hành thanh toán an toàn
+                    </button>
+                    
+                    <div class="text-center mt-3">
+                        <span class="text-sc-muted small"><i class="bi bi-lock-fill"></i> Kết nối an toàn được mã hóa 256-bit SSL</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Custom Styles for Payment Screen -->
+@section Scripts {
+    <style>
+        .sc-payment-option-label {
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .sc-payment-card {
+            border: 1px solid var(--sc-border);
+            background-color: rgba(255, 255, 255, 0.01);
+            transition: all 0.25s ease;
+        }
+
+        .sc-payment-card:hover {
+            border-color: rgba(79, 110, 247, 0.3);
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        .sc-payment-card.active {
+            border-color: var(--sc-blue);
+            background-color: rgba(79, 110, 247, 0.08);
+            box-shadow: 0 4px 12px rgba(79, 110, 247, 0.1);
+        }
+
+        .sc-radio-indicator {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid var(--sc-text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .sc-payment-card.active .sc-radio-indicator {
+            border-color: var(--sc-blue-light);
+            background-color: var(--sc-blue);
+        }
+
+        .sc-payment-card.active .sc-radio-indicator::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background-color: #ffffff;
+            border-radius: 50%;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            $('input[name="paymentMethod"]').on('change', function () {
+                $('.sc-payment-card').removeClass('active');
+                $(this).closest('.sc-payment-option-label').find('.sc-payment-card').addClass('active');
+            });
+        });
+    </script>
+}

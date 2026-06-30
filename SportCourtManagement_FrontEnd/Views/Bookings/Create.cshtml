@@ -1,0 +1,228 @@
+@model SportCourtManagement_FrontEnd.Models.ViewModels.CreateBookingViewModel
+
+@{
+    ViewData["Title"] = "Đặt sân - " + Model.Court.CourtName;
+}
+
+<main class="sc-container py-4">
+    <!-- Breadcrumb -->
+    <nav class="sc-breadcrumb">
+        <a asp-controller="Courts" asp-action="Index">Trang chủ</a>
+        <span>›</span>
+        <a asp-controller="Courts" asp-action="Index">Tìm sân</a>
+        <span>›</span>
+        <a asp-controller="Courts" asp-action="Detail" asp-route-id="@Model.Court.CourtId">@Model.Court.CourtName</a>
+        <span>›</span>
+        <span class="text-white fw-medium">Đặt sân</span>
+    </nav>
+
+    <div class="row g-4">
+        <!-- LEFT COLUMN: Booking Form Details -->
+        <div class="col-lg-8">
+            <div class="sc-card p-4 mb-4" style="background-color: #0D121F;">
+                <h4 class="font-outfit text-white mb-4" style="font-weight: 800; border-left: 4px solid var(--sc-blue); padding-left: 12px;">
+                    Thông Tin Đặt Sân Chi Tiết
+                </h4>
+
+                <!-- Court Summary Row -->
+                <div class="d-flex align-items-center gap-3 p-3 rounded mb-4" style="background-color: rgba(255, 255, 255, 0.02); border: 1px solid var(--sc-border);">
+                    <div style="width: 100px; height: 75px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                        @if (!string.IsNullOrEmpty(Model.Court.ImageUrl))
+                        {
+                            <img src="~/images/courts/@Model.Court.ImageUrl" alt="@Model.Court.CourtName" class="w-100 h-100 object-fit-cover" />
+                        }
+                        else
+                        {
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary text-white" style="font-size: 10px;">
+                                No Image
+                            </div>
+                        }
+                    </div>
+                    <div>
+                        <h5 class="text-white font-outfit mb-1" style="font-weight: 700;">@Model.Court.CourtName</h5>
+                        <p class="text-sc-muted mb-1" style="font-size: 12px;"><i class="bi bi-geo-alt-fill me-1"></i> Vị trí: @Model.Court.Location</p>
+                        <span class="sc-badge sc-badge-blue"><i class="bi bi-dribbble me-1"></i> @Model.Court.CourtType.TypeName</span>
+                    </div>
+                </div>
+
+                <form id="booking-form" asp-action="Create" asp-controller="Bookings" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="courtId" value="@Model.Court.CourtId" />
+                    <input type="hidden" name="date" value="@Model.BookingDate.ToString("yyyy-MM-dd")" />
+                    <input type="hidden" name="slotId" value="@Model.SelectedSlot.SlotId" />
+
+                    <!-- Chosen Date & Time Slot -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded" style="background-color: #141B2D; border: 1px solid var(--sc-border);">
+                                <label class="text-sc-muted d-block font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Ngày đặt sân</label>
+                                <span class="text-white fw-bold" style="font-size: 15px;"><i class="bi bi-calendar3 me-2 text-sc-blue-light"></i> @Model.BookingDate.ToString("dd/MM/yyyy")</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded" style="background-color: #141B2D; border: 1px solid var(--sc-border);">
+                                <label class="text-sc-muted d-block font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Khung giờ đã chọn</label>
+                                <span class="text-white fw-bold" style="font-size: 15px;"><i class="bi bi-clock me-2 text-sc-green"></i> @Model.SelectedSlot.SlotName (@Model.SelectedSlot.StartTime.ToString("HH:mm") - @Model.SelectedSlot.EndTime.ToString("HH:mm"))</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Services Add-ons -->
+                    <div class="mb-4">
+                        <h5 class="font-outfit text-white mb-3" style="font-weight: 700; font-size: 16px;"><i class="bi bi-box-seam me-1 text-sc-blue-light"></i> Dịch vụ phụ trợ (Tùy chọn)</h5>
+                        <div class="row g-3">
+                            <!-- Service 1: Rackets -->
+                            <div class="col-sm-6">
+                                <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background-color: rgba(255, 255, 255, 0.01); border: 1px solid var(--sc-border);">
+                                    <div>
+                                        <div class="text-white fw-bold" style="font-size: 14px;">Thuê vợt thể thao</div>
+                                        <div class="text-sc-green fw-medium" style="font-size: 12px;">30.000đ / cái</div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace" onclick="changeQty('racketQty', -1)">-</button>
+                                        <input type="number" id="racketQty" name="racketQty" value="0" min="0" max="10" class="text-center bg-transparent border-0 text-white font-monospace" style="width: 30px; font-size: 14px;" readonly />
+                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace" onclick="changeQty('racketQty', 1)">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Service 2: Drinks -->
+                            <div class="col-sm-6">
+                                <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background-color: rgba(255, 255, 255, 0.01); border: 1px solid var(--sc-border);">
+                                    <div>
+                                        <div class="text-white fw-bold" style="font-size: 14px;">Nước bù khoáng (Pocari)</div>
+                                        <div class="text-sc-green fw-medium" style="font-size: 12px;">15.000đ / chai</div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace" onclick="changeQty('drinkQty', -1)">-</button>
+                                        <input type="number" id="drinkQty" name="drinkQty" value="0" min="0" max="20" class="text-center bg-transparent border-0 text-white font-monospace" style="width: 30px; font-size: 14px;" readonly />
+                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace" onclick="changeQty('drinkQty', 1)">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Note & Promotion -->
+                    <div class="mb-3">
+                        <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Mã giảm giá (Nếu có)</label>
+                        <div class="d-flex gap-2">
+                            <input type="text" id="promo-input" name="promotionCode" class="sc-input" placeholder="Nhập mã ưu đãi (Ví dụ: DISCOUNT10)" style="max-width: 300px;" />
+                            <button type="button" class="sc-btn sc-btn-secondary py-2" onclick="applyPromo()">Áp dụng</button>
+                        </div>
+                        <div id="promo-msg" class="form-text small mt-1" style="display:none;"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Ghi chú đặt sân</label>
+                        <textarea name="note" rows="3" class="sc-input" placeholder="Nhập ghi chú của bạn cho ban quản lý sân (VD: chuẩn bị thêm vợt thuê...)"></textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Order Summary Box -->
+        <div class="col-lg-4">
+            <div class="sc-booking-sidebar">
+                <div class="sc-card p-4" style="background-color: #0D121F;">
+                    <h5 class="font-outfit text-white mb-3 pb-2 border-bottom" style="font-weight: 700; border-bottom-color: rgba(255,255,255,0.05) !important;">
+                        Tóm Tắt Đơn Đặt Sân
+                    </h5>
+
+                    <!-- Price breakdown -->
+                    <div class="space-y-3 mb-4" style="font-size: 13.5px; line-height: 1.8;">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-sc-muted">Tiền sân (@Model.SelectedSlot.SlotName)</span>
+                            <span class="text-white fw-semibold">@Model.SelectedSlot.Price.ToString("N0")đ</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-sc-muted">Tiền dịch vụ thêm</span>
+                            <span id="services-total-lbl" class="text-white fw-semibold">0đ</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-sc-amber" id="discount-row" style="display: none !important;">
+                            <span>Khuyến mãi áp dụng</span>
+                            <span id="discount-total-lbl">-0đ</span>
+                        </div>
+                        <hr style="border-color: rgba(255,255,255,0.05);" />
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <span class="text-white fw-bold">Tổng thanh toán</span>
+                            <span id="grand-total-lbl" class="font-outfit text-sc-green fw-black" style="font-size: 22px; font-weight: 900;">@Model.SelectedSlot.Price.ToString("N0")đ</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Warning -->
+                    <div class="p-3 mb-4 rounded" style="background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); font-size: 12px; line-height: 1.5;">
+                        <span class="text-sc-red fw-bold d-block mb-1"><i class="bi bi-info-circle-fill me-1"></i> Lưu ý hủy lịch</span>
+                        <span class="text-sc-muted">Dịch vụ này không hỗ trợ hoàn tiền hoặc thay đổi khung giờ chơi sau khi đã thanh toán thành công.</span>
+                    </div>
+
+                    <!-- Submit action -->
+                    <button type="submit" form="booking-form" class="sc-btn sc-btn-gradient w-100 py-3 font-outfit" style="font-size: 15px; font-weight: 700;">
+                        <i class="bi bi-check-circle-fill me-1"></i> Xác nhận & Tiếp tục thanh toán
+                    </button>
+                    
+                    <a asp-controller="Courts" asp-action="Detail" asp-route-id="@Model.Court.CourtId" class="sc-btn sc-btn-secondary w-100 py-2 mt-2 font-outfit" style="font-size: 13px;">
+                        Quay lại trang chi tiết
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        const slotPrice = @Model.SelectedSlot.Price;
+        let racketPrice = 30000;
+        let drinkPrice = 15000;
+        let discountPercent = 0;
+
+        function changeQty(id, delta) {
+            const input = document.getElementById(id);
+            let val = parseInt(input.value) + delta;
+            if (val < 0) val = 0;
+            if (id === 'racketQty' && val > 10) val = 10;
+            if (id === 'drinkQty' && val > 20) val = 20;
+            input.value = val;
+            updateSummary();
+        }
+
+        function applyPromo() {
+            const promo = document.getElementById('promo-input').value.trim();
+            const msg = document.getElementById('promo-msg');
+            const row = document.getElementById('discount-row');
+            
+            if (promo.toUpperCase() === 'DISCOUNT10') {
+                discountPercent = 0.10;
+                msg.style.display = 'block';
+                msg.className = 'form-text text-sc-green small mt-1';
+                msg.innerText = 'Áp dụng mã ưu đãi DISCOUNT10 thành công (Giảm 10%)!';
+                row.style.setProperty('display', 'flex', 'important');
+            } else if (promo === '') {
+                discountPercent = 0;
+                msg.style.display = 'none';
+                row.style.setProperty('display', 'none', 'important');
+            } else {
+                discountPercent = 0;
+                msg.style.display = 'block';
+                msg.className = 'form-text text-danger small mt-1';
+                msg.innerText = 'Mã ưu đãi không hợp lệ.';
+                row.style.setProperty('display', 'none', 'important');
+            }
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const racketQty = parseInt(document.getElementById('racketQty').value) || 0;
+            const drinkQty = parseInt(document.getElementById('drinkQty').value) || 0;
+
+            const servicesTotal = (racketQty * racketPrice) + (drinkQty * drinkPrice);
+            const subtotal = slotPrice + servicesTotal;
+            const discountTotal = subtotal * discountPercent;
+            const grandTotal = subtotal - discountTotal;
+
+            document.getElementById('services-total-lbl').innerText = servicesTotal.toLocaleString('vi-VN') + "đ";
+            document.getElementById('discount-total-lbl').innerText = "-" + discountTotal.toLocaleString('vi-VN') + "đ";
+            document.getElementById('grand-total-lbl').innerText = grandTotal.toLocaleString('vi-VN') + "đ";
+        }
+    </script>
+}

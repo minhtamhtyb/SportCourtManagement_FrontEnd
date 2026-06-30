@@ -1,0 +1,96 @@
+@model SportCourtManagement_FrontEnd.Models.Bookings.BookingResponseDto
+
+@{
+    ViewData["Title"] = "Đặt sân thành công - #" + Model.BookingId;
+}
+
+<main class="sc-container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="sc-card p-4" style="background-color: #0D121F; border: 1px solid rgba(16, 185, 129, 0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+                
+                <!-- Animated Success Checkmark -->
+                <div class="text-center pb-4 mb-4 border-bottom" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-sc-green rounded-circle mb-3 pulse-success-icon" style="width: 72px; height: 72px; font-size: 36px;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <h3 class="text-white font-outfit fw-black mb-1" style="font-weight: 800; letter-spacing: -0.5px;">Đặt Sân Thành Công!</h3>
+                    <p class="text-sc-muted mb-0 small">Thông tin đặt sân đã được xác nhận và cập nhật thời gian thực.</p>
+                </div>
+
+                <!-- Ticket Receipt Details -->
+                <div class="sc-ticket-receipt mb-4">
+                    <div class="sc-ticket-header p-3 text-center" style="background-color: #141B2D; border: 1px solid var(--sc-border); border-bottom: 1px dashed rgba(255,255,255,0.1); border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                        <span class="text-sc-muted text-xs uppercase font-inter fw-bold">MÃ ĐẶT SÂN (BOOKING ID)</span>
+                        <h4 class="font-outfit text-white fw-bold mt-1 mb-0">#@Model.BookingId</h4>
+                    </div>
+                    <div class="sc-ticket-body p-3" style="background-color: #141B2D; border: 1px solid var(--sc-border); border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; font-size: 13.5px;">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-sc-muted">Sân đấu:</span>
+                            <span class="text-white fw-bold">@Model.CourtName</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-sc-muted">Ngày chơi:</span>
+                            <span class="text-white fw-semibold">@Model.BookingDate.ToString("dd/MM/yyyy")</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-sc-muted">Khung giờ:</span>
+                            <span class="text-white fw-semibold">
+                                @foreach (var slot in Model.Slots)
+                                {
+                                    <span>@slot.StartTime - @slot.EndTime</span>
+                                }
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-sc-muted">Trạng thái:</span>
+                            <span class="sc-badge sc-badge-green"><i class="bi bi-patch-check-fill me-1"></i> Đã thanh toán</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-sc-muted">Thanh toán qua:</span>
+                            <span class="text-white fw-semibold">@ViewBag.PaymentMethod</span>
+                        </div>
+                        <hr style="border-color: rgba(255,255,255,0.05); margin: 12px 0;" />
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <span class="text-white fw-bold">Số tiền đã trả:</span>
+                            <span class="font-outfit text-sc-green fw-black" style="font-size: 20px; font-weight: 800;">@Model.TotalAmount.ToString("N0")đ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer message -->
+                <div class="p-3 mb-4 rounded text-center" style="background-color: rgba(79, 110, 247, 0.05); border: 1px solid rgba(79, 110, 247, 0.15); font-size: 12.5px; line-height: 1.6;">
+                    <span class="text-sc-blue-light fw-bold d-block mb-1"><i class="bi bi-bell-fill me-1"></i> Hướng dẫn khi đến sân</span>
+                    <span class="text-sc-muted">Vui lòng cung cấp **Mã đặt sân #@Model.BookingId** cho nhân viên trực ca tại sân đấu để làm thủ tục check-in nhận sân. Chúc bạn có thời gian chơi bóng vui vẻ!</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex flex-column gap-2">
+                    <a asp-controller="Courts" asp-action="Index" class="sc-btn sc-btn-primary w-100 py-3 font-outfit" style="font-size: 15px; font-weight: 700; border-radius: 12px;">
+                        <i class="bi bi-house-door-fill me-1"></i> Quay lại trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <style>
+        .pulse-success-icon {
+            animation: pulse-green 2s infinite;
+        }
+
+        @@keyframes pulse-green {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+    </style>
+}

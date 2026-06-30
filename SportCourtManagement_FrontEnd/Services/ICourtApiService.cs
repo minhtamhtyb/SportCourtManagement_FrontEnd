@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using SportCourtManagement_FrontEnd.Models.Api;
 using SportCourtManagement_FrontEnd.Models.Courts;
 using SportCourtManagement_FrontEnd.Models.Reviews;
+using SportCourtManagement_FrontEnd.Models.Bookings;
 
 namespace SportCourtManagement_FrontEnd.Services;
 
@@ -15,4 +16,8 @@ public interface ICourtApiService
     Task<PagedResult<ReviewDto>> GetCourtReviewsAsync(int courtId, int pageNumber, int pageSize);
     Task<List<CourtTypeDto>> GetCourtTypesAsync();
     Task<bool> SubmitReviewAsync(int courtId, int bookingId, byte rating, string? comment, string? token);
+    Task<BookingResponseDto?> CreateBookingAsync(BookingRequestDto request, string? token);
+    Task<PaymentResponseDto?> CreatePaymentLinkAsync(PaymentRequestDto request, string? token);
+    Task<BookingResponseDto?> GetBookingDetailAsync(int id, string? token);
 }
+

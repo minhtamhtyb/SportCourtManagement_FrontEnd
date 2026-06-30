@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using SportCourtManagement_FrontEnd.Models.Api;
 using SportCourtManagement_FrontEnd.Models.Courts;
 using SportCourtManagement_FrontEnd.Models.Reviews;
+using SportCourtManagement_FrontEnd.Models.Bookings;
 
 namespace SportCourtManagement_FrontEnd.Services;
 
@@ -169,5 +170,94 @@ public class CourtApiService : ICourtApiService
             _logger.LogError(ex, "Error calling SubmitReview API for court {CourtId}", courtId);
         }
         return false;
+    }
+
+    public async Task<BookingResponseDto?> CreateBookingAsync(BookingRequestDto request, string? token)
+    {
+        try
+        {
+            var req = new HttpRequestMessage(HttpMethod.Post, "api/bookings");
+            if (!string.IsNullOrEmpty(token))
+            {
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            req.Content = JsonContent.Create(request);
+
+            var response = await _httpClient.SendAsync(req);
+            if (response.IsSuccessStatusCode)
+            {
+                var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<BookingResponseDto>>();
+                if (apiResponse != null && apiResponse.Success)
+                {
+                    return apiResponse.Data;
+                }
+            }
+            var err = await response.Content.ReadAsStringAsync();
+            _logger.LogWarning("CreateBooking API failed: {Body}", err);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating booking");
+        }
+        return null;
+    }
+
+    public async Task<PaymentResponseDto?> CreatePaymentLinkAsync(PaymentRequestDto request, string? token)
+    {
+        try
+        {
+            var req = new HttpRequestMessage(HttpMethod.Post, "api/payments/create-link");
+            if (!string.IsNullOrEmpty(token))
+            {
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            req.Content = JsonContent.Create(request);
+
+            var response = await _httpClient.SendAsync(req);
+            if (response.IsSuccessStatusCode)
+            {
+                var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<PaymentResponseDto>>();
+                if (apiResponse != null && apiResponse.Success)
+                {
+                    return apiResponse.Data;
+                }
+            }
+            var err = await response.Content.ReadAsStringAsync();
+            _logger.LogWarning("CreatePaymentLink API failed: {Body}", err);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating payment link");
+        }
+        return null;
+    }
+
+    public async Task<BookingResponseDto?> GetBookingDetailAsync(int id, string? token)
+    {
+        try
+        {
+            var req = new HttpRequestMessage(HttpMethod.Get, $"api/bookings/{id}");
+            if (!string.IsNullOrEmpty(token))
+            {
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(req);
+            if (response.IsSuccessStatusCode)
+            {
+                var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<BookingResponseDto>>();
+                if (apiResponse != null && apiResponse.Success)
+                {
+                    return apiResponse.Data;
+                }
+            }
+            var err = await response.Content.ReadAsStringAsync();
+            _logger.LogWarning("GetBookingDetail API failed: {Body}", err);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting booking detail for {Id}", id);
+        }
+        return null;
     }
 }

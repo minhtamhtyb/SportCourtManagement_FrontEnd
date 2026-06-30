@@ -109,4 +109,19 @@ $(document).ready(function () {
                 $reviewsContainer.html('<div class="text-center py-4 text-sc-red">Lỗi tải đánh giá.</div>');
             });
     };
+
+    // === 6. Book Now Button Click Handler (Xử lý khi click Đặt sân ngay) ===
+    $('#btn-book-now').on('click', function () {
+        var slotId = $('#selected-slot-id').val();
+        var date = $('#booking-date').val();
+        var courtId = $('#court-id').val();
+
+        if (!slotId) {
+            alert("Vui lòng chọn một khung giờ còn trống trước khi đặt sân!");
+            return;
+        }
+
+        // Navigate to booking creation page
+        window.location.href = '/Bookings/Create?courtId=' + courtId + '&date=' + date + '&slotId=' + slotId;
+    });
 });
