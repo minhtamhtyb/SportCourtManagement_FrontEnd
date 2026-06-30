@@ -7,16 +7,20 @@
       "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\views\\maintenance\\maintenance.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\controllers\\maintenancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\controllers\\maintenancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\models\\maintenancerequests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\models\\maintenancerequests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\views\\manager\\shifts.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\views\\manager\\shifts.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\controllers\\managercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\controllers\\managercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|d:\\fpt_uni\\sesmester_8_summer_26\\prn232\\assigment\\front-end\\sportcourtmanagement_frontend\\sportcourtmanagement_frontend\\controllers\\maintenancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{272631AB-AFDA-A773-63DC-4DF9175E76D0}|SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd.csproj|solutionrelative:sportcourtmanagement_frontend\\controllers\\maintenancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -26,8 +30,21 @@
       "DocumentGroups": [
         {
           "DockedWidth": 346,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MaintenanceRequests.cs",
+              "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Models\\MaintenanceRequests.cs",
+              "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Models\\MaintenanceRequests.cs",
+              "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Models\\MaintenanceRequests.cs",
+              "RelativeToolTip": "SportCourtManagement_FrontEnd\\Models\\MaintenanceRequests.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-30T06:09:46.211Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -36,27 +53,27 @@
               "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Views\\Maintenance\\Maintenance.cshtml",
               "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Maintenance\\Maintenance.cshtml",
               "RelativeToolTip": "SportCourtManagement_FrontEnd\\Views\\Maintenance\\Maintenance.cshtml",
-              "ViewState": "AgIAALkBAAAAAAAAAAAAADcAAAAKAAAAAAAAAA==",
+              "ViewState": "AgIAABEBAAAAAAAAAAArwLUBAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-06-30T05:55:04.525Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 1,
               "Title": "MaintenanceController.cs",
               "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Controllers\\MaintenanceController.cs",
               "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Controllers\\MaintenanceController.cs",
               "ToolTip": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Controllers\\MaintenanceController.cs",
               "RelativeToolTip": "SportCourtManagement_FrontEnd\\Controllers\\MaintenanceController.cs",
-              "ViewState": "AgIAAEUAAAAAAAAAAAAYwCEAAAAJAAAAAAAAAA==",
+              "ViewState": "AgIAAEcAAAAAAAAAAAAYwDQAAABZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-06-30T05:52:01.573Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "Shifts.cshtml",
               "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Views\\Manager\\Shifts.cshtml",
               "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Views\\Manager\\Shifts.cshtml",
@@ -64,12 +81,11 @@
               "RelativeToolTip": "SportCourtManagement_FrontEnd\\Views\\Manager\\Shifts.cshtml",
               "ViewState": "AgIAAOkBAAAAAAAAAAAAACACAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-29T16:58:33.485Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-29T16:58:33.485Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "ManagerController.cs",
               "DocumentMoniker": "D:\\FPT_uni\\Sesmester_8_Summer_26\\PRN232\\Assigment\\front-end\\SportCourtManagement_FrontEnd\\SportCourtManagement_FrontEnd\\Controllers\\ManagerController.cs",
               "RelativeDocumentMoniker": "SportCourtManagement_FrontEnd\\Controllers\\ManagerController.cs",
@@ -77,8 +93,7 @@
               "RelativeToolTip": "SportCourtManagement_FrontEnd\\Controllers\\ManagerController.cs",
               "ViewState": "AgIAAI0AAAAAAAAAAAAowEgAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-29T16:58:13.844Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-29T16:58:13.844Z"
             }
           ]
         },

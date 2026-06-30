@@ -16,10 +16,6 @@
             <p>Theo dõi lịch bảo trì sân theo trạng thái: <strong>Pending</strong>, <strong>InProgress</strong>, <strong>Completed</strong>, <strong>Cancelled</strong>.</p>
         </div>
         <div class="header-actions">
-            <a class="btn-secondary-custom" href="#">
-                <span class="material-symbols-outlined">download</span>
-                Xuất báo cáo
-            </a>
             <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createMaintenanceModal">
                 <span class="material-symbols-outlined">add</span>
                 Tạo lịch bảo trì
@@ -82,7 +78,7 @@
                 <span class="material-symbols-outlined">filter_list</span>
                 <select id="statusFilter">
                     <option value="">Tất cả trạng thái</option>
-                    <option value="Pending">Pending</option>
+                    <option value="Scheduled">Scheduled</option>
                     <option value="InProgress">In Progress</option>
                     <option value="Completed">Completed</option>
                     <option value="Cancelled">Cancelled</option>
@@ -227,10 +223,33 @@
 
 </div>
 
-<!-- Hidden Delete Form (traditional post) -->
-<form asp-controller="Maintenance" asp-action="DeleteMaintenance" method="post" id="deleteMaintenanceForm" style="display:none;">
-    <input type="hidden" name="MaintenanceId" id="deleteMaintenanceId" />
-</form>
+<!-- Delete Maintenance Modal (form submits to controller) -->
+<div class="modal fade" id="deleteMaintenanceModal" tabindex="-1" aria-labelledby="deleteMaintenanceLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content maintenance-modal-content">
+            <form asp-controller="Maintenance" asp-action="DeleteMaintenance" method="post" id="deleteMaintenanceForm">
+                <div class="modal-header maintenance-modal-header" style="border-bottom: none; padding-bottom: 0;">
+                    <h5 class="modal-title" id="deleteMaintenanceLabel" style="color: var(--rose-400);">
+                        <span class="material-symbols-outlined" style="color: var(--rose-400);">warning</span>
+                        Xác nhận xoá lịch bảo trì
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding-top: 10px;">
+                    <p>Bạn có chắc chắn muốn xoá lịch bảo trì cho sân <strong id="deleteCourtNameDisplay"></strong>?</p>
+                    <input type="hidden" id="deleteMaintenanceId" name="MaintenanceId" />
+                </div>
+                <div class="modal-footer maintenance-modal-footer" style="border-top: none; padding-top: 0;">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom" style="background-color: var(--rose-500); color: white;">
+                        <span class="material-symbols-outlined">delete</span>
+                        Xoá
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- Create Maintenance Modal -->
 <div class="modal fade" id="createMaintenanceModal" tabindex="-1" aria-labelledby="createMaintenanceLabel" aria-hidden="true">
@@ -252,7 +271,7 @@
                                 <option value="">-- Chọn sân --</option>
                                 @foreach (var c in Model.Courts)
                                 {
-                                    <option value="@c.CourtId">@c.CourtName</option>
+                                    <option value="@c.CourtId">@c.CourtName (@c.CourtCode - @c.CourtTypeName) - [@c.Status]</option>
                                 }
                             </select>
                         </div>
@@ -286,7 +305,6 @@
                             <label class="form-label-custom">Trạng thái ban đầu</label>
                             <select class="form-input-custom" name="Status" id="createStatus" required>
                                 <option value="Scheduled">Scheduled</option>
-                                <option value="Pending" selected>Pending</option>
                                 <option value="InProgress">InProgress</option>
                             </select>
                         </div>
@@ -326,10 +344,10 @@
                         <div class="form-group">
                             <label class="form-label-custom">Sân</label>
                             <select class="form-input-custom" name="CourtId" id="editCourtId" required>
-                                <option value="1">San 1</option>
+                                <option value="">-- Chọn sân --</option>
                                 @foreach (var c in Model.Courts)
                                 {
-                                    <option value="@c.CourtId">@c.CourtName</option>
+                                    <option value="@c.CourtId">@c.CourtName (@c.CourtCode - @c.CourtTypeName) - [@c.Status]</option>
                                 }
                             </select>
                         </div>
@@ -363,7 +381,6 @@
                             <label class="form-label-custom">Trạng thái</label>
                             <select class="form-input-custom" name="Status" id="editStatus" required>
                                 <option value="Scheduled">Scheduled</option>
-                                <option value="Pending">Pending</option>
                                 <option value="InProgress">InProgress</option>
                                 <option value="Completed">Completed</option>
                                 <option value="Cancelled">Cancelled</option>
@@ -412,12 +429,12 @@
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; color: var(--on-surface);">
                                     <input type="radio" name="IsApproved" value="true" checked style="accent-color: var(--primary);" />
                                     <span class="material-symbols-outlined" style="color: var(--emerald-400); font-size: 18px;">check_circle</span>
-                                    Duyệt (Chuyển sang Completed)
+                                    Duyệt 
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; color: var(--on-surface);">
                                     <input type="radio" name="IsApproved" value="false" style="accent-color: var(--primary);" />
                                     <span class="material-symbols-outlined" style="color: var(--rose-400); font-size: 18px;">cancel</span>
-                                    Từ chối (Chuyển sang Cancelled)
+                                    Từ chối 
                                 </label>
                             </div>
                         </div>
@@ -441,53 +458,18 @@
 
 @section Scripts {
     <script>
-        // Custom sliding Toast notification
+        // ── Toast Helper ──────────────────────────────────────────────────────
         function showToast(message, type = 'success') {
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                container.style.position = 'fixed';
-                container.style.bottom = '24px';
-                container.style.right = '24px';
-                container.style.zIndex = '9999';
-                container.style.display = 'flex';
-                container.style.flexDirection = 'column';
-                container.style.gap = '10px';
-                document.body.appendChild(container);
-            }
-
+            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
             const toast = document.createElement('div');
             toast.className = `toast-notification ${type}`;
-            toast.style.backgroundColor = 'var(--surface-container-high, #1e1e24)';
-            toast.style.color = 'var(--on-surface, #e4e4eb)';
-            toast.style.padding = '14px 20px';
-            toast.style.borderRadius = '8px';
-            toast.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3)';
-            toast.style.display = 'flex';
-            toast.style.alignItems = 'center';
-            toast.style.gap = '10px';
-            toast.style.minWidth = '280px';
-            toast.style.borderLeft = `4px solid ${type === 'success' ? 'var(--emerald-400, #10b981)' : 'var(--rose-400, #f43f5e)'}`;
-            toast.style.animation = 'slideIn 0.3s ease forwards';
-
-            const iconName = type === 'success' ? 'check_circle' : 'error';
-            const iconColor = type === 'success' ? 'var(--emerald-400)' : 'var(--rose-400)';
-
-            toast.innerHTML = `
-                <span class="material-symbols-outlined" style="color: ${iconColor}">${iconName}</span>
-                <span style="font-size: 13px; font-weight: 500;">${message}</span>
-            `;
-
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.animation = 'fadeOut 0.3s ease forwards';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            const icon = type === 'error' ? 'error' : (type === 'info' ? 'info' : 'check_circle');
+            toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span><div>${message}</div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
 
-        // TempData Toast logic (server redirect feedback)
+        // ── TempData Toasts (server redirect feedback) ────────────────────────
         @if (TempData["SuccessMessage"] != null)
         {
             <text>showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');</text>
@@ -583,10 +565,10 @@
             }
 
             if (btnDelete) {
-                if (confirm(`Bạn có chắc chắn muốn xóa lịch bảo trì cho sân ${row.dataset.courtName}?`)) {
-                    document.getElementById('deleteMaintenanceId').value = row.dataset.id;
-                    document.getElementById('deleteMaintenanceForm').submit();
-                }
+                document.getElementById('deleteMaintenanceId').value = row.dataset.id;
+                document.getElementById('deleteCourtNameDisplay').textContent = row.dataset.courtName;
+                const deleteModal = new bootstrap.Modal(document.getElementById('deleteMaintenanceModal'));
+                deleteModal.show();
             }
         });
     </script>

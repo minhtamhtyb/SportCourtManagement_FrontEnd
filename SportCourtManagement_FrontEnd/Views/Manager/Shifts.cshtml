@@ -379,13 +379,13 @@
 
 <!-- Delete Shift Modal (form submits to controller) -->
 <div class="modal fade" id="deleteShiftModal" tabindex="-1" aria-labelledby="deleteShiftLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shift-modal-content">
             <form asp-controller="Manager" asp-action="DeleteShift" method="post">
                 <div class="modal-header shift-modal-header" style="border-bottom: none; padding-bottom: 0;">
                     <h5 class="modal-title" id="deleteShiftLabel" style="color: var(--rose-400);">
                         <span class="material-symbols-outlined" style="color: var(--rose-400);">warning</span>
-                        Xác nhận xoá
+                        Xác nhận xoá ca trực
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -394,10 +394,10 @@
                     <input type="hidden" id="deleteShiftId" name="ShiftId" />
                 </div>
                 <div class="modal-footer shift-modal-footer" style="border-top: none; padding-top: 0;">
-                    <button type="button" class="shift-btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
                     <button type="submit" class="btn-primary-custom" style="background-color: var(--rose-500); color: white;">
                         <span class="material-symbols-outlined">delete</span>
-                        Xoá ca
+                        Xoá
                     </button>
                 </div>
             </form>
@@ -472,7 +472,8 @@
             if (card.classList.contains('off')) {
                 document.getElementById('createShiftStaffId').value = card.dataset.staffId;
                 document.getElementById('createShiftDate').value = card.dataset.date;
-                new bootstrap.Modal(document.getElementById('createShiftModal')).show();
+                const createModal = new bootstrap.Modal(document.getElementById('createShiftModal'));
+                createModal.show();
             } else {
                 e.stopPropagation();
                 openCtxMenu(card, e.clientX, e.clientY);
@@ -495,7 +496,8 @@
             document.getElementById('editShiftNote').value = d.note || '';
             const radio = document.getElementById(d.type === 'Morning' ? 'editShiftMorning' : d.type === 'Afternoon' ? 'editShiftAfternoon' : 'editShiftEvening');
             if (radio) radio.checked = true;
-            new bootstrap.Modal(document.getElementById('editShiftModal')).show();
+            const editModal = new bootstrap.Modal(document.getElementById('editShiftModal'));
+            editModal.show();
         });
 
         document.getElementById('contextDeleteBtn').addEventListener('click', function(e) {
@@ -503,7 +505,8 @@
             if (!activeCard) return;
             document.getElementById('deleteShiftId').value = activeCard.dataset.shiftId;
             document.getElementById('deleteShiftStaffName').textContent = activeCard.dataset.staffName;
-            new bootstrap.Modal(document.getElementById('deleteShiftModal')).show();
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteShiftModal'));
+            deleteModal.show();
         });
 
         // ── Detail Modal populate ──────────────────────────────────────────────
@@ -536,7 +539,8 @@
             } else {
                 noteSection.style.display = 'none';
             }
-            new bootstrap.Modal(document.getElementById('viewShiftDetailModal')).show();
+            const detailModal = new bootstrap.Modal(document.getElementById('viewShiftDetailModal'));
+            detailModal.show();
         }
 
 

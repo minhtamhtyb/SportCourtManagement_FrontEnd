@@ -3,11 +3,20 @@
     --tertiary: #ffb783;
     --emerald-400: #34d399;
     --emerald-500: #10b981;
+    --rose-400: #fb7185;
+    --rose-500: #f43f5e;
+    --orange-400: #fb923c;
+    --orange-500: #f97316;
+    --sky-400: #38bdf8;
+    --slate-400: #94a3b8;
     --slate-500: #64748b;
     --emerald-bg: rgba(16, 185, 129, 0.1);
+    --rose-bg: rgba(244, 63, 94, 0.1);
+    --orange-bg: rgba(249, 115, 22, 0.1);
+    --sky-bg: rgba(56, 189, 248, 0.1);
+    --slate-bg: rgba(100, 116, 139, 0.1);
     --secondary-bg: rgba(123, 208, 255, 0.1);
     --tertiary-bg: rgba(255, 183, 131, 0.1);
-    --slate-bg: rgba(100, 116, 139, 0.1);
     --primary-bg-5: rgba(192, 193, 255, 0.05);
 }
 
@@ -1292,4 +1301,27 @@
     color: var(--on-surface);
     font-style: italic;
     line-height: 1.5;
+}
+
+.btn-primary-custom {
+    background-color: var(--primary);
+    color: var(--on-primary);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary-custom:hover {
+    opacity: 0.9;
+}
+
+.btn-primary-custom:active {
+    transform: scale(0.98);
 }

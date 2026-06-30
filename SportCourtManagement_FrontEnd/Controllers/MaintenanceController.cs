@@ -61,6 +61,17 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 }
             }
 
+            var courtResponse = await _client.GetAsync(_apiBase + "/maintenance/courts");
+            if (courtResponse.IsSuccessStatusCode)
+            {
+                string raw = await courtResponse.Content.ReadAsStringAsync();
+                var courts = JsonSerializer.Deserialize<List<CourtInfoResponse>>(raw, _jsonOpts);
+                if (courts != null)
+                {
+                    model.Courts = courts;
+                }
+            }
+
             return View(model);
         }
 
