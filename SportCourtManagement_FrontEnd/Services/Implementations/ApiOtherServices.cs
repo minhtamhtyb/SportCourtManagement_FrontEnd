@@ -117,14 +117,23 @@ public class ApiUserService(ApiClient api) : IUserService
         return user is null ? null : MapUser(user);
     }
 
+    public async Task UpdateUserAccessAsync(int id, string role, bool isActive)
+    {
+        await api.PutDataAsync<UserSummaryApi>($"api/users/{id}/access", new { role, isActive });
+    }
+
     public async Task UpdateUserRoleAsync(int id, string role)
     {
-        await api.PutDataAsync<UserSummaryApi>($"api/users/{id}/role", new { role });
+        var user = await GetUserByIdAsync(id)
+            ?? throw new InvalidOperationException("Không tìm thấy người dùng.");
+        await UpdateUserAccessAsync(id, role, user.IsActive);
     }
 
     public async Task ToggleUserStatusAsync(int id, bool isActive)
     {
-        await api.PatchDataAsync<UserSummaryApi>($"api/users/{id}/status", new { isActive });
+        var user = await GetUserByIdAsync(id)
+            ?? throw new InvalidOperationException("Không tìm thấy người dùng.");
+        await UpdateUserAccessAsync(id, user.Role, isActive);
     }
 
     private static UserDto MapUser(UserSummaryApi u) => new()

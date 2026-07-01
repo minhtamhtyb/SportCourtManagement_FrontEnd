@@ -65,6 +65,7 @@ public interface IUserService
     Task<UserDto?> GetUserByIdAsync(int id);
     Task UpdateUserRoleAsync(int id, string role);
     Task ToggleUserStatusAsync(int id, bool isActive);
+    Task UpdateUserAccessAsync(int id, string role, bool isActive);
 }
 
 public interface IRoleService

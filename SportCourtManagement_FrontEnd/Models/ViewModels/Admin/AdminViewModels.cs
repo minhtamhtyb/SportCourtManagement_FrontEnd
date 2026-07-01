@@ -232,7 +232,7 @@ public class UserEditRolesViewModel
     public string FullName { get; set; } = "";
     public string Email { get; set; } = "";
 
-    [Required]
+    [Required(ErrorMessage = "Vui lòng chọn vai trò")]
     [Display(Name = "Vai trò")]
     public string Role { get; set; } = "Customer";
 
