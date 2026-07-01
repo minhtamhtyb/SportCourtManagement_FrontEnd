@@ -157,7 +157,91 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
         // ── Other routes ─────────────────────────────────────────────────────
         [HttpGet("staff/attendance")]
-        public IActionResult Attendance() => View();
+        public async Task<IActionResult> Attendance(
+            [FromQuery] string? dateFrom = null, 
+            [FromQuery] string? dateTo = null, 
+            [FromQuery] int? staffId = null,
+            [FromQuery] string? shiftType = null,
+            [FromQuery] string? search = null,
+            [FromQuery] int page = 1)
+        {
+            var model = new AttendanceViewModel();
+            
+            var today = DateTime.Today;
+            var defaultFrom = new DateTime(today.Year, today.Month, 1).ToString("yyyy-MM-dd");
+            var defaultTo = today.ToString("yyyy-MM-dd");
+
+            model.DateFrom = string.IsNullOrEmpty(dateFrom) ? defaultFrom : dateFrom;
+            model.DateTo = string.IsNullOrEmpty(dateTo) ? defaultTo : dateTo;
+            model.SelectedStaffId = staffId;
+            model.SelectedShiftType = shiftType;
+            model.SearchQuery = search;
+            model.CurrentPage = page < 1 ? 1 : page;
+
+            // Fetch staff list for dropdown filter
+            var staffResponse = await _client.GetAsync(_apiBase + "/staff?pageSize=100");
+            if (staffResponse.IsSuccessStatusCode)
+            {
+                string rawStaff = await staffResponse.Content.ReadAsStringAsync();
+                var pagedStaff = JsonSerializer.Deserialize<PagedStaffResponse>(rawStaff, _jsonOpts);
+                if (pagedStaff != null && pagedStaff.Items != null)
+                {
+                    model.Staffs = pagedStaff.Items.Where(s => s.IsActive).ToList();
+                }
+            }
+
+            // Fetch attendance report
+            var queryParams = $"?dateFrom={model.DateFrom}&dateTo={model.DateTo}";
+            if (model.SelectedStaffId.HasValue)
+            {
+                queryParams += $"&staffId={model.SelectedStaffId.Value}";
+            }
+
+            var reportResponse = await _client.GetAsync(_apiBase + "/staff/attendance" + queryParams);
+            var allRecords = new List<StaffShiftResponse>();
+            if (reportResponse.IsSuccessStatusCode)
+            {
+                string rawReport = await reportResponse.Content.ReadAsStringAsync();
+                allRecords = JsonSerializer.Deserialize<List<StaffShiftResponse>>(rawReport, _jsonOpts) ?? new List<StaffShiftResponse>();
+            }
+
+            // Filter in-memory by search and shift type
+            var filtered = allRecords.AsEnumerable();
+
+            if (!string.IsNullOrEmpty(model.SearchQuery))
+            {
+                var q = model.SearchQuery.Trim().ToLower();
+                filtered = filtered.Where(r => 
+                    r.StaffName.ToLower().Contains(q) || 
+                    r.StaffEmail.ToLower().Contains(q) || 
+                    r.StaffId.ToString().Contains(q));
+            }
+
+            if (!string.IsNullOrEmpty(model.SelectedShiftType))
+            {
+                filtered = filtered.Where(r => r.ShiftType.Equals(model.SelectedShiftType, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var filteredList = filtered.ToList();
+
+            // Calculate statistics before pagination
+            model.OnTimeCount = filteredList.Count(r => r.CheckInTime.HasValue && r.LateMinutes == 0);
+            model.LateCount = filteredList.Count(r => r.CheckInTime.HasValue && r.LateMinutes > 0);
+
+            // Paginate
+            model.TotalRecords = filteredList.Count;
+            model.TotalPages = (int)Math.Ceiling(model.TotalRecords / (double)model.PageSize);
+            if (model.TotalPages < 1) model.TotalPages = 1;
+
+            if (model.CurrentPage > model.TotalPages) model.CurrentPage = model.TotalPages;
+
+            model.Records = filteredList
+                .Skip((model.CurrentPage - 1) * model.PageSize)
+                .Take(model.PageSize)
+                .ToList();
+
+            return View(model);
+        }
 
         [HttpGet("staff/list")]
         public IActionResult StaffList() => View();
@@ -168,8 +252,6 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [HttpGet("dashboard")]
         public IActionResult Dashboard() => RedirectToAction(nameof(Shifts));
 
-        [HttpGet("tasks")]
-        public IActionResult Tasks() => RedirectToAction(nameof(Shifts));
 
     }
 }

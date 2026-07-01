@@ -4,6 +4,7 @@ wwwroot\css\Manager\manager-layout.css
 wwwroot\css\Manager\salary-config.css
 wwwroot\css\Manager\shifts.css
 wwwroot\css\Manager\staff-list.css
+wwwroot\css\Manager\tasks.css
 wwwroot\css\site.css
 wwwroot\favicon.ico
 wwwroot\js\site.js

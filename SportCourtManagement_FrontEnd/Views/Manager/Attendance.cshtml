@@ -1,3 +1,4 @@
+@model SportCourtManagement_FrontEnd.Models.AttendanceViewModel
 @{
     ViewData["Title"] = "Attendance & Check-in";
 }
@@ -13,12 +14,6 @@
             <h3>Quản lý nhân sự</h3>
             <p>Theo dõi chấm công và hiệu suất làm việc của đội ngũ vận hành.</p>
         </div>
-        <div class="header-actions">
-            <button class="btn-secondary-custom">
-                <span class="material-symbols-outlined">download</span>
-                Xuất báo cáo (CSV)
-            </button>
-        </div>
     </div>
 
     <!-- Tabs -->
@@ -29,48 +24,63 @@
         <a class="tab-link" href="/manager/staff/salary">Cấu hình tiền lương</a>
     </div>
 
-    <!-- Toolbar -->
-    <div class="attendance-toolbar">
+    <!-- Toolbar & Filters -->
+    <form method="get" action="/manager/staff/attendance" id="dateFilterForm" class="attendance-toolbar">
         <div class="toolbar-filters">
             <div class="search-input-wrapper">
                 <span class="material-symbols-outlined">search</span>
-                <input type="text" placeholder="Tìm tên nhân viên..." />
+                <input type="text" name="search" value="@Model.SearchQuery" placeholder="Tìm tên, ID nhân viên..." />
             </div>
 
             <div class="filter-box">
                 <span class="material-symbols-outlined">calendar_today</span>
                 <span>Từ: </span>
-                <input type="date" style="background:transparent;border:none;color:var(--on-surface);font-size:13px;outline:none;" />
+                <input type="date" name="dateFrom" id="dateFromInput" value="@Model.DateFrom" style="background:transparent;border:none;color:var(--on-surface);font-size:13px;outline:none;" />
             </div>
 
             <div class="filter-box">
                 <span class="material-symbols-outlined">event</span>
                 <span>Đến: </span>
-                <input type="date" style="background:transparent;border:none;color:var(--on-surface);font-size:13px;outline:none;" />
+                <input type="date" name="dateTo" id="dateToInput" value="@Model.DateTo" style="background:transparent;border:none;color:var(--on-surface);font-size:13px;outline:none;" />
+            </div>
+
+            <div class="filter-box">
+                <span class="material-symbols-outlined">person</span>
+                <select name="staffId" id="staffIdFilter" onchange="this.form.submit()">
+                    <option value="">Tất cả nhân viên</option>
+                    @foreach (var s in Model.Staffs)
+                    {
+                        <!option value="@s.UserId" @(Model.SelectedStaffId == s.UserId ? "selected" : "")>@s.FullName</!option>
+                    }
+                </select>
             </div>
 
             <div class="filter-box">
                 <span class="material-symbols-outlined">filter_list</span>
-                <select>
-                    <option>Tất cả ca trực</option>
-                    <option>Morning</option>
-                    <option>Afternoon</option>
-                    <option>Evening</option>
+                <select name="shiftType" id="shiftTypeFilter" onchange="this.form.submit()">
+                    <option value="">Tất cả ca trực</option>
+                    <!option value="Morning" @(Model.SelectedShiftType == "Morning" ? "selected" : "")>Morning</!option>
+                    <!option value="Afternoon" @(Model.SelectedShiftType == "Afternoon" ? "selected" : "")>Afternoon</!option>
+                    <!option value="Evening" @(Model.SelectedShiftType == "Evening" ? "selected" : "")>Evening</!option>
                 </select>
             </div>
+
+            <button type="submit" class="btn-primary-custom" style="padding: 6px 12px; height: 36px;">
+                <span class="material-symbols-outlined">done</span>
+                Lọc
+            </button>
         </div>
 
         <div class="status-list">
             <span class="status-dot-indicator present"></span>
-            <span>42 Đúng giờ</span>
+            <span>@Model.OnTimeCount Đúng giờ</span>
             <span class="separator">|</span>
             <span class="status-dot-indicator late"></span>
-            <span>3 Đi muộn</span>
+            <span>@Model.LateCount Đi muộn</span>
         </div>
-    </div>
+    </form>
 
     <!-- Attendance Data Table -->
-    <!-- StaffShiftResponse: ShiftDate, ShiftType, StartTime, EndTime, CheckInTime, CheckOutTime, LateMinutes, EarlyLeaveMinutes -->
     <div class="table-panel glass-panel">
         <table class="attendance-table">
             <thead>
@@ -84,213 +94,370 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Row 1: LateMinutes=0, EarlyLeaveMinutes=0 → Đúng giờ -->
-                <tr>
-                    <td>
-                        <div class="employee-cell">
-                            <div class="employee-avatar">
-                                <img alt="Phạm Minh Hoàng" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3OyqucUhAQNTGfk0bk_7nAylbuHhOhqSF0k1VdjPWLOlH2aEvH46drxY4VYGrqD0HERsQ0EyYwlLNZQUQ6GeGwMqVFX__sTe-5sE57bO7Uq1IEo33FQhfryeU4Uzcdk8Io6fprE76zTLyRi_GE6BbaJOn0Lhs7pbCwidrYoVVaBxXRJc4Dimihb6ClQJhWP0ISRR3UYlIMcnhde186-LLoY1A6JOsT5oTIAdPccFwbHpUdGzR80xt7wY2dIbcRnpuN2HytJTqvTo" />
-                            </div>
-                            <div>
-                                <p class="employee-name">Phạm Minh Hoàng</p>
-                                <p class="employee-id">ID: 42</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="shift-info-cell">
-                        <p class="shift-day">24/06/2026</p>
-                        <p class="shift-time">
-                            <span class="material-symbols-outlined">schedule</span>
-                            Morning · 06:00 – 14:00
-                        </p>
-                    </td>
-                    <td>
-                        <div class="employee-cell gap-2">
-                            <span class="code-font">05:55</span>
-                            <span class="status-badge on-time">Đúng giờ</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="employee-cell gap-2">
-                            <span class="code-font">14:02</span>
-                            <span class="status-badge finished">Xong ca</span>
-                        </div>
-                    </td>
-                    <td><span class="diff-badge empty">0 phút</span></td>
-                    <td class="diff-col"><span class="diff-badge empty">0 phút</span></td>
-                </tr>
+                @if (Model.Records == null || !Model.Records.Any())
+                {
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--on-surface-variant); padding: 40px 0;">
+                            <span class="material-symbols-outlined" style="font-size: 48px; display: block; margin-bottom: 8px;">info</span>
+                            Không tìm thấy dữ liệu chấm công nào trong khoảng thời gian này.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model.Records)
+                    {
+                        string checkInTimeStr = item.CheckInTime.HasValue ? item.CheckInTime.Value.ToString("HH:mm") : "--:--";
+                        string checkOutTimeStr = item.CheckOutTime.HasValue ? item.CheckOutTime.Value.ToString("HH:mm") : "--:--";
 
-                <!-- Row 2: LateMinutes=15 → Muộn -->
-                <tr>
-                    <td>
-                        <div class="employee-cell">
-                            <div class="employee-avatar">
-                                <img alt="Nguyễn Thùy Linh" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUg6-78oyiDpQoxntIS_cKhXjfqk0lwjNDQuklp08xptP4gNtJfWIlVqHakspHOSTykVgJEZfgxsw972Rm7NK99yymEYR0WUN5X_yXAlg5KXy9gbhkbJ03nxDPZjC9uOSPC-zB1ypLaKEXQno4dohJVxuC7X-IDE173BQulZHPozRcr9U_oSyoImPsGWAvfohNmEBOgfF5yvYaatj_nUuS4kJa9Igf_wLuJWqPlO3seSj4s_q_GtjhOCvmh4cEUmks0O0MW9GTcuQ" />
-                            </div>
-                            <div>
-                                <p class="employee-name">Nguyễn Thùy Linh</p>
-                                <p class="employee-id">ID: 81</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="shift-info-cell">
-                        <p class="shift-day">24/06/2026</p>
-                        <p class="shift-time">
-                            <span class="material-symbols-outlined">schedule</span>
-                            Morning · 06:00 – 14:00
-                        </p>
-                    </td>
-                    <td>
-                        <div class="employee-cell gap-2">
-                            <span class="code-font" style="color: var(--error);">06:15</span>
-                            <span class="status-badge late-badge">Muộn</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="employee-cell gap-2">
-                            <span class="code-font">14:00</span>
-                            <span class="status-badge finished">Xong ca</span>
-                        </div>
-                    </td>
-                    <td><span class="diff-badge minus-red">15 phút</span></td>
-                    <td class="diff-col"><span class="diff-badge empty">0 phút</span></td>
-                </tr>
+                        string checkInStatusText = "Chưa Check-in";
+                        string checkInBadgeClass = "late-badge";
+                        
+                        if (item.CheckInTime.HasValue)
+                        {
+                            if (item.LateMinutes > 0)
+                            {
+                                checkInStatusText = "Muộn";
+                                checkInBadgeClass = "late-badge";
+                            }
+                            else
+                            {
+                                checkInStatusText = "Đúng giờ";
+                                checkInBadgeClass = "on-time";
+                            }
+                        }
+                        else
+                        {
+                            if (DateOnly.TryParse(item.ShiftDate, out var shiftDateVal))
+                            {
+                                if (shiftDateVal < DateOnly.FromDateTime(DateTime.Today))
+                                {
+                                    checkInStatusText = "Vắng mặt";
+                                }
+                            }
+                        }
 
-                <!-- Row 3: EarlyLeaveMinutes=15 → Về sớm -->
-                <tr>
-                    <td>
-                        <div class="employee-cell">
-                            <div class="employee-avatar">
-                                <img alt="Trần Anh Tú" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDd0cYmiqDtmT7F4rabYWjYHTxq2smH91bha2CE66oqd6BMkBRhXWMe-437co4CFbxQkEY7-ZYxRCgtwJ53VLRGrLAD8oboaBy9Gqse7fOJ-_bmdlMj2i6D0NqtV_F-lgSRwX8gr2BgGeWTDBBZScqLCfF5Ipfyjd-GEsJ0Rn90N06MPKevReMGc_9seyvUGxB0ntSQc0Gy-g3KXBaym1XsnNsKevkQFPU4gEy1jF7yaZwUj1KqHHL_YrfsqnVsllNKMjTF61mTQs" />
-                            </div>
-                            <div>
-                                <p class="employee-name">Trần Anh Tú</p>
-                                <p class="employee-id">ID: 22</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="shift-info-cell">
-                        <p class="shift-day">24/06/2026</p>
-                        <p class="shift-time">
-                            <span class="material-symbols-outlined">schedule</span>
-                            Afternoon · 14:00 – 22:00
-                        </p>
-                    </td>
-                    <td>
-                        <div class="employee-cell gap-2">
-                            <span class="code-font">13:58</span>
-                            <span class="status-badge on-time">Đúng giờ</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="employee-cell gap-2">
-                            <span class="code-font" style="color: var(--tertiary);">21:45</span>
-                            <span class="status-badge early">Về sớm</span>
-                        </div>
-                    </td>
-                    <td><span class="diff-badge empty">0 phút</span></td>
-                    <td class="diff-col"><span class="diff-badge minus-orange">15 phút</span></td>
-                </tr>
+                        string checkOutStatusText = "--";
+                        string checkOutBadgeClass = "finished";
 
-                <!-- Row 4: Evening shift – CheckOut=null, đang trực -->
-                <tr>
-                    <td>
-                        <div class="employee-cell">
-                            <div class="employee-avatar">
-                                <img alt="Lê Kim Chi" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUkGcDMEBENkQNbiBpCfE0MyC7v3iSN-w4u-ffl_sbsZVkvp87Z-rraPrwpotLu6tVZgL9FI7CSFhu-lLuPTD-CXHZE2ZwLX_9SkvUmBupOHZxyxNbCl5dd2DdYk7rbAQmQf6noE5gNc9HrmBcuyUOmXWsj4MJblSqtpqHsknvGDKlECL6_Hw0b96ka9Y1U9IW5OuqGUhq9-lD_IJ-t9NKgDPMUBwxH4lCXwqzYIpshr48v3LSKFKjS3PaqVhtjEOaLWxMoBOf22A" />
-                            </div>
-                            <div>
-                                <p class="employee-name">Lê Kim Chi</p>
-                                <p class="employee-id">ID: 95</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="shift-info-cell">
-                        <p class="shift-day">24/06/2026</p>
-                        <p class="shift-time">
-                            <span class="material-symbols-outlined">schedule</span>
-                            Evening · 22:00 – 06:00 (+1)
-                        </p>
-                    </td>
-                    <td>
-                        <div class="employee-cell gap-2">
-                            <span class="code-font">22:00</span>
-                            <span class="status-badge on-time">Đúng giờ</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="employee-cell gap-2">
-                            <span class="code-font">--:--</span>
-                            <span class="status-badge working">Đang trực</span>
-                        </div>
-                    </td>
-                    <td><span class="diff-badge empty">0 phút</span></td>
-                    <td class="diff-col"><span class="diff-badge empty">--</span></td>
-                </tr>
+                        if (item.CheckInTime.HasValue)
+                        {
+                            if (item.CheckOutTime.HasValue)
+                            {
+                                if (item.EarlyLeaveMinutes > 0)
+                                {
+                                    checkOutStatusText = "Về sớm";
+                                    checkOutBadgeClass = "early";
+                                }
+                                else
+                                {
+                                    checkOutStatusText = "Xong ca";
+                                    checkOutBadgeClass = "finished";
+                                }
+                            }
+                            else
+                            {
+                                if (DateOnly.TryParse(item.ShiftDate, out var shiftDateVal) && shiftDateVal == DateOnly.FromDateTime(DateTime.Today))
+                                {
+                                    checkOutStatusText = "Đang trực";
+                                    checkOutBadgeClass = "working";
+                                }
+                                else
+                                {
+                                    checkOutStatusText = "Chưa checkout";
+                                    checkOutBadgeClass = "late-badge";
+                                }
+                            }
+                        }
 
-                <!-- Row 5: CheckInTime=null → Vắng mặt -->
-                <tr>
-                    <td>
-                        <div class="employee-cell">
-                            <div class="employee-avatar">
-                                <img alt="Đỗ Hoàng Long" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcEWKF1CnspJSj_QYaU3G1i4pdivJ2Jv77qI2KCvJ1ciOYJFq5-rcFVNW0mGZdy6kkEqQ0xxoXLPnPf3f4dqydPkgMG7DV6MqRIKXw-4slH12hU2hekitsuTSPxVCJ9_Ea63bmsLRUU7iEHZrEK-IlZTSIUqGNp8QhZFNoFqQ9a3-i7ad9bTmo69xYaqTfDKfv83raCHzg2VtQoMFcmZRXiQKF7b_vskHMZJa-0kHtKNeMFNVDr6d-1ADKqg4K4mwLk4owz5N5jrY" />
-                            </div>
-                            <div>
-                                <p class="employee-name">Đỗ Hoàng Long</p>
-                                <p class="employee-id">ID: 102</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="shift-info-cell">
-                        <p class="shift-day">24/06/2026</p>
-                        <p class="shift-time">
-                            <span class="material-symbols-outlined">schedule</span>
-                            Morning · 06:00 – 14:00
-                        </p>
-                    </td>
-                    <td>
-                        <div class="employee-cell gap-2">
-                            <span class="code-font" style="color: var(--error);">--:--</span>
-                            <span class="status-badge late-badge">Vắng mặt</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="employee-cell gap-2">
-                            <span class="code-font">--:--</span>
-                            <span class="diff-badge empty">--</span>
-                        </div>
-                    </td>
-                    <td><span class="diff-badge empty">--</span></td>
-                    <td class="diff-col"><span class="diff-badge empty">--</span></td>
-                </tr>
+                        string lateBadgeClass = item.LateMinutes > 0 ? "minus-red" : "empty";
+                        string earlyBadgeClass = item.EarlyLeaveMinutes > 0 ? "minus-orange" : "empty";
+
+                        string formatShiftDate = "";
+                        if (DateOnly.TryParse(item.ShiftDate, out var sDate))
+                        {
+                            formatShiftDate = sDate.ToString("dd/MM/yyyy");
+                        }
+                        else
+                        {
+                            formatShiftDate = item.ShiftDate;
+                        }
+
+                        <tr data-id="@item.ShiftId"
+                            data-staff-name="@item.StaffName"
+                            data-staff-id="@item.StaffId"
+                            data-staff-email="@item.StaffEmail"
+                            data-staff-role="@item.StaffRole"
+                            data-avatar-url="@(string.IsNullOrEmpty(item.AvatarUrl) ? "https://lh3.googleusercontent.com/aida-public/AB6AXuC3OyqucUhAQNTGfk0bk_7nAylbuHhOhqSF0k1VdjPWLOlH2aEvH46drxY4VYGrqD0HERsQ0EyYwlLNZQUQ6GeGwMqVFX__sTe-5sE57bO7Uq1IEo33FQhfryeU4Uzcdk8Io6fprE76zTLyRi_GE6BbaJOn0Lhs7pbCwidrYoVVaBxXRJc4Dimihb6ClQJhWP0ISRR3UYlIMcnhde186-LLoY1A6JOsT5oTIAdPccFwbHpUdGzR80xt7wY2dIbcRnpuN2HytJTqvTo" : item.AvatarUrl)"
+                            data-date="@formatShiftDate"
+                            data-type="@item.ShiftType"
+                            data-start-time="@item.StartTime"
+                            data-end-time="@item.EndTime"
+                            data-complex-name="@item.ComplexName"
+                            data-checkin="@(item.CheckInTime.HasValue ? item.CheckInTime.Value.ToString("dd/MM/yyyy HH:mm") : "")"
+                            data-checkout="@(item.CheckOutTime.HasValue ? item.CheckOutTime.Value.ToString("dd/MM/yyyy HH:mm") : "")"
+                            data-checkin-status="@checkInStatusText"
+                            data-checkout-status="@checkOutStatusText"
+                            data-late="@item.LateMinutes"
+                            data-early="@item.EarlyLeaveMinutes"
+                            data-note="@(item.Note ?? "")">
+                            <td>
+                                <div class="employee-cell">
+                                    <div class="employee-avatar">
+                                        <img alt="@item.StaffName" src="@(string.IsNullOrEmpty(item.AvatarUrl) ? "https://lh3.googleusercontent.com/aida-public/AB6AXuC3OyqucUhAQNTGfk0bk_7nAylbuHhOhqSF0k1VdjPWLOlH2aEvH46drxY4VYGrqD0HERsQ0EyYwlLNZQUQ6GeGwMqVFX__sTe-5sE57bO7Uq1IEo33FQhfryeU4Uzcdk8Io6fprE76zTLyRi_GE6BbaJOn0Lhs7pbCwidrYoVVaBxXRJc4Dimihb6ClQJhWP0ISRR3UYlIMcnhde186-LLoY1A6JOsT5oTIAdPccFwbHpUdGzR80xt7wY2dIbcRnpuN2HytJTqvTo" : item.AvatarUrl)" />
+                                    </div>
+                                    <div>
+                                        <p class="employee-name">@item.StaffName</p>
+                                        <p class="employee-id">ID: @item.StaffId</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="shift-info-cell">
+                                <p class="shift-day">@formatShiftDate</p>
+                                <p class="shift-time">
+                                    <span class="material-symbols-outlined">schedule</span>
+                                    @item.ShiftType · @item.StartTime – @item.EndTime
+                                </p>
+                            </td>
+                            <td>
+                                <div class="employee-cell gap-2">
+                                    <span class="code-font" style="@(checkInStatusText == "Muộn" || checkInStatusText == "Vắng mặt" ? "color: var(--error);" : "")">@checkInTimeStr</span>
+                                    <span class="status-badge @checkInBadgeClass">@checkInStatusText</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="employee-cell gap-2">
+                                    <span class="code-font" style="@(checkOutStatusText == "Về sớm" ? "color: var(--tertiary);" : "")">@checkOutTimeStr</span>
+                                    <span class="status-badge @checkOutBadgeClass">@checkOutStatusText</span>
+                                </div>
+                            </td>
+                            <td><span class="diff-badge @lateBadgeClass">@(item.LateMinutes > 0 ? $"{item.LateMinutes} phút" : "0 phút")</span></td>
+                            <td class="diff-col"><span class="diff-badge @earlyBadgeClass">@(item.EarlyLeaveMinutes > 0 ? $"{item.EarlyLeaveMinutes} phút" : "0 phút")</span></td>
+                        </tr>
+                    }
+                }
             </tbody>
         </table>
     </div>
 
     <!-- Footer Pagination -->
     <div class="pagination-panel">
-        <p class="pagination-info">Hiển thị 1 - 5 của 120 bản ghi</p>
+        <p class="pagination-info">
+            Hiển thị @(Model.TotalRecords == 0 ? 0 : (Model.CurrentPage - 1) * Model.PageSize + 1) - 
+            @Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalRecords) của @Model.TotalRecords bản ghi
+        </p>
         <div class="pagination-buttons">
-            <button class="pagination-btn" disabled>
-                <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button class="pagination-btn active">1</button>
-            <button class="pagination-btn">2</button>
-            <button class="pagination-btn">3</button>
-            <button class="pagination-btn">
-                <span class="material-symbols-outlined">chevron_right</span>
-            </button>
+            <!-- Left arrow -->
+            @if (Model.CurrentPage > 1)
+            {
+                <a class="pagination-btn" href="/manager/staff/attendance?dateFrom=@Model.DateFrom&dateTo=@Model.DateTo&staffId=@Model.SelectedStaffId&shiftType=@Model.SelectedShiftType&search=@Model.SearchQuery&page=@(Model.CurrentPage - 1)">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </a>
+            }
+            else
+            {
+                <button class="pagination-btn" disabled>
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+            }
+
+            <!-- Page numbers -->
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                @if (i == Model.CurrentPage)
+                {
+                    <button class="pagination-btn active" disabled>@i</button>
+                }
+                else
+                {
+                    <a class="pagination-btn" href="/manager/staff/attendance?dateFrom=@Model.DateFrom&dateTo=@Model.DateTo&staffId=@Model.SelectedStaffId&shiftType=@Model.SelectedShiftType&search=@Model.SearchQuery&page=@i">@i</a>
+                }
+            }
+
+            <!-- Right arrow -->
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <a class="pagination-btn" href="/manager/staff/attendance?dateFrom=@Model.DateFrom&dateTo=@Model.DateTo&staffId=@Model.SelectedStaffId&shiftType=@Model.SelectedShiftType&search=@Model.SearchQuery&page=@(Model.CurrentPage + 1)">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </a>
+            }
+            else
+            {
+                <button class="pagination-btn" disabled>
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- View Shift Detail Modal -->
+<div class="modal fade" id="viewShiftDetailModal" tabindex="-1" aria-labelledby="viewShiftDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shift-modal-content" style="background: var(--surface-container); border: 1px solid rgba(70, 69, 84, 0.3); border-radius: 12px; color: var(--on-surface);">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(144, 143, 160, 0.1); padding: 16px 24px;">
+                <h5 class="modal-title" id="viewShiftDetailLabel" style="display:flex; align-items:center; gap:8px;">
+                    <span class="material-symbols-outlined" style="color: var(--primary);">badge</span>
+                    Chi tiết ca trực &amp; Chấm công
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <!-- Staff Header Card -->
+                <div class="detail-staff-profile" style="display: flex; gap: 16px; margin-bottom: 20px; align-items: center;">
+                    <div class="detail-staff-avatar" style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; border: 2px solid var(--primary); flex-shrink: 0;">
+                        <img id="detailStaffAvatar" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                    <div class="detail-staff-info">
+                        <h4 id="detailStaffName" style="margin: 0; font-size: 18px; font-weight: 600;"></h4>
+                        <p id="detailStaffEmail" style="margin: 4px 0 0 0; font-size: 13px; color: var(--on-surface-variant);"></p>
+                        <span id="detailStaffRole" class="status-badge on-time" style="margin-top: 6px; padding: 2px 8px; font-size: 10px;"></span>
+                    </div>
+                </div>
+
+                <!-- Shift Timing Info -->
+                <div class="detail-section-title" style="font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; letter-spacing: 0.05em;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">schedule</span>
+                    Thông tin ca trực
+                </div>
+                <div class="detail-info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(144, 143, 160, 0.05);">
+                    <div>
+                        <span style="font-size: 12px; color: var(--on-surface-variant); display: block;">Loại ca:</span>
+                        <strong id="detailShiftType" style="font-size: 14px;"></strong>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: var(--on-surface-variant); display: block;">Ngày trực:</span>
+                        <span id="detailShiftDate" style="font-size: 14px;"></span>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: var(--on-surface-variant); display: block;">Giờ ca trực:</span>
+                        <span id="detailShiftHours" style="font-size: 14px; font-family: monospace;"></span>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: var(--on-surface-variant); display: block;">Cơ sở:</span>
+                        <span id="detailComplexName" style="font-size: 14px;"></span>
+                    </div>
+                </div>
+
+                <!-- Attendance Details Section -->
+                <div class="detail-section-title" style="font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; letter-spacing: 0.05em;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">fact_check</span>
+                    Chấm công thực tế
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <!-- Check-in / Check-out Cards -->
+                    <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                        <div class="detail-attendance-card" style="flex: 1; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.1); border-radius: 8px; padding: 12px; text-align: center;">
+                            <span class="material-symbols-outlined" style="color: var(--emerald-400); font-size: 20px;">login</span>
+                            <span style="font-size: 11px; color: var(--on-surface-variant); display: block; margin-top: 4px;">Giờ vào (Check-in)</span>
+                            <strong id="detailCheckInTime" style="font-size: 14px; display: block; margin-top: 2px;"></strong>
+                            <span id="detailCheckInStatus" class="status-badge" style="margin-top: 6px; scale: 0.9;"></span>
+                        </div>
+                        <div class="detail-attendance-card" style="flex: 1; background: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.1); border-radius: 8px; padding: 12px; text-align: center;">
+                            <span class="material-symbols-outlined" style="color: var(--rose-400); font-size: 20px;">logout</span>
+                            <span style="font-size: 11px; color: var(--on-surface-variant); display: block; margin-top: 4px;">Giờ ra (Check-out)</span>
+                            <strong id="detailCheckOutTime" style="font-size: 14px; display: block; margin-top: 2px;"></strong>
+                            <span id="detailCheckOutStatus" class="status-badge" style="margin-top: 6px; scale: 0.9;"></span>
+                        </div>
+                    </div>
+
+                    <!-- Late / Early Stats -->
+                    <div style="display: flex; gap: 12px;">
+                        <div style="flex: 1; background: rgba(249, 115, 22, 0.05); border: 1px solid rgba(249, 115, 22, 0.1); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; color: var(--on-surface-variant);">Đi muộn (Late)</span>
+                            <strong id="detailLateMinutes" style="font-size: 13px; color: var(--orange-400);">0 phút</strong>
+                        </div>
+                        <div style="flex: 1; background: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.1); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; color: var(--on-surface-variant);">Về sớm (Early)</span>
+                            <strong id="detailEarlyLeaveMinutes" style="font-size: 13px; color: var(--rose-400);">0 phút</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Note section -->
+                <div id="detailNoteSection" style="display: none;">
+                    <div class="detail-section-title" style="font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; letter-spacing: 0.05em;">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">description</span>
+                        Ghi chú
+                    </div>
+                    <div class="detail-note-box" id="detailNoteText" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(144, 143, 160, 0.1); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; color: var(--on-surface); word-break: break-word;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(144, 143, 160, 0.1); padding: 16px 24px;">
+                <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Đóng</button>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        document.querySelectorAll('.attendance-table tbody tr').forEach(row => {
-            row.addEventListener('click', () => {
-                row.style.backgroundColor = 'rgba(192, 193, 255, 0.1)';
-                setTimeout(() => { row.style.backgroundColor = ''; }, 300);
-            });
+        // Detail Modal show event
+        document.querySelector('.attendance-table tbody').addEventListener('click', (e) => {
+            const row = e.target.closest('tr');
+            if (!row || row.cells.length === 1) return; // Skip empty row
+
+            // Highlight animation effect
+            row.style.backgroundColor = 'rgba(192, 193, 255, 0.1)';
+            setTimeout(() => { row.style.backgroundColor = ''; }, 300);
+
+            const d = row.dataset;
+            document.getElementById('detailStaffAvatar').src = d.avatarUrl;
+            document.getElementById('detailStaffName').textContent = d.staffName;
+            document.getElementById('detailStaffEmail').textContent = d.staffEmail || 'Chưa cập nhật';
+            
+            const roleBadge = document.getElementById('detailStaffRole');
+            roleBadge.textContent = d.staffRole || 'Staff';
+            
+            document.getElementById('detailShiftType').textContent = d.type;
+            document.getElementById('detailShiftDate').textContent = d.date;
+            document.getElementById('detailShiftHours').textContent = `${d.startTime} - ${d.endTime}`;
+            document.getElementById('detailComplexName').textContent = d.complexName || 'Cơ sở 1';
+            
+            document.getElementById('detailCheckInTime').textContent = d.checkin ? d.checkin.split(' ')[1] : '--:--';
+            document.getElementById('detailCheckOutTime').textContent = d.checkout ? d.checkout.split(' ')[1] : '--:--';
+
+            // Check-in status badge in modal
+            const checkInStatus = d.checkinStatus;
+            const ciBadge = document.getElementById('detailCheckInStatus');
+            ciBadge.textContent = checkInStatus;
+            ciBadge.className = 'status-badge';
+            if (checkInStatus === 'Đúng giờ') ciBadge.classList.add('on-time');
+            else ciBadge.classList.add('late-badge');
+
+            // Check-out status badge in modal
+            const checkOutStatus = d.checkoutStatus;
+            const coBadge = document.getElementById('detailCheckOutStatus');
+            coBadge.textContent = checkOutStatus;
+            coBadge.className = 'status-badge';
+            if (checkOutStatus === 'Xong ca') coBadge.classList.add('finished');
+            else if (checkOutStatus === 'Về sớm') coBadge.classList.add('early');
+            else if (checkOutStatus === 'Đang trực') coBadge.classList.add('working');
+            else coBadge.classList.add('finished');
+
+            // Late / Early stats
+            const lateVal = parseInt(d.late || '0');
+            const earlyVal = parseInt(d.early || '0');
+            
+            const lateEl = document.getElementById('detailLateMinutes');
+            lateEl.textContent = lateVal > 0 ? `${lateVal} phút` : 'Đúng giờ';
+            lateEl.style.color = lateVal > 0 ? 'var(--orange-400)' : 'var(--emerald-400)';
+
+            const earlyEl = document.getElementById('detailEarlyLeaveMinutes');
+            earlyEl.textContent = earlyVal > 0 ? `${earlyVal} phút` : 'Đúng giờ';
+            earlyEl.style.color = earlyVal > 0 ? 'var(--rose-400)' : 'var(--emerald-400)';
+
+            // Note
+            const noteSection = document.getElementById('detailNoteSection');
+            if (d.note && d.note.trim() && d.note !== 'null') {
+                document.getElementById('detailNoteText').textContent = d.note;
+                noteSection.style.display = 'block';
+            } else {
+                noteSection.style.display = 'none';
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('viewShiftDetailModal'));
+            modal.show();
         });
     </script>
 }
