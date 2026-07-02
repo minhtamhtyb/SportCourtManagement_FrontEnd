@@ -1,19 +1,14 @@
-## Ignore Visual Studio Temporary Files, Build Results, and Artifacts
-
-# User-specific files
-*.rsuser
-*.suo
+# Visual Studio
+.vs/
 *.user
+*.suo
 *.userosscache
 *.sln.docstates
-
-# User-specific files (MonoDevelop/xamarin)
-*.userprefs
-
-# Mono auto generated files
-mono_crash.*
+*.slnLaunch.user
 
 # Build results
+**/bin/
+**/obj/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -27,8 +22,6 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
-# Visual Studio 2015/2017 cache/options directory
-.vs/
 # Microsoft SQL Server files
 *.mdf
 *.ldf
@@ -37,18 +30,15 @@ bld/
 # NUnit
 *.visualstate
 
-## Ignore Visual Studio Temporary Files, Builds, and Metadata
-.vs/
-[Db]ebug/
-[Rr]elease/
-x64/
-x86/
-[Bb]in/
-[Oo]bj/
-*.user
-*.suo
-*.userosscache
-*.sln.docstates
-
 # Agent settings/plugins folder
 .agents/
+
+# Secrets / local
+**/.env
+**/.env.*
+**/appsettings.*.local.json
+**/secrets.json
+
+# OS
+Thumbs.db
+.DS_Store

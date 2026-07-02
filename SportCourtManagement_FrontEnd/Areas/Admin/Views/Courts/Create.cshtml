@@ -1,0 +1,86 @@
+@model CourtFormViewModel
+@{
+    var isEdit = Model.CourtId.HasValue;
+    ViewData["Title"] = isEdit ? $"Sửa sân — {Model.CourtName}" : "Thêm sân mới";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">@ViewData["Title"]</h1>
+        <p class="page-subtitle">Tổ hợp: <strong class="text-white">@Model.ComplexName</strong></p>
+    </div>
+    <a asp-controller="Complexes" asp-action="Details" asp-route-id="@Model.ComplexId" class="btn-secondary-custom"><i class="fa-solid fa-arrow-left"></i> Quay lại</a>
+</div>
+
+<div class="admin-card p-4" style="max-width:800px">
+    <form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-complexId="@Model.ComplexId" asp-route-id="@Model.CourtId" method="post" class="form-dark">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ComplexId" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="CourtName" class="form-label"></label>
+                <input asp-for="CourtName" class="form-control" placeholder="VD: Sân Pickleball A1" />
+                <span asp-validation-for="CourtName" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="CourtCode" class="form-label"></label>
+                <input asp-for="CourtCode" class="form-control" placeholder="VD: PCK-A1" />
+                <span asp-validation-for="CourtCode" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="CourtTypeId" class="form-label"></label>
+                <select asp-for="CourtTypeId" class="form-select" asp-items="@(new SelectList(Model.CourtTypes, "CourtTypeId", "TypeName"))"></select>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" class="form-select">
+                    @foreach (var s in Model.StatusOptions)
+                    {
+                        <option value="@s">@DisplayHelpers.GetCourtStatus(s).Label</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Location" class="form-label"></label>
+                <input asp-for="Location" class="form-control" placeholder="Khu A - Tầng 1" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Capacity" class="form-label"></label>
+                <input asp-for="Capacity" class="form-control" type="number" min="1" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="OpenTime" class="form-label"></label>
+                <input asp-for="OpenTime" class="form-control" type="time" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="CloseTime" class="form-label"></label>
+                <input asp-for="CloseTime" class="form-control" type="time" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="PricePerHour" class="form-label"></label>
+                <input asp-for="PricePerHour" class="form-control" type="number" min="0" step="1000" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Surface" class="form-label"></label>
+                <input asp-for="Surface" class="form-control" placeholder="Polymer cao cấp" />
+            </div>
+            <div class="col-12">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="col-12">
+                <label asp-for="ImageUrl" class="form-label"></label>
+                <input asp-for="ImageUrl" class="form-control" placeholder="https://..." />
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end mt-4">
+            <a asp-controller="Complexes" asp-action="Details" asp-route-id="@Model.ComplexId" class="btn-secondary-custom">Hủy</a>
+            <button type="submit" class="btn-primary-custom"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

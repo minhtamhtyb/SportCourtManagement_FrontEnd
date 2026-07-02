@@ -1,0 +1,151 @@
+@model ComplexServicesViewModel
+@{
+    ViewData["Title"] = $"Dịch vụ — {Model.Complex.ComplexName}";
+    var offerings = Model.ServiceOfferings
+        .Where(o => o.CourtTypeId == Model.SelectedCourtTypeId)
+        .OrderBy(o => o.ServiceMode)
+        .ThenBy(o => o.ServiceName)
+        .ToList();
+}
+
+<div class="page-header">
+    <div>
+        <a asp-action="Details" asp-route-id="@Model.Complex.ComplexId" class="text-secondary small text-decoration-none">
+            <i class="fa-solid fa-arrow-left me-1"></i> Quay lại chi tiết tổ hợp
+        </a>
+        <h1 class="page-title mt-1">Dịch vụ theo loại sân</h1>
+        <p class="page-subtitle">@Model.Complex.ComplexName — cấu hình dịch vụ luôn cung cấp (miễn phí) và tùy chọn khi đặt</p>
+    </div>
+    @if (Model.ComplexCourtTypes.Any())
+    {
+        <button type="button" class="btn-primary-custom btn-sm" data-service-modal="create"
+                data-complex-id="@Model.Complex.ComplexId" data-court-type-id="@Model.SelectedCourtTypeId">
+            <i class="fa-solid fa-plus"></i> Thêm dịch vụ
+        </button>
+    }
+</div>
+
+@if (!Model.ComplexCourtTypes.Any())
+{
+    <div class="empty-state py-5">
+        <i class="fa-solid fa-table-tennis-paddle-ball d-block"></i>
+        <p class="text-secondary mb-2">Thêm sân vào tổ hợp trước khi cấu hình dịch vụ theo loại sân.</p>
+        <a asp-controller="Courts" asp-action="Create" asp-route-complexId="@Model.Complex.ComplexId" class="btn-primary-custom btn-sm">
+            Thêm sân đầu tiên
+        </a>
+    </div>
+}
+else
+{
+    <div class="filter-bar mb-3">
+        @foreach (var ct in Model.ComplexCourtTypes)
+        {
+            <a asp-action="Services" asp-route-id="@Model.Complex.ComplexId" asp-route-courtTypeId="@ct.CourtTypeId"
+               class="filter-chip @(Model.SelectedCourtTypeId == ct.CourtTypeId ? "active" : "")">@ct.TypeName</a>
+        }
+    </div>
+
+    if (!offerings.Any())
+    {
+        <div class="empty-state py-4">
+            <p class="text-secondary">Chưa có dịch vụ cho loại sân này.</p>
+            <button type="button" class="btn-secondary-custom btn-sm" data-service-modal="create"
+                    data-complex-id="@Model.Complex.ComplexId" data-court-type-id="@Model.SelectedCourtTypeId">
+                Thêm dịch vụ đầu tiên
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="admin-card">
+            <table class="admin-table" id="serviceOfferingsTable">
+                <thead>
+                    <tr>
+                        <th>Dịch vụ</th>
+                        <th>Loại</th>
+                        <th>Hình thức</th>
+                        <th>Giá</th>
+                        <th>Tồn kho</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var o in offerings)
+                    {
+                        var (catLabel, catCss) = DisplayHelpers.GetServiceCategory(o.Category);
+                        <tr class="@(!o.IsActive ? "opacity-50" : "")" data-offering-id="@o.OfferingId">
+                            <td>
+                                <div class="fw-semibold text-white">@o.ServiceName</div>
+                                <div class="text-secondary small">@o.Unit</div>
+                            </td>
+                            <td><span class="@catCss small fw-semibold">@catLabel</span></td>
+                            <td>
+                                @if (o.ServiceMode == "Included")
+                                {
+                                    <span class="status-badge status-available">Luôn cung cấp</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge" style="background:rgba(59,130,246,.15);color:#93c5fd">Tùy chọn</span>
+                                }
+                            </td>
+                            <td>
+                                @if (o.ServiceMode == "Included")
+                                {
+                                    <span class="text-success fw-semibold">Miễn phí</span>
+                                }
+                                else
+                                {
+                                    @DisplayHelpers.FormatCurrency(o.Price)
+                                }
+                            </td>
+                            <td><span class="fw-semibold @(o.StockQty < 10 ? "text-warning" : "")">@o.StockQty</span></td>
+                            <td>@(o.IsActive ? "Hoạt động" : "Ngưng")</td>
+                            <td class="text-end">
+                                <button type="button" class="btn-ghost" title="Sửa"
+                                        data-service-modal="edit"
+                                        data-offering-id="@o.OfferingId"
+                                        data-complex-id="@Model.Complex.ComplexId">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button type="button" class="btn-ghost text-danger" title="Xóa"
+                                        data-service-delete="@o.OfferingId"
+                                        data-complex-id="@Model.Complex.ComplexId"
+                                        data-court-type-id="@Model.SelectedCourtTypeId"
+                                        data-service-name="@o.ServiceName">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+<div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content admin-modal">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white" id="serviceModalLabel">Dịch vụ loại sân</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body" id="serviceModalBody">
+                <div class="text-center py-4 text-secondary">
+                    <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                    <span class="ms-2">Đang tải...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="serviceDeleteForm" method="post" class="d-none">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script src="~/js/complex-services.js" asp-append-version="true"></script>
+}

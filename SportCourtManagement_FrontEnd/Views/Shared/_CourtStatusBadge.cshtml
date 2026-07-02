@@ -1,0 +1,6 @@
+@using SportCourtManagement_FrontEnd.Helpers
+@model string
+@{
+    var (label, css) = DisplayHelpers.GetCourtStatus(Model);
+}
+<span class="status-badge @css">@label</span>

@@ -1,0 +1,102 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Tổng quan hoạt động hệ thống quản lý sân thể thao</p>
+    </div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card emerald">
+        <div><i class="fa-solid fa-sack-dollar fa-lg text-success"></i></div>
+        <div>
+            <div class="stat-label">Tổng doanh thu</div>
+            <div class="stat-value text-success">@DisplayHelpers.FormatCurrency(Model.Summary.TotalRevenue)</div>
+        </div>
+    </div>
+    <div class="stat-card indigo">
+        <div><i class="fa-solid fa-calendar-check fa-lg" style="color:#818cf8"></i></div>
+        <div>
+            <div class="stat-label">Tổng booking</div>
+            <div class="stat-value" style="color:#a5b4fc">@Model.Summary.TotalBookings</div>
+        </div>
+    </div>
+    <div class="stat-card amber">
+        <div><i class="fa-solid fa-percent fa-lg text-warning"></i></div>
+        <div>
+            <div class="stat-label">Tỷ lệ lấp đầy</div>
+            <div class="stat-value text-warning">@Model.Summary.OccupancyRate%</div>
+        </div>
+    </div>
+    <div class="stat-card slate">
+        <div><i class="fa-solid fa-users fa-lg text-secondary"></i></div>
+        <div>
+            <div class="stat-label">Khách hàng active</div>
+            <div class="stat-value">@Model.Summary.ActiveCustomersCount</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="admin-card p-4">
+            <h2 class="h6 text-white mb-3"><i class="fa-solid fa-building me-2"></i>Thống kê sân</h2>
+            <div class="row g-3">
+                <div class="col-6 col-md-4">
+                    <div class="stat-card indigo p-3">
+                        <div class="stat-label">Tổ hợp sân</div>
+                        <div class="stat-value" style="color:#818cf8">@Model.CourtStats.TotalComplexes</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="stat-card slate p-3">
+                        <div class="stat-label">Tổng số sân</div>
+                        <div class="stat-value">@Model.CourtStats.TotalCourts</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="stat-card emerald p-3">
+                        <div class="stat-label">Đang hoạt động</div>
+                        <div class="stat-value text-success">@Model.CourtStats.ActiveCourts</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="stat-card amber p-3">
+                        <div class="stat-label">Bảo trì</div>
+                        <div class="stat-value text-warning">@Model.CourtStats.MaintenanceCourts</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="stat-card slate p-3">
+                        <div class="stat-label">Ngưng hoạt động</div>
+                        <div class="stat-value text-secondary">@Model.CourtStats.InactiveCourts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="admin-card p-4">
+            <h2 class="h6 text-white mb-3"><i class="fa-solid fa-star me-2 text-warning"></i>Top sân đánh giá</h2>
+            @foreach (var court in Model.Summary.TopRatedCourts)
+            {
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
+                    <span class="small">@court.CourtName</span>
+                    <span class="text-warning small fw-semibold"><i class="fa-solid fa-star"></i> @court.Rating</span>
+                </div>
+            }
+        </div>
+        <div class="admin-card p-4 mt-3">
+            <h2 class="h6 text-white mb-3">Truy cập nhanh</h2>
+            <div class="d-grid gap-2">
+                <a asp-area="Admin" asp-controller="Complexes" asp-action="Index" class="btn-secondary-custom justify-content-center">Quản lý sân</a>
+                <a asp-area="Admin" asp-controller="Reports" asp-action="Revenue" class="btn-secondary-custom justify-content-center">Báo cáo doanh thu</a>
+                <a asp-area="Admin" asp-controller="Services" asp-action="Index" class="btn-secondary-custom justify-content-center">Dịch vụ & Kho</a>
+            </div>
+        </div>
+    </div>
+</div>
