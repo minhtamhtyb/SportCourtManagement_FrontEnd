@@ -25,10 +25,15 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
         // ── GET: /manager/staff/shifts ────────────────────────────────────────
         [HttpGet("staff/shifts")]
-        public async Task<IActionResult> Shifts()
+        public async Task<IActionResult> Shifts([FromQuery] string? weekStart = null)
         {
             var weeklyData = new WeeklyScheduleResponse();
-            var response = await _client.GetAsync(_apiBase + "/staff/shifts/weekly");
+            var url = _apiBase + "/staff/shifts/weekly";
+            if (!string.IsNullOrEmpty(weekStart))
+            {
+                url += $"?weekStart={weekStart}";
+            }
+            var response = await _client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
                 string rawJson = await response.Content.ReadAsStringAsync();
@@ -344,7 +349,5 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
         [HttpGet("dashboard")]
         public IActionResult Dashboard() => RedirectToAction(nameof(Shifts));
-
-
     }
 }

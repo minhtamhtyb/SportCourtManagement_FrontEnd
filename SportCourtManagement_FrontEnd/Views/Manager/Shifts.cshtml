@@ -1,6 +1,13 @@
 @model SportCourtManagement_FrontEnd.Models.WeeklyScheduleResponse
 @{
     ViewData["Title"] = "Shift Management";
+    DateTime currentWeekStart;
+    if (!DateTime.TryParse(Model.WeekStart, out currentWeekStart))
+    {
+        currentWeekStart = DateTime.Today;
+    }
+    var prevWeekStart = currentWeekStart.AddDays(-7).ToString("yyyy-MM-dd");
+    var nextWeekStart = currentWeekStart.AddDays(7).ToString("yyyy-MM-dd");
 }
 
 @section Styles {
@@ -28,15 +35,15 @@
     <div class="shift-toolbar glass-panel">
         <div class="toolbar-left">
             <div class="week-picker">
-                <button class="picker-btn">
+                <a class="picker-btn" href="/manager/staff/shifts?weekStart=@prevWeekStart">
                     <span class="material-symbols-outlined">chevron_left</span>
-                </button>
+                </a>
                 <div class="picker-label">
                     @Model.WeekStart – @Model.WeekEnd
                 </div>
-                <button class="picker-btn">
+                <a class="picker-btn" href="/manager/staff/shifts?weekStart=@nextWeekStart">
                     <span class="material-symbols-outlined">chevron_right</span>
-                </button>
+                </a>
             </div>
             @* <button class="today-btn">Hôm nay</button> *@
         </div>
