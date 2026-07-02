@@ -8,7 +8,7 @@ builder.Services.AddControllersWithViews();
 // Register HttpClient and CourtApiService with BaseAddress configured from appsettings
 builder.Services.AddHttpClient<ICourtApiService, CourtApiService>(client =>
 {
-    var baseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5203/";
+    var baseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:7075/";
     if (!baseUrl.EndsWith("/"))
     {
         baseUrl += "/";

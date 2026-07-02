@@ -24,6 +24,9 @@ public class CourtsController : Controller
         var courtsTask = _apiService.SearchCourtsAsync(searchParams);
         var typesTask = _apiService.GetCourtTypesAsync();
 
+        var test = await _apiService.StatusCodeAsync();
+        TempData["test"] = test;
+
         await Task.WhenAll(courtsTask, typesTask);
 
         var viewModel = new CourtSearchViewModel
@@ -39,6 +42,7 @@ public class CourtsController : Controller
     // GET: /Courts/Detail/{id}
     public async Task<IActionResult> Detail(int id, DateOnly? date)
     {
+
         var court = await _apiService.GetCourtDetailAsync(id);
         if (court == null)
         {

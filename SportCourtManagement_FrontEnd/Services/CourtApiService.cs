@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -7,9 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SportCourtManagement_FrontEnd.Models.Api;
+using SportCourtManagement_FrontEnd.Models.Bookings;
 using SportCourtManagement_FrontEnd.Models.Courts;
 using SportCourtManagement_FrontEnd.Models.Reviews;
-using SportCourtManagement_FrontEnd.Models.Bookings;
 
 namespace SportCourtManagement_FrontEnd.Services;
 
@@ -22,6 +23,14 @@ public class CourtApiService : ICourtApiService
     {
         _httpClient = httpClient;
         _logger = logger;
+    }
+
+    public async Task<string> StatusCodeAsync()
+    {
+        var query = new StringBuilder("api/courts");
+        var response = await _httpClient.GetFromJsonAsync<ApiResponse<PagedResult<CourtListDto>>>(query.ToString());
+
+        return $"Status code: {response.StatusCode}. Body: {response.Data}";
     }
 
     public async Task<PagedResult<CourtListDto>> SearchCourtsAsync(CourtSearchParams searchParams)

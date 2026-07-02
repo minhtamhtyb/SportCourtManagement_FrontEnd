@@ -10,6 +10,8 @@ namespace SportCourtManagement_FrontEnd.Services;
 
 public interface ICourtApiService
 {
+
+    Task<string> StatusCodeAsync();
     Task<PagedResult<CourtListDto>> SearchCourtsAsync(CourtSearchParams searchParams);
     Task<CourtDetailDto?> GetCourtDetailAsync(int id);
     Task<CourtAvailabilityDto?> GetCourtAvailabilityAsync(int id, DateOnly date);
