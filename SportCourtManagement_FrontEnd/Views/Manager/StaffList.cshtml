@@ -1,0 +1,289 @@
+@model SportCourtManagement_FrontEnd.Models.PagedStaffResponse
+@{
+    ViewData["Title"] = "Staff List";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Manager/staff-list.css" asp-append-version="true" />
+}
+
+<div class="staff-list-container">
+    <!-- Module Header -->
+    <div class="module-header">
+        <div class="module-title">
+            <h3>Quản lý nhân sự</h3>
+            <p>Xem danh sách và quản lý thông tin hồ sơ của toàn bộ nhân viên.</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#assignStaffModal">
+                <span class="material-symbols-outlined">person_add</span>
+                Thêm nhân viên mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-navigation">
+        <a class="tab-link" href="/manager/staff/shifts">Lịch trực hàng tuần</a>
+        <a class="tab-link" href="/manager/staff/attendance">Chấm công &amp; Chuyên cần</a>
+        <a class="tab-link active" href="/manager/staff/list">Danh sách nhân viên</a>
+        <a class="tab-link" href="/manager/staff/salary">Cấu hình tiền lương</a>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar-container">
+        <form method="get" action="/manager/staff/list" class="toolbar-filters">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" name="search" value="@ViewData["SearchQuery"]" placeholder="Tìm FullName, Email..." />
+            </div>
+            <button type="submit" class="btn-primary-custom" style="padding: 6px 12px; height: 36px;">
+                <span class="material-symbols-outlined">filter_alt</span>
+                Lọc
+            </button>
+        </form>
+
+        <div class="metrics-summary">
+            <span>Tổng số tại cơ sở: <strong style="color: var(--emerald-400);">@Model.TotalCount nhân viên</strong></span>
+        </div>
+    </div>
+
+    <!-- Staff Table -->
+    <div class="table-panel glass-panel">
+        <table class="staff-table">
+            <thead>
+                <tr>
+                    <th>Nhân viên</th>
+                    <th>Liên hệ</th>
+                    <th>Ca tuần này</th>
+                    <th>Ca hôm nay</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items == null || !Model.Items.Any())
+                {
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--on-surface-variant); padding: 40px 0;">
+                            <span class="material-symbols-outlined" style="font-size: 48px; display: block; margin-bottom: 8px;">group_off</span>
+                            Không tìm thấy nhân viên nào tại cơ sở này.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var staff in Model.Items)
+                    {
+                        <tr>
+                            <td>
+                                <div class="employee-cell">
+                                    <div class="employee-avatar">
+                                        <img alt="@staff.FullName" src="@(string.IsNullOrEmpty(staff.AvatarUrl) ? "https://lh3.googleusercontent.com/aida-public/AB6AXuC3OyqucUhAQNTGfk0bk_7nAylbuHhOhqSF0k1VdjPWLOlH2aEvH46drxY4VYGrqD0HERsQ0EyYwlLNZQUQ6GeGwMqVFX__sTe-5sE57bO7Uq1IEo33FQhfryeU4Uzcdk8Io6fprE76zTLyRi_GE6BbaJOn0Lhs7pbCwidrYoVVaBxXRJc4Dimihb6ClQJhWP0ISRR3UYlIMcnhde186-LLoY1A6JOsT5oTIAdPccFwbHpUdGzR80xt7wY2dIbcRnpuN2HytJTqvTo" : staff.AvatarUrl)" />
+                                    </div>
+                                    <div>
+                                        <p class="employee-name">@staff.FullName</p>
+                                        <p class="employee-id">UserId: @staff.UserId</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <p class="employee-id" style="color: var(--on-surface);">@(staff.Phone ?? "—")</p>
+                                <p class="employee-id">@staff.Email</p>
+                            </td>
+                            <td>
+                                <span class="shifts-week-badge">@staff.ShiftsThisWeek ca / tuần</span>
+                            </td>
+                            <td>
+                                <div class="today-shift-cell">
+                                    @if (staff.TodayShift != null)
+                                    {
+                                        <span class="shift-type-pill @staff.TodayShift.ShiftType.ToLower()">@staff.TodayShift.ShiftType</span>
+                                        <span class="checkin-time">
+                                            @(staff.TodayShift.CheckInTime.HasValue ? $"Check-in: {staff.TodayShift.CheckInTime.Value:HH:mm}" : "Chưa check-in")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="employee-id" style="font-style: italic;">Không có ca hôm nay</span>
+                                    }
+                                </div>
+                            </td>
+                            <td>
+                                @if (staff.IsActive)
+                                {
+                                    <span class="badge-status active">Hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status inactive">Ngưng hoạt động</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="actions-cell">
+                                    <button class="action-icon-btn delete btn-unassign" 
+                                            title="Gỡ khỏi cơ sở" 
+                                            data-staff-id="@staff.UserId" 
+                                            data-staff-name="@staff.FullName">
+                                        <span class="material-symbols-outlined" style="color: var(--rose-400);">person_remove</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-panel">
+        <p class="pagination-info">
+            Hiển thị @(Model.TotalCount == 0 ? 0 : (Model.Page - 1) * Model.PageSize + 1) - 
+            @Math.Min(Model.Page * Model.PageSize, Model.TotalCount) của @Model.TotalCount nhân viên
+        </p>
+        <div class="pagination-buttons">
+            @if (Model.Page > 1)
+            {
+                <a class="pagination-btn" href="/manager/staff/list?search=@ViewData["SearchQuery"]&page=@(Model.Page - 1)">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </a>
+            }
+            else
+            {
+                <button class="pagination-btn" disabled>
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+            }
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                if (i == Model.Page)
+                {
+                    <button class="pagination-btn active" disabled>@i</button>
+                }
+                else
+                {
+                    <a class="pagination-btn" href="/manager/staff/list?search=@ViewData["SearchQuery"]&page=@i">@i</a>
+                }
+            }
+
+            @if (Model.Page < Model.TotalPages)
+            {
+                <a class="pagination-btn" href="/manager/staff/list?search=@ViewData["SearchQuery"]&page=@(Model.Page + 1)">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </a>
+            }
+            else
+            {
+                <button class="pagination-btn" disabled>
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Assign Staff Modal -->
+<div class="modal fade" id="assignStaffModal" tabindex="-1" aria-labelledby="assignStaffLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--surface-container); border: 1px solid rgba(70, 69, 84, 0.3); border-radius: 12px; color: var(--on-surface);">
+            <form asp-controller="Manager" asp-action="AssignStaff" method="post">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(144, 143, 160, 0.1); padding: 16px 24px;">
+                    <h5 class="modal-title" id="assignStaffLabel" style="display:flex; align-items:center; gap:8px;">
+                        <span class="material-symbols-outlined" style="color: var(--primary);">person_add</span>
+                        Gán nhân viên vào cơ sở
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+                </div>
+                <div class="modal-body" style="padding: 24px;">
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px;">Mã số nhân viên (UserId)</label>
+                            <input type="number" class="form-control" name="staffId" required placeholder="Nhập UserId của nhân viên..." 
+                                   style="background: var(--surface-container-low); border: 1px solid rgba(70, 69, 84, 0.3); color: var(--on-surface); border-radius: 6px; padding: 10px 14px;" />
+                            <small style="color: var(--on-surface-variant); display: block; margin-top: 6px; font-size: 12px;">
+                                * Nhập ID của nhân viên (ví dụ: 3) để liên kết họ vào khu phức hợp thể thao này.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid rgba(144, 143, 160, 0.1); padding: 16px 24px;">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom">
+                        <span class="material-symbols-outlined">done</span>
+                        Thêm vào cơ sở
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Unassign Modal -->
+<div class="modal fade" id="unassignStaffModal" tabindex="-1" aria-labelledby="unassignStaffLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--surface-container); border: 1px solid rgba(70, 69, 84, 0.3); border-radius: 12px; color: var(--on-surface);">
+            <form asp-controller="Manager" asp-action="UnassignStaff" method="post">
+                <div class="modal-header" style="border-bottom: none; padding: 16px 24px 0 24px;">
+                    <h5 class="modal-title" id="unassignStaffLabel" style="display:flex; align-items:center; gap:8px; color: var(--rose-400);">
+                        <span class="material-symbols-outlined" style="color: var(--rose-400);">warning</span>
+                        Xác nhận gỡ nhân sự
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+                </div>
+                <div class="modal-body" style="padding: 24px;">
+                    <p style="margin: 0; font-size: 15px; line-height: 1.5;">
+                        Bạn có chắc chắn muốn gỡ nhân viên <strong id="unassignStaffName"></strong> ra khỏi danh sách quản lý của cơ sở này không?
+                    </p>
+                    <input type="hidden" name="staffId" id="unassignStaffId" />
+                </div>
+                <div class="modal-footer" style="border-top: none; padding: 0 24px 24px 24px;">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom" style="background-color: var(--rose-500); color: white;">
+                        <span class="material-symbols-outlined">person_remove</span>
+                        Gỡ bỏ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toast Helper
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            const icon = type === 'error' ? 'error' : (type === 'info' ? 'info' : 'check_circle');
+            toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span><div>${message}</div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // TempData messages from controller
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');</text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
+        }
+
+        // Hook unassign click triggers
+        document.querySelectorAll('.btn-unassign').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const staffId = btn.dataset.staffId;
+                const staffName = btn.dataset.staffName;
+                document.getElementById('unassignStaffId').value = staffId;
+                document.getElementById('unassignStaffName').textContent = staffName;
+                const modal = new bootstrap.Modal(document.getElementById('unassignStaffModal'));
+                modal.show();
+            });
+        });
+    </script>
+}

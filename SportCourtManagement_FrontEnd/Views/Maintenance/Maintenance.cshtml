@@ -1,0 +1,575 @@
+@model SportCourtManagement_FrontEnd.Models.MaintenanceViewModel
+@{
+    ViewData["Title"] = "Bảo trì sân | ProCourt";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Manager/maintenance.css" asp-append-version="true" />
+}
+
+<div class="maintenance-container">
+
+    <!-- Module Header -->
+    <div class="module-header">
+        <div class="module-title">
+            <h3>Bảo trì sân</h3>
+            <p>Theo dõi lịch bảo trì sân theo trạng thái: <strong>Pending</strong>, <strong>InProgress</strong>, <strong>Completed</strong>, <strong>Cancelled</strong>.</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createMaintenanceModal">
+                <span class="material-symbols-outlined">add</span>
+                Tạo lịch bảo trì
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="summary-stats">
+        <div class="stat-card glass-panel">
+            <div class="stat-icon orange">
+                <span class="material-symbols-outlined">pending_actions</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Pending</p>
+                <span class="stat-value orange">@Model.PendingCount</span>
+                <p class="stat-sub">Chờ bắt đầu</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon sky">
+                <span class="material-symbols-outlined">construction</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">In Progress</p>
+                <span class="stat-value sky">@Model.InProgressCount</span>
+                <p class="stat-sub">Đang thi công – Sân bị khoá</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon emerald">
+                <span class="material-symbols-outlined">check_circle</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Completed</p>
+                <span class="stat-value emerald">@Model.CompletedCount</span>
+                <p class="stat-sub">Hoàn thành lịch</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon rose">
+                <span class="material-symbols-outlined">cancel</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Cancelled</p>
+                <span class="stat-value rose">@Model.CancelledCount</span>
+                <p class="stat-sub">Bị huỷ / từ chối</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar-container">
+        <div class="toolbar-filters">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" id="searchInput" placeholder="Tìm theo tên sân, lý do..." />
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">filter_list</span>
+                <select id="statusFilter">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="InProgress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">build</span>
+                <select id="typeFilter">
+                    <option value="">Tất cả loại bảo trì</option>
+                    <option value="Routine">Routine (Định kỳ)</option>
+                    <option value="Emergency">Emergency (Khẩn cấp)</option>
+                    <option value="Upgrade">Upgrade (Nâng cấp)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Table -->
+    <div class="table-panel glass-panel">
+        <table class="maintenance-table">
+            <thead>
+                <tr>
+                    <th>Sân</th>
+                    <th>Loại bảo trì</th>
+                    <th>Lý do / Mô tả</th>
+                    <th>Thời gian</th>
+                    <th>Trạng thái</th>
+                    <th>Người phụ trách</th>
+                    <th>Kết quả</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Schedules?.Items == null || !Model.Schedules.Items.Any())
+                {
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: var(--on-surface-variant); font-style: italic;">
+                            Không có lịch bảo trì nào được ghi nhận.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model.Schedules.Items)
+                    {
+                        var startStr = item.StartDateTime.ToString("yyyy-MM-ddTHH:mm");
+                        var endStr = item.EndDateTime.ToString("yyyy-MM-ddTHH:mm");
+                        var isPending = item.Status == "Pending" || item.Status == "Scheduled";
+                        var isInProgress = item.Status == "InProgress";
+                        var isCompleted = item.Status == "Completed";
+                        var isCancelled = item.Status == "Cancelled";
+
+                        var statusBadgeClass = item.Status.ToLower();
+                        if (item.Status == "InProgress") statusBadgeClass = "in-progress";
+                        if (item.Status == "Completed") statusBadgeClass = "done";
+                        if (item.Status == "Cancelled") statusBadgeClass = "cancelled";
+                        if (item.Status == "Scheduled") statusBadgeClass = "pending";
+
+                        <tr data-id="@item.MaintenanceId"
+                            data-court-id="@item.CourtId"
+                            data-court-name="@item.CourtName"
+                            data-type="@item.MaintenanceType"
+                            data-reason="@item.Reason"
+                            data-start="@startStr"
+                            data-end="@endStr"
+                            data-status="@item.Status"
+                            data-staff-id="@item.AssignedStaffId"
+                            data-staff-name="@(item.AssignedStaffName ?? "Chưa phân công")"
+                            data-result="@(item.Result ?? "–")">
+                            <td>
+                                <div class="court-cell">
+                                    <div class="court-icon">
+                                        <span class="material-symbols-outlined">sports_tennis</span>
+                                    </div>
+                                    <div>
+                                        <p class="court-name">@item.CourtName</p>
+                                        <p class="court-location">@item.ComplexName</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="type-badge @item.MaintenanceType.ToLower()">@item.MaintenanceType</span></td>
+                            <td class="reason-cell">@item.Reason</td>
+                            <td>
+                                <p class="time-start">@item.StartDateTime.ToString("dd/MM HH:mm")</p>
+                                <p class="time-end">@item.EndDateTime.ToString("dd/MM HH:mm")</p>
+                            </td>
+                            <td><span class="status-badge @statusBadgeClass">@item.Status</span></td>
+                            <td>
+                                @if (item.AssignedStaffId.HasValue)
+                                {
+                                    <div class="assigned-cell">
+                                        <div class="assigned-avatar">
+                                            <img alt="@item.AssignedStaffName" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
+                                        </div>
+                                        <span class="assigned-name">@item.AssignedStaffName</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="assigned-name" style="color: var(--on-surface-variant);">Chưa phân công</span>
+                                }
+                            </td>
+                            <td class="result-cell" style="color: @(isCompleted ? "var(--emerald-400)" : (isCancelled ? "var(--rose-400)" : ""))">
+                                @(item.Result ?? "–")
+                            </td>
+                            <td>
+                                <div class="actions-cell">
+                                    @if (isPending || isInProgress)
+                                    {
+                                        <button class="action-icon-btn verify" title="Duyệt / Từ chối">
+                                            <span class="material-symbols-outlined">how_to_reg</span>
+                                        </button>
+                                    }
+                                    <button class="action-icon-btn edit" title="Chỉnh sửa">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </button>
+                                    <button class="action-icon-btn delete" title="Xóa">
+                                        <span class="material-symbols-outlined">delete</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-panel">
+        <p class="pagination-info"></p>
+        <div class="pagination-buttons">
+            <button class="pagination-btn" disabled>
+                <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn" disabled>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Delete Maintenance Modal (form submits to controller) -->
+<div class="modal fade" id="deleteMaintenanceModal" tabindex="-1" aria-labelledby="deleteMaintenanceLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content maintenance-modal-content">
+            <form asp-controller="Maintenance" asp-action="DeleteMaintenance" method="post" id="deleteMaintenanceForm">
+                <div class="modal-header maintenance-modal-header" style="border-bottom: none; padding-bottom: 0;">
+                    <h5 class="modal-title" id="deleteMaintenanceLabel" style="color: var(--rose-400);">
+                        <span class="material-symbols-outlined" style="color: var(--rose-400);">warning</span>
+                        Xác nhận xoá lịch bảo trì
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding-top: 10px;">
+                    <p>Bạn có chắc chắn muốn xoá lịch bảo trì cho sân <strong id="deleteCourtNameDisplay"></strong>?</p>
+                    <input type="hidden" id="deleteMaintenanceId" name="MaintenanceId" />
+                </div>
+                <div class="modal-footer maintenance-modal-footer" style="border-top: none; padding-top: 0;">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom" style="background-color: var(--rose-500); color: white;">
+                        <span class="material-symbols-outlined">delete</span>
+                        Xoá
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Create Maintenance Modal -->
+<div class="modal fade" id="createMaintenanceModal" tabindex="-1" aria-labelledby="createMaintenanceLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content maintenance-modal-content">
+            <form asp-controller="Maintenance" asp-action="CreateMaintenance" method="post" id="createMaintenanceForm">
+                <div class="modal-header maintenance-modal-header">
+                    <h5 class="modal-title" id="createMaintenanceLabel">
+                        <span class="material-symbols-outlined">handyman</span>
+                        Tạo lịch bảo trì mới
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-form-grid">
+                        <div class="form-group">
+                            <label class="form-label-custom">Sân</label>
+                            <select class="form-input-custom" name="CourtId" id="createCourtId" required>
+                                <option value="">-- Chọn sân --</option>
+                                @foreach (var c in Model.Courts)
+                                {
+                                    <option value="@c.CourtId">@c.CourtName (@c.CourtCode - @c.CourtTypeName) - [@c.Status]</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Loại bảo trì</label>
+                            <select class="form-input-custom" name="MaintenanceType" id="createMaintenanceType" required>
+                                <option value="Routine">Routine – Định kỳ</option>
+                                <option value="Emergency">Emergency – Khẩn cấp</option>
+                                <option value="Upgrade">Upgrade – Nâng cấp</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Thời gian bắt đầu</label>
+                            <input type="datetime-local" class="form-input-custom" name="StartDateTime" id="createStartDateTime" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Thời gian kết thúc</label>
+                            <input type="datetime-local" class="form-input-custom" name="EndDateTime" id="createEndDateTime" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Nhân viên phụ trách</label>
+                            <select class="form-input-custom" name="AssignedStaffId" id="createAssignedStaffId">
+                                <option value="">-- Chưa phân công --</option>
+                                @foreach (var s in Model.Staffs)
+                                {
+                                    <option value="@s.UserId">@s.FullName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Trạng thái ban đầu</label>
+                            <select class="form-input-custom" name="Status" id="createStatus" required>
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="InProgress">InProgress</option>
+                            </select>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="form-label-custom">Lý do bảo trì (Reason)</label>
+                            <textarea class="form-input-custom" name="Reason" id="createReason" rows="3" maxlength="500" placeholder="Mô tả chi tiết vấn đề hoặc lý do bảo trì (tối đa 500 ký tự)..." required></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer maintenance-modal-footer">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom">
+                        <span class="material-symbols-outlined">check</span>
+                        Tạo lịch bảo trì
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Maintenance Modal -->
+<div class="modal fade" id="editMaintenanceModal" tabindex="-1" aria-labelledby="editMaintenanceLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content maintenance-modal-content">
+            <form asp-controller="Maintenance" asp-action="UpdateMaintenance" method="post" id="editMaintenanceForm">
+                <input type="hidden" name="MaintenanceId" id="editMaintenanceId" />
+                <div class="modal-header maintenance-modal-header">
+                    <h5 class="modal-title" id="editMaintenanceLabel">
+                        <span class="material-symbols-outlined">edit_note</span>
+                        Chỉnh sửa lịch bảo trì
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-form-grid">
+                        <div class="form-group">
+                            <label class="form-label-custom">Sân</label>
+                            <select class="form-input-custom" name="CourtId" id="editCourtId" required>
+                                <option value="">-- Chọn sân --</option>
+                                @foreach (var c in Model.Courts)
+                                {
+                                    <option value="@c.CourtId">@c.CourtName (@c.CourtCode - @c.CourtTypeName) - [@c.Status]</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Loại bảo trì</label>
+                            <select class="form-input-custom" name="MaintenanceType" id="editMaintenanceType" required>
+                                <option value="Routine">Routine – Định kỳ</option>
+                                <option value="Emergency">Emergency – Khẩn cấp</option>
+                                <option value="Upgrade">Upgrade – Nâng cấp</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Thời gian bắt đầu</label>
+                            <input type="datetime-local" class="form-input-custom" name="StartDateTime" id="editStartDateTime" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Thời gian kết thúc</label>
+                            <input type="datetime-local" class="form-input-custom" name="EndDateTime" id="editEndDateTime" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Nhân viên phụ trách</label>
+                            <select class="form-input-custom" name="AssignedStaffId" id="editAssignedStaffId">
+                                <option value="">-- Chưa phân công --</option>
+                                @foreach (var s in Model.Staffs)
+                                {
+                                    <option value="@s.UserId">@s.FullName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Trạng thái</label>
+                            <select class="form-input-custom" name="Status" id="editStatus" required>
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="InProgress">InProgress</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="form-label-custom">Lý do bảo trì (Reason)</label>
+                            <textarea class="form-input-custom" name="Reason" id="editReason" rows="2" maxlength="500" required></textarea>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="form-label-custom">Ghi chú kết quả (Result)</label>
+                            <textarea class="form-input-custom" name="Result" id="editResult" rows="2" maxlength="500" placeholder="Nhập kết quả sau bảo trì..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer maintenance-modal-footer">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom">
+                        <span class="material-symbols-outlined">save</span>
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Verify Maintenance Modal -->
+<div class="modal fade" id="verifyMaintenanceModal" tabindex="-1" aria-labelledby="verifyMaintenanceLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content maintenance-modal-content">
+            <form asp-controller="Maintenance" asp-action="VerifyMaintenance" method="post" id="verifyMaintenanceForm">
+                <input type="hidden" name="MaintenanceId" id="verifyMaintenanceId" />
+                <div class="modal-header maintenance-modal-header">
+                    <h5 class="modal-title" id="verifyMaintenanceLabel">
+                        <span class="material-symbols-outlined">how_to_reg</span>
+                        Phê duyệt / Từ chối lịch bảo trì
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div class="form-group">
+                            <label class="form-label-custom">Quyết định</label>
+                            <div style="display: flex; gap: 20px; margin-top: 6px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; color: var(--on-surface);">
+                                    <input type="radio" name="IsApproved" value="true" checked style="accent-color: var(--primary);" />
+                                    <span class="material-symbols-outlined" style="color: var(--emerald-400); font-size: 18px;">check_circle</span>
+                                    Duyệt 
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; color: var(--on-surface);">
+                                    <input type="radio" name="IsApproved" value="false" style="accent-color: var(--primary);" />
+                                    <span class="material-symbols-outlined" style="color: var(--rose-400); font-size: 18px;">cancel</span>
+                                    Từ chối 
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Ghi chú phê duyệt (Note)</label>
+                            <textarea class="form-input-custom" name="Note" id="verifyNote" rows="3" maxlength="500" placeholder="Nhập ghi chú phê duyệt hoặc lý do từ chối (tối đa 500 ký tự)..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer maintenance-modal-footer">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom">
+                        <span class="material-symbols-outlined">send</span>
+                        Gửi quyết định
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ── Toast Helper ──────────────────────────────────────────────────────
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            const icon = type === 'error' ? 'error' : (type === 'info' ? 'info' : 'check_circle');
+            toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span><div>${message}</div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ── TempData Toasts (server redirect feedback) ────────────────────────
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');</text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
+        }
+
+        // Search & Filter Logic
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const typeFilter = document.getElementById('typeFilter');
+        const tableRows = document.querySelectorAll('.maintenance-table tbody tr');
+
+        function filterTable() {
+            const query = searchInput.value.toLowerCase().trim();
+            const status = statusFilter.value;
+            const type = typeFilter.value;
+
+            tableRows.forEach(row => {
+                if (row.cells.length === 1 && row.cells[0].colSpan > 1) return; // Skip empty row
+
+                const courtName = row.dataset.courtName ? row.dataset.courtName.toLowerCase() : '';
+                const reason = row.dataset.reason ? row.dataset.reason.toLowerCase() : '';
+                const rowStatus = row.dataset.status || '';
+                const rowType = row.dataset.type || '';
+
+                const matchesSearch = courtName.includes(query) || reason.includes(query);
+                const matchesStatus = !status || rowStatus === status || (status === "Pending" && rowStatus === "Scheduled") || (status === "Scheduled" && rowStatus === "Pending");
+                const matchesType = !type || rowType === type;
+
+                if (matchesSearch && matchesStatus && matchesType) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            updatePaginationInfo();
+        }
+
+        searchInput.addEventListener('input', filterTable);
+        statusFilter.addEventListener('change', filterTable);
+        typeFilter.addEventListener('change', filterTable);
+
+        function updatePaginationInfo() {
+            const tableRowsCount = document.querySelectorAll('.maintenance-table tbody tr:not([style*="display: none"])');
+            const totalRows = document.querySelectorAll('.maintenance-table tbody tr');
+            
+            // Exclude empty message row if present
+            const isNoData = totalRows.length === 1 && totalRows[0].cells[0].colSpan > 1;
+            const activeCount = isNoData ? 0 : tableRowsCount.length;
+            const totalCount = isNoData ? 0 : totalRows.length;
+
+            document.querySelector('.pagination-info').textContent = `Hiển thị 1 - ${activeCount} của ${totalCount} lịch bảo trì`;
+        }
+
+        // Initial pagination text trigger
+        updatePaginationInfo();
+
+        // Event Delegation for row actions (Edit, Verify, Delete)
+        document.querySelector('.maintenance-table tbody').addEventListener('click', function(e) {
+            const btnEdit = e.target.closest('.action-icon-btn.edit');
+            const btnVerify = e.target.closest('.action-icon-btn.verify');
+            const btnDelete = e.target.closest('.action-icon-btn.delete');
+            const row = e.target.closest('tr');
+
+            if (!row || (row.cells.length === 1 && row.cells[0].colSpan > 1)) return;
+
+            if (btnEdit) {
+                // Populate edit modal fields via ID
+                document.getElementById('editMaintenanceId').value = row.dataset.id;
+                document.getElementById('editCourtId').value = row.dataset.courtId;
+                document.getElementById('editMaintenanceType').value = row.dataset.type;
+                document.getElementById('editStartDateTime').value = row.dataset.start;
+                document.getElementById('editEndDateTime').value = row.dataset.end;
+                document.getElementById('editAssignedStaffId').value = row.dataset.staffId || '';
+                document.getElementById('editStatus').value = row.dataset.status;
+                document.getElementById('editReason').value = row.dataset.reason;
+                document.getElementById('editResult').value = row.dataset.result === '–' ? '' : row.dataset.result;
+
+                const editModal = new bootstrap.Modal(document.getElementById('editMaintenanceModal'));
+                editModal.show();
+            }
+
+            if (btnVerify) {
+                document.getElementById('verifyMaintenanceId').value = row.dataset.id;
+                document.getElementById('verifyNote').value = '';
+                document.querySelector('input[name="IsApproved"][value="true"]').checked = true;
+
+                const verifyModal = new bootstrap.Modal(document.getElementById('verifyMaintenanceModal'));
+                verifyModal.show();
+            }
+
+            if (btnDelete) {
+                document.getElementById('deleteMaintenanceId').value = row.dataset.id;
+                document.getElementById('deleteCourtNameDisplay').textContent = row.dataset.courtName;
+                const deleteModal = new bootstrap.Modal(document.getElementById('deleteMaintenanceModal'));
+                deleteModal.show();
+            }
+        });
+    </script>
+}

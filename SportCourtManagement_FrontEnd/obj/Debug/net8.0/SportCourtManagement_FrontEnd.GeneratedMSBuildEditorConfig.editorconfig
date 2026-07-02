@@ -1,0 +1,80 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property.EntryPointFilePath = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = SportCourtManagement_FrontEnd
+build_property.RootNamespace = SportCourtManagement_FrontEnd
+build_property.ProjectDir = D:\FPT_uni\Sesmester_8_Summer_26\PRN232\Assigment\front-end\SportCourtManagement_FrontEnd\SportCourtManagement_FrontEnd\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = D:\FPT_uni\Sesmester_8_Summer_26\PRN232\Assigment\front-end\SportCourtManagement_FrontEnd\SportCourtManagement_FrontEnd
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 8.0
+build_property.EnableCodeStyleSeverity = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Home/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Home/Privacy.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Maintenance/Maintenance.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcTWFpbnRlbmFuY2UuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Manager/Attendance.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFuYWdlclxBdHRlbmRhbmNlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Manager/SalaryConfig.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFuYWdlclxTYWxhcnlDb25maWcuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Manager/Shifts.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFuYWdlclxTaGlmdHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Manager/StaffList.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFuYWdlclxTdGFmZkxpc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Shared/Error.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Shared/_ManagerLayout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9NYW5hZ2VyTGF5b3V0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Shared/_ValidationScriptsPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Task/Tasks.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGFza1xUYXNrcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/_ViewImports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/_ViewStart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/FPT_uni/Sesmester_8_Summer_26/PRN232/Assigment/front-end/SportCourtManagement_FrontEnd/SportCourtManagement_FrontEnd/Views/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = b-d3xora8rf0
