@@ -121,6 +121,6 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Courts}/{action=Index}/{id?}"); // Set default route to Courts listing
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

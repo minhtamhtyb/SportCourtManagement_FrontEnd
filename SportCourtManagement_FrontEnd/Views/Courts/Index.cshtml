@@ -57,6 +57,28 @@
                         </div>
                     </div>
 
+                    <!-- Filter by Date & Time Slot -->
+                    <div class="mb-4 pb-4 border-bottom" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
+                        <p class="text-sc-muted font-inter uppercase tracking-wide mb-3" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                            Lịch chơi trống
+                        </p>
+                        <div class="mb-3">
+                            <label class="text-sc-muted font-inter uppercase mb-2 d-block" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Ngày chơi</label>
+                            <input type="date" name="Date" value="@(Model.SearchParams.Date.HasValue ? Model.SearchParams.Date.Value.ToString("yyyy-MM-dd") : "")" class="sc-input py-2" style="color-scheme: dark;" />
+                        </div>
+                        <div>
+                            <label class="text-sc-muted font-inter uppercase mb-2 d-block" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Khung giờ</label>
+                            <select name="TimeSlotId" class="sc-input py-2">
+                                <option value="">Tất cả khung giờ</option>
+                                <option value="1" selected="@(Model.SearchParams.TimeSlotId == 1 ? "selected" : null)">Ca 1 (07:00 - 09:00)</option>
+                                <option value="2" selected="@(Model.SearchParams.TimeSlotId == 2 ? "selected" : null)">Ca 2 (09:00 - 11:00)</option>
+                                <option value="3" selected="@(Model.SearchParams.TimeSlotId == 3 ? "selected" : null)">Ca 3 (14:00 - 16:00)</option>
+                                <option value="4" selected="@(Model.SearchParams.TimeSlotId == 4 ? "selected" : null)">Ca 4 (16:00 - 18:00)</option>
+                                <option value="5" selected="@(Model.SearchParams.TimeSlotId == 5 ? "selected" : null)">Ca Vàng (18:00 - 20:00)</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <!-- Filter by Price Range -->
                     <div class="mb-4 pb-4 border-bottom" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
                         <p class="text-sc-muted font-inter uppercase tracking-wide mb-3" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">

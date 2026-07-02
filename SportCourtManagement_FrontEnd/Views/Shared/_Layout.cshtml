@@ -16,7 +16,12 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #0D121F; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 16px 0;">
             <div class="container px-4 px-lg-5">
-                <a class="navbar-brand d-flex align-items-center gap-2 font-outfit" asp-controller="Courts" asp-action="Index" style="font-weight: 800; font-size: 22px; color: #ffffff; letter-spacing: -0.5px;">
+                @{
+                    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                    var isHome = string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase);
+                    var isCourts = string.Equals(currentController, "Courts", StringComparison.OrdinalIgnoreCase);
+                }
+                <a class="navbar-brand d-flex align-items-center gap-2 font-outfit" asp-controller="Home" asp-action="Index" style="font-weight: 800; font-size: 22px; color: #ffffff; letter-spacing: -0.5px;">
                     <span style="background: linear-gradient(135deg, #4F6EF7 0%, #6B85F8 100%); width: 28px; height: 28px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;"><i class="bi bi-trophy-fill text-white"></i></span>
                     Sports<span style="color: #4F6EF7;">Court</span>
                 </a>
@@ -26,18 +31,33 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-2">
                         <li class="nav-item">
-                            <a class="nav-link text-white-50 hover-white py-2 px-3 rounded" asp-controller="Home" asp-action="Index" style="font-size: 14px; font-weight: 500;">Trang chủ</a>
+                            <a class="nav-link @(isHome ? "text-white active" : "text-white-50 hover-white") py-2 px-3 rounded" asp-controller="Home" asp-action="Index" style='font-size: 14px; font-weight: @(isHome ? "600" : "500"); @(isHome ? "background-color: rgba(255,255,255,0.03);" : "")'>Trang chủ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white py-2 px-3 rounded active" asp-controller="Courts" asp-action="Index" style="font-size: 14px; font-weight: 600; background-color: rgba(255,255,255,0.03);">Tìm sân</a>
+                            <a class="nav-link @(isCourts ? "text-white active" : "text-white-50 hover-white") py-2 px-3 rounded" asp-controller="Courts" asp-action="Index" style='font-size: 14px; font-weight: @(isCourts ? "600" : "500"); @(isCourts ? "background-color: rgba(255,255,255,0.03);" : "")'>Danh sách sân</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-white-50 hover-white py-2 px-3 rounded" href="#" style="font-size: 14px; font-weight: 500;">Khuyến mãi</a>
                         </li>
                     </ul>
                     <div class="d-flex align-items-center gap-3">
-                        <a href="#" class="text-white-50 text-decoration-none hover-white" style="font-size: 14px; font-weight: 600;">Đăng nhập</a>
-                        <a href="#" class="sc-btn sc-btn-primary" style="padding: 8px 18px; font-size: 14px; border-radius: 8px;">Đăng ký</a>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <span class="text-white-50" style="font-size: 14px;">Xin chào, <strong>@User.Identity.Name</strong></span>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Staff") || User.IsInRole("Coach"))
+                            {
+                                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="text-white-50 text-decoration-none hover-white" style="font-size: 14px; font-weight: 600;">Quản trị</a>
+                            }
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline m-0">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-link text-white-50 text-decoration-none hover-white p-0 align-baseline" style="font-size: 14px; font-weight: 600; border: none; background: none; text-decoration: none;">Đăng xuất</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="text-white-50 text-decoration-none hover-white" style="font-size: 14px; font-weight: 600;">Đăng nhập</a>
+                            <a asp-controller="Account" asp-action="Register" class="sc-btn sc-btn-primary" style="padding: 8px 18px; font-size: 14px; border-radius: 8px; text-decoration: none;">Đăng ký</a>
+                        }
                     </div>
                 </div>
             </div>

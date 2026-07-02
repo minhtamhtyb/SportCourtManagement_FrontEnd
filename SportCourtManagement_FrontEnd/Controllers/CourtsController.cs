@@ -46,7 +46,7 @@ public class CourtsController : Controller
         }
 
         var selectedDate = date ?? DateOnly.FromDateTime(DateTime.Today);
-        var availabilityTask = _apiService.GetCourtAvailabilityAsync(id, selectedDate);
+        var availabilityTask = _apiService.GetCourtAvailabilityAsync(id, selectedDate.ToDateTime(TimeOnly.MinValue));
         var reviewsTask = _apiService.GetCourtReviewsAsync(id, 1, 5); // Fetch first 5 reviews
 
         // Fetch similar courts (same type, excluding current, take 3)
@@ -67,7 +67,7 @@ public class CourtsController : Controller
         var viewModel = new CourtDetailViewModel
         {
             Court = court,
-            Availability = availabilityTask.Result ?? new CourtAvailabilityDto { CourtId = id, Date = selectedDate },
+            Availability = availabilityTask.Result ?? new CourtAvailabilityDto { CourtId = id, Date = selectedDate.ToDateTime(TimeOnly.MinValue) },
             ReviewsResult = reviewsTask.Result,
             SimilarCourts = similarCourts,
             SelectedDate = selectedDate
@@ -80,9 +80,9 @@ public class CourtsController : Controller
     [HttpGet]
     public async Task<IActionResult> GetAvailability(int id, string date)
     {
-        if (!DateOnly.TryParse(date, out var parsedDate))
+        if (!DateTime.TryParse(date, out var parsedDate))
         {
-            parsedDate = DateOnly.FromDateTime(DateTime.Today);
+            parsedDate = DateTime.Today;
         }
 
         var availability = await _apiService.GetCourtAvailabilityAsync(id, parsedDate);
@@ -92,6 +92,19 @@ public class CourtsController : Controller
         }
 
         return PartialView("_AvailabilitySlots", availability);
+    }
+
+    // GET: /Courts/CheckAvailabilityJson (AJAX JSON)
+    [HttpGet]
+    public async Task<IActionResult> CheckAvailabilityJson(int id, string date)
+    {
+        if (!DateTime.TryParse(date, out var parsedDate))
+        {
+            return BadRequest(new { message = "Ngày không hợp lệ." });
+        }
+
+        var availability = await _apiService.GetCourtAvailabilityAsync(id, parsedDate);
+        return Json(availability);
     }
 
     // GET: /Courts/Reviews/{courtId}?pageNumber=N (AJAX)
@@ -116,14 +129,14 @@ public class CourtsController : Controller
             return RedirectToAction(nameof(Detail), new { id });
         }
 
-        var success = await _apiService.SubmitReviewAsync(id, bookingId, rating, comment, token);
+        var (success, message) = await _apiService.SubmitReviewAsync(id, bookingId, rating, comment, token);
         if (success)
         {
-            TempData["SuccessMessage"] = "Gửi đánh giá thành công!";
+            TempData["SuccessMessage"] = message;
         }
         else
         {
-            TempData["ErrorMessage"] = "Gửi đánh giá thất bại. Vui lòng kiểm tra lại thông tin đặt sân.";
+            TempData["ErrorMessage"] = message;
         }
 
         return RedirectToAction(nameof(Detail), new { id });

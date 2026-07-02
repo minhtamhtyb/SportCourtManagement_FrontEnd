@@ -1,8 +1,471 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model SportCourtManagement_FrontEnd.Models.ViewModels.HomePageViewModel
+
+@{
+    ViewData["Title"] = "Trang chủ - SportsCourt";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="overflow-x-clip">
+    <!-- HERO SECTION -->
+    <section class="position-relative py-5 overflow-hidden" style="background: linear-gradient(115deg, rgba(8, 12, 20, 0.95) 0%, rgba(12, 20, 38, 0.9) 50%, rgba(8, 12, 20, 0.95) 100%), url('https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&q=80&w=1920') no-repeat center center / cover; min-height: 580px;">
+        <div class="position-absolute w-100 h-100 top-0 start-0" style="background: radial-gradient(circle at 80% 20%, rgba(79, 110, 247, 0.15) 0%, rgba(0,0,0,0) 50%); pointer-events: none;"></div>
+        
+        <div class="container py-5 my-md-4 position-relative z-index-1">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7">
+                    <!-- Badge tag -->
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill mb-4" style="background: rgba(79, 110, 247, 0.15); border: 1px solid rgba(79, 110, 247, 0.3);">
+                        <span class="d-inline-block rounded-circle" style="width: 6px; height: 6px; background-color: #6B85F8;"></span>
+                        <span class="text-white-50 font-outfit uppercase tracking-wide" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Nền tảng đặt sân thể thao #1 Việt Nam</span>
+                    </div>
+
+                    <h1 class="font-outfit text-white mb-4 display-4" style="font-weight: 800; line-height: 1.15; letter-spacing: -1.5px;">
+                        Tìm & đặt sân<br/>thể thao dễ dàng
+                    </h1>
+
+                    <p class="text-sc-muted mb-5 max-w-[500px]" style="font-size: 15px; line-height: 1.7; max-width: 550px;">
+                        Pickleball, cầu lông, bóng đá mini, tennis — hơn <span class="text-white fw-bold">500 sân</span> chất lượng cao tại TP.HCM. Đặt sân chỉ trong <span class="text-sc-green fw-bold">30 giây</span>, xác nhận ngay lập tức.
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-3 mb-5">
+                        <a asp-controller="Courts" asp-action="Index" class="sc-btn sc-btn-primary px-4 py-3 font-outfit" style="border-radius: 12px; font-size: 15px;">
+                            <i class="bi bi-lightning-fill me-1"></i> Đặt sân ngay
+                        </a>
+                        <a href="#featured-courts" class="sc-btn sc-btn-secondary px-4 py-3 font-outfit" style="border-radius: 12px; font-size: 15px;">
+                            Xem sân nổi bật
+                        </a>
+                    </div>
+
+                    <!-- Statistics counter -->
+                    <div class="d-flex flex-wrap gap-4 pt-2 border-top border-secondary" style="border-top-color: rgba(255,255,255,0.05) !important;">
+                        <div class="pe-4 border-end" style="border-end-color: rgba(255,255,255,0.05) !important;">
+                            <span class="d-block font-outfit text-white" style="font-size: 24px; font-weight: 800;">500+</span>
+                            <span class="text-sc-muted" style="font-size: 12px;">Sân thể thao</span>
+                        </div>
+                        <div class="pe-4 border-end" style="border-end-color: rgba(255,255,255,0.05) !important;">
+                            <span class="d-block font-outfit text-white" style="font-size: 24px; font-weight: 800;">10.000+</span>
+                            <span class="text-sc-muted" style="font-size: 12px;">Lượt đặt sân</span>
+                        </div>
+                        <div>
+                            <span class="d-block font-outfit text-white" style="font-size: 24px; font-weight: 800;">4.8 <i class="bi bi-star-fill text-warning" style="font-size: 16px;"></i></span>
+                            <span class="text-sc-muted" style="font-size: 12px;">Đánh giá TB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero mock device frame -->
+                <div class="col-lg-5 d-none d-lg-block">
+                    <div class="position-relative mx-auto" style="max-width: 380px;">
+                        <!-- Floating ratings box -->
+                        <div class="position-absolute p-3 rounded-4 shadow-lg border" style="background: rgba(13,18,31,0.9); border-color: rgba(255,255,255,0.08); top: 30px; left: -40px; z-index: 10; backdrop-filter: blur(10px);">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="bg-warning-subtle text-warning d-flex align-items-center justify-content-center rounded-3" style="width: 38px; height: 38px;"><i class="bi bi-star-fill"></i></span>
+                                <div>
+                                    <span class="text-white d-block fw-bold" style="font-size: 13px;">4.8 / 5.0</span>
+                                    <span class="text-sc-muted d-block" style="font-size: 11px;">1.200+ đánh giá</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main mock card -->
+                        <div class="rounded-4 overflow-hidden shadow-lg border" style="background: #0D121F; border-color: rgba(255,255,255,0.08);">
+                            <!-- Header bar -->
+                            <div class="px-3 py-2 d-flex align-items-center gap-1.5 border-bottom" style="background: #141B2D; border-bottom-color: rgba(255,255,255,0.05);">
+                                <span class="rounded-circle bg-danger d-inline-block" style="width: 7px; height: 7px;"></span>
+                                <span class="rounded-circle bg-warning d-inline-block" style="width: 7px; height: 7px;"></span>
+                                <span class="rounded-circle bg-success d-inline-block" style="width: 7px; height: 7px;"></span>
+                                <span class="text-white-50 ms-2" style="font-size: 11px;">sportscourt.vn</span>
+                            </div>
+                            <!-- Card Image -->
+                            <img src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=600" alt="Pickleball A1" class="w-100" style="height: 180px; object-fit: cover;" />
+                            <!-- Card Body -->
+                            <div class="p-3">
+                                <h5 class="text-white font-outfit mb-1" style="font-weight: 700; font-size: 14px;">Sân Pickleball A1 <i class="bi bi-star-fill text-warning" style="font-size: 12px;"></i> 4.8</h5>
+                                <p class="text-sc-muted mb-3" style="font-size: 11px;"><i class="bi bi-geo-alt-fill me-1"></i> Khu A – Tầng 1 | <i class="bi bi-clock-fill me-1"></i> 06:00–22:00</p>
+                                
+                                <div class="d-flex justify-content-between align-items-end mb-3">
+                                    <div>
+                                        <span class="text-sc-green fw-extrabold font-outfit" style="font-size: 18px; font-weight: 800;">100.000đ</span>
+                                        <span class="text-sc-muted" style="font-size: 11px;">/giờ</span>
+                                    </div>
+                                    <span class="sc-btn sc-btn-primary py-1 px-3" style="font-size: 12px; border-radius: 6px;">Đặt ngay</span>
+                                </div>
+
+                                <div class="p-2 rounded mb-2 border d-flex justify-content-between align-items-center" style="background: #141B2D; border-color: rgba(255,255,255,0.05);">
+                                    <span class="text-white" style="font-size: 12px;"><i class="bi bi-circle-fill text-success me-1" style="font-size: 8px;"></i> 08:00–09:00</span>
+                                    <span class="text-sc-green fw-bold" style="font-size: 11px;">Còn trống</span>
+                                </div>
+                                <div class="p-2 rounded border d-flex justify-content-between align-items-center" style="background: #141B2D; border-color: rgba(255,255,255,0.05);">
+                                    <span class="text-white-50" style="font-size: 12px;"><i class="bi bi-circle-fill text-danger me-1" style="font-size: 8px;"></i> 09:00–10:00</span>
+                                    <span class="text-danger fw-bold" style="font-size: 11px;">Đã đặt</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Floating confirmation box -->
+                        <div class="position-absolute p-3 rounded-4 shadow-lg border" style="background: rgba(13,18,31,0.9); border-color: rgba(255,255,255,0.08); bottom: 40px; right: -40px; z-index: 10; backdrop-filter: blur(10px);">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="bg-success-subtle text-success d-flex align-items-center justify-content-center rounded-3" style="width: 38px; height: 38px;"><i class="bi bi-check-circle-fill"></i></span>
+                                <div>
+                                    <span class="text-white d-block fw-bold" style="font-size: 13px;">Xác nhận ngay</span>
+                                    <span class="text-sc-muted d-block" style="font-size: 11px;">Đặt sân tức thì</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- QUICK SEARCH BAR -->
+    <section class="position-relative z-index-2 container" style="margin-top: -45px;">
+        <div class="p-4 rounded-4 shadow-lg border" style="background: rgba(13,18,31,0.85); border-color: rgba(255,255,255,0.08); backdrop-filter: blur(20px);">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="text-sc-blue" style="font-size: 18px;"><i class="bi bi-search"></i></span>
+                <span class="text-white font-outfit" style="font-weight: 700; font-size: 14px;">Tìm kiếm sân nhanh</span>
+            </div>
+
+            <form method="get" action="@Url.Action("Index", "Courts")">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="text-sc-muted font-inter uppercase mb-2 d-block" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Loại sân</label>
+                        <select name="CourtTypeId" class="sc-input py-2">
+                            <option value="">Tất cả loại sân</option>
+                            <option value="1">Cầu lông</option>
+                            <option value="2">Bóng đá</option>
+                            <option value="3">Pickleball</option>
+                            <option value="4">Tennis</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-sc-muted font-inter uppercase mb-2 d-block" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Ngày chơi</label>
+                        <input type="date" name="Date" class="sc-input py-2" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="color-scheme: dark;" />
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="sc-btn sc-btn-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2 font-outfit" style="font-size: 14px; font-weight: 600;">
+                            <i class="bi bi-search"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- FEATURED COURTS -->
+    <section id="featured-courts" class="container py-5 my-5">
+        <div class="text-center mb-5">
+            <span class="sc-badge sc-badge-blue mb-2" style="padding: 6px 14px;"><i class="bi bi-star-fill me-1"></i> Sân nổi bật</span>
+            <h2 class="font-outfit text-white display-6 mb-2" style="font-weight: 800;">Được yêu thích nhất</h2>
+            <p class="text-sc-muted" style="font-size: 14px;">Những sân đấu chất lượng cao được cộng đồng thành viên đánh giá xuất sắc nhất</p>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="d-flex flex-column align-items-center gap-3 mb-5">
+            <p class="text-sc-muted font-inter uppercase tracking-wider mb-0" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Lọc nhanh theo bộ môn</p>
+            <div class="p-1 rounded-3 d-flex flex-wrap justify-content-center gap-1 border" style="background: rgba(20,27,45,0.4); border-color: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
+                <button type="button" class="tab-filter-btn active sc-btn sc-btn-primary px-3 py-2" data-type="All" style="font-size: 13px; border-radius: 8px;">
+                    <i class="bi bi-grid-fill me-1"></i> Tất cả
+                </button>
+                <button type="button" class="tab-filter-btn sc-btn sc-btn-secondary px-3 py-2" data-type="Pickleball" style="font-size: 13px; border-radius: 8px;">
+                    <i class="bi bi-dribbble me-1 text-warning"></i> Pickleball
+                </button>
+                <button type="button" class="tab-filter-btn sc-btn sc-btn-secondary px-3 py-2" data-type="Cầu lông" style="font-size: 13px; border-radius: 8px;">
+                    <i class="bi bi-dribbble me-1 text-info"></i> Cầu lông
+                </button>
+                <button type="button" class="tab-filter-btn sc-btn sc-btn-secondary px-3 py-2" data-type="Bóng đá" style="font-size: 13px; border-radius: 8px;">
+                    <i class="bi bi-dribbble me-1 text-success"></i> Bóng đá
+                </button>
+                <button type="button" class="tab-filter-btn sc-btn sc-btn-secondary px-3 py-2" data-type="Tennis" style="font-size: 13px; border-radius: 8px;">
+                    <i class="bi bi-dribbble me-1 text-danger"></i> Tennis
+                </button>
+            </div>
+        </div>
+
+        <!-- Courts grid -->
+        <div class="row g-4" id="courts-container">
+            @foreach (var court in Model.FeaturedCourts)
+            {
+                <div class="col-md-6 col-lg-4 d-flex align-items-stretch court-item" data-category="@court.CourtTypeName">
+                    @await Html.PartialAsync("_CourtCard", court)
+                </div>
+            }
+
+            @if (Model.FeaturedCourts.Count == 0)
+            {
+                <div class="col-12 text-center py-5">
+                    <p class="text-sc-muted">Chưa có sân nổi bật nào, vui lòng quay lại sau.</p>
+                </div>
+            }
+        </div>
+
+        <div class="text-center mt-5">
+            <a asp-controller="Courts" asp-action="Index" class="sc-btn sc-btn-secondary px-4 py-2.5" style="border-radius: 8px;">
+                Xem tất cả sân đấu <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- WHY CHOOSE US -->
+    <section class="py-5" style="background: #0D121F; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="sc-badge sc-badge-amber mb-2" style="padding: 6px 14px;"><i class="bi bi-trophy-fill me-1"></i> Trải nghiệm tuyệt vời</span>
+                <h2 class="font-outfit text-white display-6 mb-2" style="font-weight: 800;">Tại sao chọn SportsCourt?</h2>
+                <p class="text-sc-muted" style="font-size: 14px;">Nền tảng mang lại dịch vụ đặt sân hoàn hảo, uy tín và thông suốt 24/7</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="p-4 rounded-4 text-center h-100 border" style="background: rgba(20,27,45,0.45); border-color: rgba(255,255,255,0.05);">
+                        <div class="mx-auto rounded-3 d-flex align-items-center justify-content-center mb-4 text-white" style="width: 58px; height: 58px; background: linear-gradient(135deg, #4F6EF7 0%, #6B85F8 100%); font-size: 24px;">
+                            <i class="bi bi-lightning-fill"></i>
+                        </div>
+                        <h4 class="font-outfit text-white mb-3" style="font-weight: 700; font-size: 16px;">Đặt sân siêu tốc</h4>
+                        <p class="text-sc-muted mb-0" style="font-size: 13px; line-height: 1.6;">Tìm kiếm, chọn khung giờ và thanh toán chỉ trong 30 giây. Xác nhận tự động qua email.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="p-4 rounded-4 text-center h-100 border" style="background: rgba(20,27,45,0.45); border-color: rgba(255,255,255,0.05);">
+                        <div class="mx-auto rounded-3 d-flex align-items-center justify-content-center mb-4 text-white" style="width: 58px; height: 58px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); font-size: 24px;">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <h4 class="font-outfit text-white mb-3" style="font-weight: 700; font-size: 16px;">Đa dạng loại hình sân</h4>
+                        <p class="text-sc-muted mb-0" style="font-size: 13px; line-height: 1.6;">Hơn 500 sân đấu Pickleball, cầu lông, bóng đá và tennis chuẩn quốc tế tại TP.HCM.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="p-4 rounded-4 text-center h-100 border" style="background: rgba(20,27,45,0.45); border-color: rgba(255,255,255,0.05);">
+                        <div class="mx-auto rounded-3 d-flex align-items-center justify-content-center mb-4 text-white" style="width: 58px; height: 58px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); font-size: 24px;">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <h4 class="font-outfit text-white mb-3" style="font-weight: 700; font-size: 16px;">Giá cả minh bạch</h4>
+                        <p class="text-sc-muted mb-0" style="font-size: 13px; line-height: 1.6;">Bảng giá chi tiết từng khung giờ. Cam kết không phí ẩn, hỗ trợ hoàn tiền cực linh hoạt.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="p-4 rounded-4 text-center h-100 border" style="background: rgba(20,27,45,0.45); border-color: rgba(255,255,255,0.05);">
+                        <div class="mx-auto rounded-3 d-flex align-items-center justify-content-center mb-4 text-white" style="width: 58px; height: 58px; background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); font-size: 24px;">
+                            <i class="bi bi-headset"></i>
+                        </div>
+                        <h4 class="font-outfit text-white mb-3" style="font-weight: 700; font-size: 16px;">Hỗ trợ tận tình</h4>
+                        <p class="text-sc-muted mb-0" style="font-size: 13px; line-height: 1.6;">Đội ngũ tổng đài hỗ trợ hoạt động liên tục. Giải quyết nhanh chóng mọi yêu cầu hủy/đổi lịch.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROMOTIONS -->
+    <section class="container py-5 my-5">
+        <div class="text-center mb-5">
+            <span class="sc-badge sc-badge-green mb-2" style="padding: 6px 14px;"><i class="bi bi-gift-fill me-1"></i> Ưu đãi ngập tràn</span>
+            <h2 class="font-outfit text-white display-6 mb-2" style="font-weight: 800;">Khuyến mãi đang diễn ra</h2>
+            <p class="text-sc-muted" style="font-size: 14px;">Săn mã giảm giá cực khủng để thỏa đam mê thể thao với mức chi phí tối ưu nhất</p>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var promo in Model.ActivePromotions)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="p-4 rounded-4 border position-relative overflow-hidden h-100" style="background: rgba(20,27,45,0.6); border-color: rgba(255,255,255,0.08); border-left: 4px solid #4F6EF7 !important; backdrop-filter: blur(10px);">
+                        <span class="d-block font-outfit text-sc-blue mb-3" style="font-size: 32px; font-weight: 900;">
+                            @if (promo.DiscountType.Equals("Percent", StringComparison.OrdinalIgnoreCase))
+                            {
+                                @(promo.DiscountValue.ToString("0"))@("%")
+                            }
+                            else
+                            {
+                                @(promo.DiscountValue.ToString("N0"))@("đ")
+                            }
+                        </span>
+                        <h5 class="text-white font-outfit mb-2" style="font-weight: 700;">@promo.PromoName</h5>
+                        <p class="text-sc-muted mb-4" style="font-size: 13px; min-height: 40px;">@promo.Description</p>
+                        
+                        <div class="d-flex align-items-center justify-content-between p-2.5 rounded border border-dashed mb-3" style="background: #0D121F; border-color: rgba(79, 110, 247, 0.3);">
+                            <code class="font-monospace text-sc-blue-light fw-bold" style="font-size: 14px; letter-spacing: 1px;">@promo.PromoCode</code>
+                            <button type="button" class="sc-btn sc-btn-secondary py-1 px-3 btn-copy-code" data-code="@promo.PromoCode" style="font-size: 12px; border-radius: 6px;">
+                                <i class="bi bi-clipboard me-1"></i> Copy
+                            </button>
+                        </div>
+
+                        <span class="text-sc-muted d-block" style="font-size: 11px;"><i class="bi bi-clock me-1"></i> HSD: @promo.EndDate.ToString("dd/MM/yyyy")</span>
+                    </div>
+                </div>
+            }
+
+            @if (Model.ActivePromotions.Count == 0)
+            {
+                <!-- Static Fallback Mock Promos for demo if API returns empty -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="p-4 rounded-4 border position-relative overflow-hidden h-100" style="background: rgba(20,27,45,0.6); border-color: rgba(255,255,255,0.08); border-left: 4px solid #4F6EF7 !important; backdrop-filter: blur(10px);">
+                        <span class="d-block font-outfit text-sc-blue mb-3" style="font-size: 32px; font-weight: 900;">10%</span>
+                        <h5 class="text-white font-outfit mb-2" style="font-weight: 700;">Chào mừng thành viên mới</h5>
+                        <p class="text-sc-muted mb-4" style="font-size: 13px; min-height: 40px;">Đơn đặt sân từ 100.000đ. Nhập mã tại trang thanh toán.</p>
+                        
+                        <div class="d-flex align-items-center justify-content-between p-2.5 rounded border border-dashed mb-3" style="background: #0D121F; border-color: rgba(79, 110, 247, 0.3);">
+                            <code class="font-monospace text-sc-blue-light fw-bold" style="font-size: 14px; letter-spacing: 1px;">WELCOME10</code>
+                            <button type="button" class="sc-btn sc-btn-secondary py-1 px-3 btn-copy-code" data-code="WELCOME10" style="font-size: 12px; border-radius: 6px;">
+                                <i class="bi bi-clipboard me-1"></i> Copy
+                            </button>
+                        </div>
+                        <span class="text-sc-muted d-block" style="font-size: 11px;"><i class="bi bi-clock me-1"></i> HSD: 31/12/2026</span>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="p-4 rounded-4 border position-relative overflow-hidden h-100" style="background: rgba(20,27,45,0.6); border-color: rgba(255,255,255,0.08); border-left: 4px solid #10B981 !important; backdrop-filter: blur(10px);">
+                        <span class="d-block font-outfit text-sc-green mb-3" style="font-size: 32px; font-weight: 900;">25%</span>
+                        <h5 class="text-white font-outfit mb-2" style="font-weight: 700;">Ưu đãi mùa hè 25%</h5>
+                        <p class="text-sc-muted mb-4" style="font-size: 13px; min-height: 40px;">Đơn đặt sân từ 200.000đ. Giảm tối đa 50.000đ.</p>
+                        
+                        <div class="d-flex align-items-center justify-content-between p-2.5 rounded border border-dashed mb-3" style="background: #0D121F; border-color: rgba(16, 185, 129, 0.3);">
+                            <code class="font-monospace text-sc-green fw-bold" style="font-size: 14px; letter-spacing: 1px;">SUMMER25</code>
+                            <button type="button" class="sc-btn sc-btn-secondary py-1 px-3 btn-copy-code" data-code="SUMMER25" style="font-size: 12px; border-radius: 6px;">
+                                <i class="bi bi-clipboard me-1"></i> Copy
+                            </button>
+                        </div>
+                        <span class="text-sc-muted d-block" style="font-size: 11px;"><i class="bi bi-clock me-1"></i> HSD: 31/08/2026</span>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="p-4 rounded-4 border position-relative overflow-hidden h-100" style="background: rgba(20,27,45,0.6); border-color: rgba(255,255,255,0.08); border-left: 4px solid #F59E0B !important; backdrop-filter: blur(10px);">
+                        <span class="d-block font-outfit text-sc-amber mb-3" style="font-size: 32px; font-weight: 900;">50.000đ</span>
+                        <h5 class="text-white font-outfit mb-2" style="font-weight: 700;">Giảm thẳng 50k</h5>
+                        <p class="text-sc-muted mb-4" style="font-size: 13px; min-height: 40px;">Ưu đãi giảm giá trực tiếp cho đơn hàng đặt sân từ 150.000đ.</p>
+                        
+                        <div class="d-flex align-items-center justify-content-between p-2.5 rounded border border-dashed mb-3" style="background: #0D121F; border-color: rgba(245, 158, 11, 0.3);">
+                            <code class="font-monospace text-sc-amber fw-bold" style="font-size: 14px; letter-spacing: 1px;">FLAT50K</code>
+                            <button type="button" class="sc-btn sc-btn-secondary py-1 px-3 btn-copy-code" data-code="FLAT50K" style="font-size: 12px; border-radius: 6px;">
+                                <i class="bi bi-clipboard me-1"></i> Copy
+                            </button>
+                        </div>
+                        <span class="text-sc-muted d-block" style="font-size: 11px;"><i class="bi bi-clock me-1"></i> HSD: 30/06/2026</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- CUSTOMER REVIEWS -->
+    <section class="py-5" style="background: linear-gradient(180deg, #0D121F 0%, #080C14 100%); border-top: 1px solid rgba(255,255,255,0.05);">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="sc-badge sc-badge-blue mb-2" style="padding: 6px 14px;"><i class="bi bi-chat-quote-fill me-1"></i> Khách hàng chia sẻ</span>
+                <h2 class="font-outfit text-white display-6 mb-2" style="font-weight: 800;">Nhận xét từ cộng đồng</h2>
+                <p class="text-sc-muted" style="font-size: 14px;">Hàng ngàn người chơi đã trải nghiệm dịch vụ đặt sân chuyên nghiệp của SportsCourt</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="p-4 rounded-4 border h-100 position-relative" style="background: rgba(20,27,45,0.4); border-color: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
+                        @* <span class="position-absolute text-white-50 opacity-10" style="font-size: 80px; top: 10px; left: 20px; font-family: serif; pointer-events: none; line-height: 1;">“</span> *@
+                        <p class="text-white-50 font-inter mb-4 position-relative" style="font-size: 13.5px; line-height: 1.7; font-style: italic;">
+                            Sân chơi cầu lông cực kỳ rộng rãi, thảm gỗ chuẩn thi đấu BWF bật nhảy rất êm. Hệ thống đặt lịch nhanh chỉ mất 30 giây, nhận email báo lịch tức thì, dịch vụ tuyệt vời!
+                        </p>
+                        <div class="d-flex align-items-center gap-3 border-top pt-3" style="border-top-color: rgba(255,255,255,0.05) !important;">
+                            <span class="rounded-circle d-flex align-items-center justify-content-center text-white font-outfit" style="width: 38px; height: 38px; background: linear-gradient(135deg, #4F6EF7 0%, #8B5CF6 100%); font-weight: 700; font-size: 13px;">NT</span>
+                            <div>
+                                <h6 class="text-white mb-0" style="font-weight: 700; font-size: 13px;">Nguyễn Thanh Trung</h6>
+                                <span class="text-warning" style="font-size: 11px;"><i class="bi bi-star-fill"></i> 5.0</span>
+                                <span class="text-sc-muted ms-1" style="font-size: 11px;">• Người chơi Cầu Lông</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="p-4 rounded-4 border h-100 position-relative" style="background: rgba(20,27,45,0.4); border-color: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
+                        <span class="position-absolute text-white-50 opacity-10" style="font-size: 80px; top: 10px; left: 20px; font-family: serif; pointer-events: none; line-height: 1;">“</span>
+                        <p class="text-white-50 font-inter mb-4 position-relative" style="font-size: 13.5px; line-height: 1.7; font-style: italic;">
+                            Đặt sân Pickleball A1 ở đây cực kỳ thích, sân mới bóng và lưới chuẩn quốc tế. Giá cả hiển thị minh bạch, phụ thu cuối tuần cũng được báo trước rõ ràng, rất hài lòng!
+                        </p>
+                        <div class="d-flex align-items-center gap-3 border-top pt-3" style="border-top-color: rgba(255,255,255,0.05) !important;">
+                            <span class="rounded-circle d-flex align-items-center justify-content-center text-white font-outfit" style="width: 38px; height: 38px; background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%); font-weight: 700; font-size: 13px;">AH</span>
+                            <div>
+                                <h6 class="text-white mb-0" style="font-weight: 700; font-size: 13px;">Trần Anh Huy</h6>
+                                <span class="text-warning" style="font-size: 11px;"><i class="bi bi-star-fill"></i> 4.9</span>
+                                <span class="text-sc-muted ms-1" style="font-size: 11px;">• Hội Pickleball Q.1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="p-4 rounded-4 border h-100 position-relative" style="background: rgba(20,27,45,0.4); border-color: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
+                        <span class="position-absolute text-white-50 opacity-10" style="font-size: 80px; top: 10px; left: 20px; font-family: serif; pointer-events: none; line-height: 1;">“</span>
+                        <p class="text-white-50 font-inter mb-4 position-relative" style="font-size: 13.5px; line-height: 1.7; font-style: italic;">
+                            Sân cỏ mini 5 người cỏ thế hệ mới đá cực bám. Dàn đèn LED cao áp siêu sáng hỗ trợ đá tối rất tốt. Nhân viên thân thiện, có nước lọc và quạt gió mát mẻ!
+                        </p>
+                        <div class="d-flex align-items-center gap-3 border-top pt-3" style="border-top-color: rgba(255,255,255,0.05) !important;">
+                            <span class="rounded-circle d-flex align-items-center justify-content-center text-white font-outfit" style="width: 38px; height: 38px; background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%); font-weight: 700; font-size: 13px;">KM</span>
+                            <div>
+                                <h6 class="text-white mb-0" style="font-weight: 700; font-size: 13px;">Phan Khánh Minh</h6>
+                                <span class="text-warning" style="font-size: 11px;"><i class="bi bi-star-fill"></i> 5.0</span>
+                                <span class="text-sc-muted ms-1" style="font-size: 11px;">• Đội trưởng FC Family</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="container py-5 my-5">
+        <div class="p-5 rounded-5 border position-relative overflow-hidden text-center" style="background: #0D121F; border-color: rgba(255,255,255,0.05);">
+            <div class="position-absolute w-100 h-100 top-0 start-0" style="background: radial-gradient(circle at 50% 0%, rgba(79, 110, 247, 0.1) 0%, rgba(0,0,0,0) 70%); pointer-events: none;"></div>
+            
+            <span class="sc-badge sc-badge-green mb-3" style="padding: 6px 14px;"><i class="bi bi-rocket-takeoff-fill me-1"></i> Đăng ký thành viên mới</span>
+            <h2 class="font-outfit text-white display-6 mb-3 mx-auto" style="font-weight: 800; max-width: 500px;">Sẵn sàng bắt đầu trận đấu?</h2>
+            <p class="text-sc-muted mb-4 mx-auto" style="font-size: 14px; max-width: 600px;">Đăng ký tài khoản hoàn toàn miễn phí ngay hôm nay và nhận ưu đãi giảm giá <span class="text-white fw-bold">10%</span> cho lượt đặt sân đầu tiên.</p>
+            
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="#" class="sc-btn sc-btn-gradient px-4 py-2.5 font-outfit" style="border-radius: 10px; font-weight: 700;">Nhận mã giảm 10%</a>
+                <a asp-controller="Courts" asp-action="Index" class="sc-btn sc-btn-secondary px-4 py-2.5 font-outfit" style="border-radius: 10px; font-weight: 700;">Tìm sân ngay</a>
+            </div>
+        </div>
+    </section>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Category tab filtering logic
+            $('.tab-filter-btn').on('click', function() {
+                $('.tab-filter-btn').removeClass('active sc-btn-primary').addClass('sc-btn-secondary');
+                $(this).removeClass('sc-btn-secondary').addClass('active sc-btn-primary');
+
+                const selectedType = ($(this).attr('data-type') || '').trim().toLowerCase().normalize("NFC");
+                console.log("Filtering by:", selectedType);
+                
+                if (selectedType === 'all') {
+                    $('.court-item').fadeIn(300);
+                } else {
+                    $('.court-item').each(function() {
+                        const category = ($(this).attr('data-category') || '').trim().toLowerCase().normalize("NFC");
+                        console.log("Checking court with category:", category);
+                        if (category.indexOf(selectedType) !== -1 || selectedType.indexOf(category) !== -1) {
+                            $(this).fadeIn(300);
+                        } else {
+                            $(this).fadeOut(300);
+                        }
+                    });
+                }
+            });
+
+            // Copy coupon code logic
+            $('.btn-copy-code').on('click', function() {
+                const code = $(this).attr('data-code');
+                const btn = $(this);
+                navigator.clipboard.writeText(code).then(() => {
+                    const originalText = btn.html();
+                    btn.html('<i class="bi bi-check2-circle text-success me-1"></i> Copied');
+                    btn.removeClass('sc-btn-secondary').addClass('sc-btn-green');
+                    setTimeout(() => {
+                        btn.html(originalText);
+                        btn.removeClass('sc-btn-green').addClass('sc-btn-secondary');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+            });
+        });
+    </script>
+}

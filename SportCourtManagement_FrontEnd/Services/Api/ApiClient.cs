@@ -202,6 +202,25 @@ public class ApiClient(HttpClient http, IHttpContextAccessor httpContextAccessor
         try
         {
             var wrapper = JsonSerializer.Deserialize<ApiResponse<T>>(body, JsonOptions);
+            if (wrapper != null && (wrapper.Success || wrapper.Message != null || wrapper.Errors != null))
+            {
+                return (wrapper, null);
+            }
+        }
+        catch (JsonException)
+        {
+            // Fallback to raw JSON deserialization
+        }
+
+        try
+        {
+            var rawData = JsonSerializer.Deserialize<T>(body, JsonOptions);
+            var wrapper = new ApiResponse<T>
+            {
+                Success = response.IsSuccessStatusCode,
+                Data = rawData,
+                StatusCode = (int)response.StatusCode
+            };
             return (wrapper, null);
         }
         catch (JsonException)

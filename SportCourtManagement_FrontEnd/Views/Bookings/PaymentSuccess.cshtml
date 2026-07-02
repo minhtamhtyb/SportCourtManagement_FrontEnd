@@ -44,15 +44,15 @@
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-sc-muted">Trạng thái:</span>
-                            <span class="sc-badge sc-badge-green"><i class="bi bi-patch-check-fill me-1"></i> Đã thanh toán</span>
+                            <span class="sc-badge sc-badge-blue"><i class="bi bi-clock-history me-1"></i> Chờ thanh toán tại quầy</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-sc-muted">Thanh toán qua:</span>
-                            <span class="text-white fw-semibold">@ViewBag.PaymentMethod</span>
+                            <span class="text-sc-muted">Hình thức:</span>
+                            <span class="text-white fw-semibold">Thanh toán tại quầy</span>
                         </div>
                         <hr style="border-color: rgba(255,255,255,0.05); margin: 12px 0;" />
                         <div class="d-flex justify-content-between align-items-baseline">
-                            <span class="text-white fw-bold">Số tiền đã trả:</span>
+                            <span class="text-white fw-bold">Tổng tiền cần thanh toán:</span>
                             <span class="font-outfit text-sc-green fw-black" style="font-size: 20px; font-weight: 800;">@Model.TotalAmount.ToString("N0")đ</span>
                         </div>
                     </div>
@@ -60,8 +60,8 @@
 
                 <!-- Customer message -->
                 <div class="p-3 mb-4 rounded text-center" style="background-color: rgba(79, 110, 247, 0.05); border: 1px solid rgba(79, 110, 247, 0.15); font-size: 12.5px; line-height: 1.6;">
-                    <span class="text-sc-blue-light fw-bold d-block mb-1"><i class="bi bi-bell-fill me-1"></i> Hướng dẫn khi đến sân</span>
-                    <span class="text-sc-muted">Vui lòng cung cấp **Mã đặt sân #@Model.BookingId** cho nhân viên trực ca tại sân đấu để làm thủ tục check-in nhận sân. Chúc bạn có thời gian chơi bóng vui vẻ!</span>
+                    <span class="text-sc-blue-light fw-bold d-block mb-1"><i class="bi bi-bell-fill me-1"></i> Hướng dẫn nhận sân</span>
+                    <span class="text-sc-muted">Vui lòng cung cấp **Mã đặt sân #@Model.BookingId** cho nhân viên trực ca tại quầy lễ tân để tiến hành thanh toán **@Model.TotalAmount.ToString("N0")đ** và nhận sân chơi bóng!</span>
                 </div>
 
                 <!-- Action Buttons -->
