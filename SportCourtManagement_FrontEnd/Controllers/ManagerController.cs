@@ -244,7 +244,100 @@ namespace SportCourtManagement_FrontEnd.Controllers
         }
 
         [HttpGet("staff/list")]
-        public IActionResult StaffList() => View();
+        public async Task<IActionResult> StaffList([FromQuery] string? search = null, [FromQuery] int page = 1)
+        {
+            var model = new PagedStaffResponse();
+            int pageSize = 10;
+            page = page < 1 ? 1 : page;
+
+            var response = await _client.GetAsync(_apiBase + $"/staff?search={search}&page={page}&pageSize={pageSize}");
+            if (response.IsSuccessStatusCode)
+            {
+                string rawJson = await response.Content.ReadAsStringAsync();
+                model = JsonSerializer.Deserialize<PagedStaffResponse>(rawJson, _jsonOpts) ?? new PagedStaffResponse();
+            }
+
+            ViewData["SearchQuery"] = search;
+            return View(model);
+        }
+
+        [HttpPost("staff/list/assign")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignStaff([FromForm] int staffId)
+        {
+            if (staffId <= 0)
+            {
+                TempData["ErrorMessage"] = "ID nhân viên không hợp lệ.";
+                return RedirectToAction("StaffList");
+            }
+
+            var response = await _client.PostAsync(_apiBase + $"/staff/{staffId}/assign", null);
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["SuccessMessage"] = "Gán nhân viên vào cơ sở thành công!";
+            }
+            else
+            {
+                string rawError = await response.Content.ReadAsStringAsync();
+                try
+                {
+                    using var doc = JsonDocument.Parse(rawError);
+                    if (doc.RootElement.TryGetProperty("message", out var msgProp))
+                    {
+                        TempData["ErrorMessage"] = $"Không thể gán nhân viên: {msgProp.GetString()}";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = $"Không thể gán nhân viên. Lỗi: {response.StatusCode}";
+                    }
+                }
+                catch
+                {
+                    TempData["ErrorMessage"] = $"Không thể gán nhân viên. Lỗi: {response.StatusCode}";
+                }
+            }
+
+            return RedirectToAction("StaffList");
+        }
+
+        [HttpPost("staff/list/unassign")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnassignStaff([FromForm] int staffId)
+        {
+            if (staffId <= 0)
+            {
+                TempData["ErrorMessage"] = "ID nhân viên không hợp lệ.";
+                return RedirectToAction("StaffList");
+            }
+
+            var response = await _client.DeleteAsync(_apiBase + $"/staff/{staffId}/unassign");
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["SuccessMessage"] = "Gỡ nhân viên khỏi cơ sở thành công!";
+            }
+            else
+            {
+                string rawError = await response.Content.ReadAsStringAsync();
+                try
+                {
+                    using var doc = JsonDocument.Parse(rawError);
+                    if (doc.RootElement.TryGetProperty("message", out var msgProp))
+                    {
+                        TempData["ErrorMessage"] = $"Không thể gỡ nhân viên: {msgProp.GetString()}";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = $"Không thể gỡ nhân viên. Lỗi: {response.StatusCode}";
+                    }
+                }
+                catch
+                {
+                    TempData["ErrorMessage"] = $"Không thể gỡ nhân viên. Lỗi: {response.StatusCode}";
+                }
+            }
+
+            return RedirectToAction("StaffList");
+        }
 
         [HttpGet("staff/salary")]
         public IActionResult SalaryConfig() => View();
