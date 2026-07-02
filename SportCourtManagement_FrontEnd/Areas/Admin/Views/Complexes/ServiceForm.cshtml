@@ -1,0 +1,120 @@
+@model ServiceOfferingFormViewModel
+@{
+    var isEdit = Model.OfferingId.HasValue;
+    ViewData["Title"] = isEdit ? "Sửa dịch vụ loại sân" : "Thêm dịch vụ loại sân";
+}
+
+<div class="page-header">
+    <div>
+        <a asp-action="Services" asp-route-id="@Model.ComplexId" asp-route-courtTypeId="@Model.CourtTypeId" class="text-secondary small text-decoration-none">
+            <i class="fa-solid fa-arrow-left me-1"></i> Quay lại quản lý dịch vụ
+        </a>
+        <h1 class="page-title mt-1">@ViewData["Title"]</h1>
+    </div>
+</div>
+
+<div class="admin-card p-4" style="max-width:640px">
+    <form asp-action="@(isEdit ? "EditService" : "AddService")" asp-route-offeringId="@Model.OfferingId" method="post" class="form-dark" id="serviceOfferingForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ComplexId" />
+        <input type="hidden" asp-for="OfferingId" />
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+        <div class="mb-3">
+            <label asp-for="CourtTypeId" class="form-label"></label>
+            <select asp-for="CourtTypeId" class="form-select" disabled="@isEdit">
+                @foreach (var ct in Model.CourtTypeOptions)
+                {
+                    <option value="@ct.CourtTypeId">@ct.TypeName</option>
+                }
+            </select>
+            @if (isEdit)
+            {
+                <input type="hidden" asp-for="CourtTypeId" />
+            }
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="ServiceId" class="form-label"></label>
+            @if (isEdit)
+            {
+                var svc = Model.CatalogServices.FirstOrDefault(s => s.ServiceId == Model.ServiceId);
+                <input type="hidden" asp-for="ServiceId" />
+                <div class="form-control bg-dark text-white">@(svc?.ServiceName ?? "—")</div>
+            }
+            else
+            {
+                <select asp-for="ServiceId" class="form-select" id="catalogServiceSelect">
+                    <option value="">-- Chọn dịch vụ từ danh mục --</option>
+                    @foreach (var s in Model.CatalogServices.Where(x => x.IsActive))
+                    {
+                        <option value="@s.ServiceId" data-price="@s.Price" data-unit="@s.Unit">@s.ServiceName (@s.Category)</option>
+                    }
+                </select>
+                <span asp-validation-for="ServiceId" class="text-danger small"></span>
+            }
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="ServiceMode" class="form-label"></label>
+            <select asp-for="ServiceMode" class="form-select" id="serviceModeSelect">
+                @foreach (var mode in Model.ServiceModeOptions)
+                {
+                    <option value="@mode">@(mode == "Included" ? "Luôn cung cấp (miễn phí)" : "Tùy chọn khi đặt")</option>
+                }
+            </select>
+            <div class="form-text text-secondary small">Included: tự động gắn vào đơn, không tính phí.</div>
+        </div>
+
+        <div class="row g-3 mb-3" id="priceRow">
+            <div class="col-md-6">
+                <label asp-for="Price" class="form-label"></label>
+                <input asp-for="Price" class="form-control" type="number" min="0" id="priceInput" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="StockQty" class="form-label"></label>
+                <input asp-for="StockQty" class="form-control" type="number" min="0" />
+            </div>
+        </div>
+
+        <div class="mb-4 form-check">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label asp-for="IsActive" class="form-check-label text-secondary"></label>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+            <a asp-action="Services" asp-route-id="@Model.ComplexId" asp-route-courtTypeId="@Model.CourtTypeId" class="btn-secondary-custom">Hủy</a>
+            <button type="submit" class="btn-primary-custom"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const modeSelect = document.getElementById('serviceModeSelect');
+            const priceInput = document.getElementById('priceInput');
+            const priceRow = document.getElementById('priceRow');
+            const catalogSelect = document.getElementById('catalogServiceSelect');
+
+            function syncMode() {
+                const isIncluded = modeSelect.value === 'Included';
+                priceInput.readOnly = isIncluded;
+                if (isIncluded) priceInput.value = 0;
+                priceRow.style.opacity = isIncluded ? '0.55' : '1';
+            }
+
+            catalogSelect?.addEventListener('change', function () {
+                const opt = this.selectedOptions[0];
+                if (!opt || !opt.dataset.price) return;
+                if (modeSelect.value !== 'Included')
+                    priceInput.value = opt.dataset.price;
+            });
+
+            modeSelect.addEventListener('change', syncMode);
+            syncMode();
+        })();
+    </script>
+}

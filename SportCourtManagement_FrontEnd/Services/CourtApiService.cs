@@ -59,13 +59,11 @@ public class CourtApiService : ICourtApiService
             query.Append($"PageNumber={searchParams.PageNumber}&");
             query.Append($"PageSize={searchParams.PageSize}");
 
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<PagedResult<CourtListDto>>>(query.ToString());
-            if (response != null && response.Success && response.Data != null)
+            var response = await _httpClient.GetFromJsonAsync<PagedResult<CourtListDto>>(query.ToString());
+            if (response != null)
             {
-                return response.Data;
+                return response;
             }
-            
-            _logger.LogWarning("SearchCourts API returned unsuccessful status: {Message}", response?.Message);
         }
         catch (Exception ex)
         {
@@ -79,12 +77,11 @@ public class CourtApiService : ICourtApiService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<CourtDetailDto>>($"api/courts/{id}");
-            if (response != null && response.Success && response.Data != null)
+            var response = await _httpClient.GetFromJsonAsync<CourtDetailDto>($"api/courts/{id}");
+            if (response != null)
             {
-                return response.Data;
+                return response;
             }
-            _logger.LogWarning("GetCourtDetail API returned unsuccessful status: {Message}", response?.Message);
         }
         catch (Exception ex)
         {
@@ -93,16 +90,15 @@ public class CourtApiService : ICourtApiService
         return null;
     }
 
-    public async Task<CourtAvailabilityDto?> GetCourtAvailabilityAsync(int id, DateOnly date)
+    public async Task<CourtAvailabilityDto?> GetCourtAvailabilityAsync(int id, DateTime date)
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<CourtAvailabilityDto>>($"api/courts/{id}/availability?date={date:yyyy-MM-dd}");
-            if (response != null && response.Success)
+            var response = await _httpClient.GetFromJsonAsync<CourtAvailabilityDto>($"api/courts/{id}/availability?date={date:yyyy-MM-dd}");
+            if (response != null)
             {
-                return response.Data;
+                return response;
             }
-            _logger.LogWarning("GetCourtAvailability API returned unsuccessful status: {Message}", response?.Message);
         }
         catch (Exception ex)
         {
@@ -133,21 +129,36 @@ public class CourtApiService : ICourtApiService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<CourtTypeDto>>>("api/court-types");
-            if (response != null && response.Success && response.Data != null)
+            var response = await _httpClient.GetFromJsonAsync<PagedResult<CourtListDto>>("api/courts?PageSize=50");
+            if (response != null && response.Items != null)
             {
-                return response.Data;
+                var types = new List<CourtTypeDto>();
+                var seenIds = new HashSet<int>();
+                foreach (var court in response.Items)
+                {
+                    if (court.CourtTypeId > 0 && !seenIds.Contains(court.CourtTypeId))
+                    {
+                        seenIds.Add(court.CourtTypeId);
+                        types.Add(new CourtTypeDto
+                        {
+                            CourtTypeId = court.CourtTypeId,
+                            TypeName = court.CourtTypeName,
+                            IsActive = true,
+                            CourtCount = response.Items.Count(c => c.CourtTypeId == court.CourtTypeId)
+                        });
+                    }
+                }
+                return types;
             }
-            _logger.LogWarning("GetCourtTypes API returned unsuccessful: {Message}", response?.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling GetCourtTypes API");
+            _logger.LogError(ex, "Error executing GetCourtTypes workaround");
         }
         return new List<CourtTypeDto>();
     }
 
-    public async Task<bool> SubmitReviewAsync(int courtId, int bookingId, byte rating, string? comment, string? token)
+    public async Task<(bool success, string message)> SubmitReviewAsync(int courtId, int bookingId, byte rating, string? comment, string? token)
     {
         try
         {
@@ -168,17 +179,28 @@ public class CourtApiService : ICourtApiService
             if (response.IsSuccessStatusCode)
             {
                 var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
-                return apiResponse?.Success ?? false;
+                return (true, apiResponse?.Message ?? "Gửi đánh giá thành công!");
             }
 
             var errBody = await response.Content.ReadAsStringAsync();
             _logger.LogWarning("SubmitReview API failed with status {Status}: {Body}", response.StatusCode, errBody);
+            
+            try
+            {
+                var errorObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.Nodes.JsonNode>(errBody);
+                var msg = errorObj?["message"]?.ToString();
+                if (!string.IsNullOrEmpty(msg))
+                {
+                    return (false, msg);
+                }
+            }
+            catch {}
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calling SubmitReview API for court {CourtId}", courtId);
         }
-        return false;
+        return (false, "Gửi đánh giá thất bại. Vui lòng kiểm tra lại thông tin đặt sân.");
     }
 
     public async Task<BookingResponseDto?> CreateBookingAsync(BookingRequestDto request, string? token)
@@ -190,7 +212,18 @@ public class CourtApiService : ICourtApiService
             {
                 req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
-            req.Content = JsonContent.Create(request);
+
+            var backendRequest = new
+            {
+                CourtId = request.CourtId,
+                SlotId = request.TimeSlotIds.Count > 0 ? request.TimeSlotIds[0] : 0,
+                BookingDate = request.BookingDate.ToDateTime(TimeOnly.MinValue),
+                ServiceIds = request.Services.Select(s => new { ServiceId = s.ServiceId, Quantity = s.Quantity }).ToList(),
+                PromotionCode = request.PromotionCode,
+                Note = request.Note
+            };
+
+            req.Content = JsonContent.Create(backendRequest);
 
             var response = await _httpClient.SendAsync(req);
             if (response.IsSuccessStatusCode)
@@ -201,12 +234,90 @@ public class CourtApiService : ICourtApiService
                     return apiResponse.Data;
                 }
             }
-            var err = await response.Content.ReadAsStringAsync();
-            _logger.LogWarning("CreateBooking API failed: {Body}", err);
+            else
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("CreateBooking API failed: {Body}", err);
+                try
+                {
+                    var errorObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.Nodes.JsonNode>(err);
+                    var msg = errorObj?["message"]?.ToString();
+                    if (!string.IsNullOrEmpty(msg))
+                    {
+                        throw new InvalidOperationException(msg);
+                    }
+                }
+                catch (System.Text.Json.JsonException) { }
+                catch (InvalidOperationException) { throw; }
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating booking");
+        }
+        return null;
+    }
+
+    public async Task<RecurringBookingResponseDto?> CreateRecurringBookingAsync(RecurringBookingRequestDto request, string? token)
+    {
+        try
+        {
+            var req = new HttpRequestMessage(HttpMethod.Post, "api/bookings/recurring");
+            if (!string.IsNullOrEmpty(token))
+            {
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var backendRequest = new
+            {
+                CourtId = request.CourtId,
+                SlotId = request.SlotId,
+                StartDate = request.StartDate.ToDateTime(TimeOnly.MinValue),
+                EndDate = request.EndDate.ToDateTime(TimeOnly.MinValue),
+                DaysOfWeek = request.DaysOfWeek,
+                PromotionCode = request.PromotionCode,
+                Note = request.Note
+            };
+
+            req.Content = JsonContent.Create(backendRequest);
+
+            var response = await _httpClient.SendAsync(req);
+            if (response.IsSuccessStatusCode)
+            {
+                var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<RecurringBookingResponseDto>>();
+                if (apiResponse != null && apiResponse.Success)
+                {
+                    return apiResponse.Data;
+                }
+            }
+            else
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("CreateRecurringBooking API failed: {Body}", err);
+                try
+                {
+                    var errorObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.Nodes.JsonNode>(err);
+                    var msg = errorObj?["message"]?.ToString();
+                    if (!string.IsNullOrEmpty(msg))
+                    {
+                        throw new InvalidOperationException(msg);
+                    }
+                }
+                catch (System.Text.Json.JsonException) { }
+                catch (InvalidOperationException) { throw; }
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating recurring booking");
         }
         return null;
     }
@@ -268,5 +379,23 @@ public class CourtApiService : ICourtApiService
             _logger.LogError(ex, "Error getting booking detail for {Id}", id);
         }
         return null;
+    }
+
+    public async Task<List<PromotionDto>> GetActivePromotionsAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<PromotionDto>>>("api/promotions");
+            if (response != null && response.Success && response.Data != null)
+            {
+                return response.Data;
+            }
+            _logger.LogWarning("GetActivePromotions API returned unsuccessful status: {Message}", response?.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling GetActivePromotions API");
+        }
+        return new List<PromotionDto>();
     }
 }

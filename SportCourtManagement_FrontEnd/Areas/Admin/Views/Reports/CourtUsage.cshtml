@@ -1,0 +1,74 @@
+@model CourtUsageReportViewModel
+@{
+    ViewData["Title"] = "Tần suất sử dụng sân";
+    var labels = System.Text.Json.JsonSerializer.Serialize(Model.UsageData.Select(d => d.TimeSlot));
+    var values = System.Text.Json.JsonSerializer.Serialize(Model.UsageData.Select(d => d.OccupancyPercent));
+    var colors = System.Text.Json.JsonSerializer.Serialize(Model.UsageData.Select(d =>
+        d.OccupancyPercent >= 80 ? "rgba(251,191,36,0.7)" :
+        d.OccupancyPercent >= 50 ? "rgba(34,197,94,0.6)" : "rgba(100,116,139,0.5)"));
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Báo cáo tần suất sử dụng sân</h1>
+        <p class="page-subtitle">Phân tích khung giờ vàng (peak hours) theo tỷ lệ lấp đầy</p>
+    </div>
+</div>
+
+<div class="admin-card p-4">
+    <h2 class="h6 text-white mb-3"><i class="fa-solid fa-clock me-2"></i>Tỷ lệ lấp đầy theo khung giờ</h2>
+    <div class="chart-container">
+        <canvas id="usageChart"></canvas>
+    </div>
+</div>
+
+<div class="admin-card p-4 mt-4">
+    <table class="admin-table">
+        <thead><tr><th>Khung giờ</th><th>Tỷ lệ lấp đầy</th><th>Mức độ</th></tr></thead>
+        <tbody>
+            @foreach (var d in Model.UsageData)
+            {
+                var level = d.OccupancyPercent >= 80 ? "Cao (Peak)" : d.OccupancyPercent >= 50 ? "Trung bình" : "Thấp";
+                var levelClass = d.OccupancyPercent >= 80 ? "text-warning" : d.OccupancyPercent >= 50 ? "text-success" : "text-secondary";
+                <tr>
+                    <td>@d.TimeSlot</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height:8px;background:#334155">
+                                <div class="progress-bar bg-success" style="width:@d.OccupancyPercent%"></div>
+                            </div>
+                            <span class="fw-semibold @levelClass" style="min-width:40px">@d.OccupancyPercent%</span>
+                        </div>
+                    </td>
+                    <td class="@levelClass small">@level</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        new Chart(document.getElementById('usageChart'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(labels),
+                datasets: [{
+                    label: 'Tỷ lệ lấp đầy (%)',
+                    data: @Html.Raw(values),
+                    backgroundColor: @Html.Raw(colors),
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(51,65,85,0.5)' } },
+                    y: { max: 100, ticks: { color: '#64748b', callback: v => v + '%' }, grid: { color: 'rgba(51,65,85,0.5)' } }
+                }
+            }
+        });
+    </script>
+}

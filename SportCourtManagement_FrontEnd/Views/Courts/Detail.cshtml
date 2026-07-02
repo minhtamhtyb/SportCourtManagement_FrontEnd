@@ -29,58 +29,113 @@
     }
 
     <!-- Gallery Grid -->
-    <div class="sc-gallery-grid mb-4">
-        <!-- Main Image -->
-        <div class="sc-gallery-main">
-            @if (!string.IsNullOrEmpty(Model.Court.ImageUrl))
+    @{
+        var images = Model.Court.Images ?? new List<SportCourtManagement_FrontEnd.Models.Courts.CourtImageDto>();
+        var mainImageUrl = Model.Court.ImageUrl;
+        var allImages = new List<string>();
+        if (!string.IsNullOrEmpty(mainImageUrl))
+        {
+            allImages.Add(mainImageUrl);
+        }
+        foreach (var img in images)
+        {
+            if (img.ImageUrl != mainImageUrl && !string.IsNullOrEmpty(img.ImageUrl))
             {
-                <img src="~/images/courts/@Model.Court.ImageUrl" alt="@Model.Court.CourtName" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                allImages.Add(img.ImageUrl);
             }
-            else
-            {
-                <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: var(--sc-text-secondary);">
-                    <h3><i class="bi bi-dribbble me-1"></i> @Model.Court.CourtName</h3>
-                </div>
-            }
-            <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(0deg, rgba(15,17,23,0.6) 0%, rgba(15,17,23,0) 100%); pointer-events: none;"></div>
-        </div>
-        <!-- Thumbnail -->
-        <div class="sc-gallery-thumb d-flex flex-column gap-1" style="height: 100%;">
-            @if (Model.Court.Images != null && Model.Court.Images.Count > 1)
-            {
-                var secondaryImages = Model.Court.Images.Where(img => img.ImageUrl != Model.Court.ImageUrl).Take(2).ToList();
-                if (secondaryImages.Count == 0)
-                {
-                    secondaryImages = Model.Court.Images.Where(img => !img.IsPrimary).Take(2).ToList();
-                }
-                if (secondaryImages.Count == 0)
-                {
-                    secondaryImages = Model.Court.Images.Take(2).ToList();
-                }
+        }
+        var imgCount = allImages.Count;
+    }
 
-                foreach (var img in secondaryImages)
-                {
-                    <div class="position-relative overflow-hidden flex-grow-1" style="height: calc(50% - 2px);">
-                        <img src="~/images/courts/@img.ImageUrl" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
-                        <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(79, 110, 247, 0.05); pointer-events: none;"></div>
-                    </div>
-                }
-            }
-            else if (Model.Court.Images != null && Model.Court.Images.Count == 1)
-            {
-                <div class="position-relative overflow-hidden h-100">
-                    <img src="~/images/courts/@Model.Court.Images[0].ImageUrl" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
-                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(79, 110, 247, 0.15); border: 2px solid var(--sc-blue); pointer-events: none;"></div>
-                </div>
-            }
-            else
-            {
-                <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background-color: #0D121F; border: 1px solid var(--sc-border);">
-                    <span class="text-sc-muted">No Image</span>
-                </div>
-            }
+    @if (imgCount == 0)
+    {
+        <div class="sc-gallery-grid mb-4" style="grid-template-columns: 1fr; height: 400px;">
+            <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: var(--sc-text-secondary); border-radius: 16px;">
+                <h3><i class="bi bi-dribbble me-2"></i> @Model.Court.CourtName</h3>
+            </div>
         </div>
-    </div>
+    }
+    else if (imgCount == 1)
+    {
+        <div class="sc-gallery-grid mb-4" style="grid-template-columns: 1fr; height: 400px;">
+            <div class="sc-gallery-main w-100 h-100">
+                <img src="~/images/courts/@allImages[0]" alt="@Model.Court.CourtName" class="w-100 h-100 object-fit-cover" style="border-radius: 16px;" />
+                <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(0deg, rgba(15,17,23,0.6) 0%, rgba(15,17,23,0) 100%); pointer-events: none;"></div>
+            </div>
+        </div>
+    }
+    else if (imgCount == 2)
+    {
+        <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; height: 400px;">
+            <div class="position-relative overflow-hidden w-100 h-100">
+                <img src="~/images/courts/@allImages[0]" alt="@Model.Court.CourtName" class="w-100 h-100 object-fit-cover" />
+            </div>
+            <div class="position-relative overflow-hidden w-100 h-100">
+                <img src="~/images/courts/@allImages[1]" alt="@Model.Court.CourtName" class="w-100 h-100 object-fit-cover" />
+            </div>
+        </div>
+    }
+    else if (imgCount == 3)
+    {
+        <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; height: 400px;">
+            <div class="position-relative overflow-hidden w-100 h-100" style="grid-row: span 2;">
+                <img src="~/images/courts/@allImages[0]" alt="@Model.Court.CourtName" class="w-100 h-100 object-fit-cover" />
+                <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(0deg, rgba(15,17,23,0.6) 0%, rgba(15,17,23,0) 100%); pointer-events: none;"></div>
+            </div>
+            <div class="position-relative overflow-hidden w-100 h-100">
+                <img src="~/images/courts/@allImages[1]" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" />
+            </div>
+            <div class="position-relative overflow-hidden w-100 h-100">
+                <img src="~/images/courts/@allImages[2]" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" />
+            </div>
+        </div>
+    }
+    else if (imgCount == 4)
+    {
+        <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr 1fr; gap: 4px; height: 400px;">
+            <div class="position-relative overflow-hidden w-100 h-100" style="grid-row: span 3;">
+                <img src="~/images/courts/@allImages[0]" alt="@Model.Court.CourtName" class="w-100 h-100 object-fit-cover" />
+                <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(0deg, rgba(15,17,23,0.6) 0%, rgba(15,17,23,0) 100%); pointer-events: none;"></div>
+            </div>
+            <div class="position-relative overflow-hidden w-100 h-100">
+                <img src="~/images/courts/@allImages[1]" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" />
+            </div>
+            <div class="position-relative overflow-hidden w-100 h-100">
+                <img src="~/images/courts/@allImages[2]" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" />
+            </div>
+            <div class="position-relative overflow-hidden w-100 h-100">
+                <img src="~/images/courts/@allImages[3]" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" />
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 3fr 2fr; gap: 4px; height: 400px;">
+            <div class="position-relative overflow-hidden w-100 h-100">
+                <img src="~/images/courts/@allImages[0]" alt="@Model.Court.CourtName" class="w-100 h-100 object-fit-cover" />
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; height: 100%;">
+                <div class="position-relative overflow-hidden w-100 h-100">
+                    <img src="~/images/courts/@allImages[1]" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" />
+                </div>
+                <div class="position-relative overflow-hidden w-100 h-100">
+                    <img src="~/images/courts/@allImages[2]" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" />
+                </div>
+                <div class="position-relative overflow-hidden w-100 h-100">
+                    <img src="~/images/courts/@allImages[3]" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" />
+                </div>
+                <div class="position-relative overflow-hidden w-100 h-100">
+                    <img src="~/images/courts/@allImages[4]" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" />
+                    @if (imgCount > 5)
+                    {
+                        <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.6); color: white; font-weight: 800; font-size: 20px; pointer-events: none;">
+                            +@(imgCount - 5)
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- Two-column Layout -->
     <div class="sc-layout-wrapper">
@@ -119,7 +174,7 @@
                 <span>•</span>
                 <div class="d-flex align-items-center gap-1">
                     <span><i class="bi bi-clock"></i></span>
-                    <span>Giờ mở cửa: @Model.Court.OpenTime.ToString("HH:mm") – @Model.Court.CloseTime.ToString("HH:mm")</span>
+                    <span>Giờ mở cửa: @Model.Court.OpenTime.ToString("hh\\:mm") – @Model.Court.CloseTime.ToString("hh\\:mm")</span>
                 </div>
             </div>
 
@@ -144,15 +199,7 @@
                     </div>
                     <div class="sc-info-card">
                         <div class="text-sc-muted font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Khung giờ hoạt động</div>
-                        <div class="text-white fw-bold" style="font-size: 14px;"><i class="bi bi-clock me-1"></i> @Model.Court.OpenTime.ToString("HH:mm") – @Model.Court.CloseTime.ToString("HH:mm")</div>
-                    </div>
-                    <div class="sc-info-card">
-                        <div class="text-sc-muted font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Mặt sân & Sức chứa</div>
-                        <div class="text-sc-green fw-bold" style="font-size: 14px;"><i class="bi bi-lightning-fill me-1"></i> Mặt @(Model.Court.Surface ?? "PVC") (Tối đa @(Model.Court.Capacity ?? 4) người)</div>
-                    </div>
-                    <div class="sc-info-card">
-                        <div class="text-sc-muted font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Phụ thu cuối tuần</div>
-                        <div class="text-sc-amber fw-bold" style="font-size: 14px;"><i class="bi bi-fire me-1"></i> +30% (T7 & CN)</div>
+                        <div class="text-white fw-bold" style="font-size: 14px;"><i class="bi bi-clock me-1"></i> @Model.Court.OpenTime.ToString("hh\\:mm") – @Model.Court.CloseTime.ToString("hh\\:mm")</div>
                     </div>
                 </div>
             </div>
@@ -201,7 +248,7 @@
                                 {
                                     var weekendPrice = price.Price * price.PeakMultiplier;
                                     <tr>
-                                        <td>@price.SlotName (@price.StartTime.ToString("HH:mm") - @price.EndTime.ToString("HH:mm"))</td>
+                                        <td>@price.SlotName (@price.StartTime.ToString("hh\\:mm") - @price.EndTime.ToString("hh\\:mm"))</td>
                                         <td class="text-sc-green fw-bold">@price.Price.ToString("N0")đ</td>
                                         <td class="text-sc-amber fw-bold">@weekendPrice.ToString("N0")đ</td>
                                     </tr>
@@ -317,7 +364,7 @@
                     <div class="pb-3 mb-4 border-bottom" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
                         <div class="d-flex align-items-baseline gap-1 mb-2">
                             <span id="booking-price" class="font-outfit text-sc-green" style="font-weight: 900; font-size: 26px; line-height: 1;">
-                                @(Model.Court.Pricings?.FirstOrDefault()?.Price.ToString("N0") ?? "---")đ
+                                @((Model.Court.Pricings != null && Model.Court.Pricings.Any()) ? Model.Court.Pricings.First().Price.ToString("N0") : Model.Court.PricePerHour.ToString("N0"))đ
                             </span>
                             <span class="text-sc-muted" style="font-size: 13px;">/giờ</span>
                         </div>
@@ -361,7 +408,7 @@
                     </div>
 
                     <!-- Booking Action Button -->
-                    <button id="btn-book-now" class="sc-btn sc-btn-gradient w-100 py-3 font-outfit" style="font-size: 15px; font-weight: 700;">
+                    <button id="btn-book-now" class="sc-btn sc-btn-gradient w-100 py-3 font-outfit" style="font-size: 15px; font-weight: 700;" data-logged-in="@isLoggedIn.ToString().ToLower()">
                         <i class="bi bi-lightning-fill me-1"></i> Đặt sân đấu ngay
                     </button>
 
@@ -409,5 +456,7 @@
 </main>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
     <script src="~/js/courts.js" asp-append-version="true"></script>
+    <script src="~/js/signalr-slot.js" asp-append-version="true"></script>
 }

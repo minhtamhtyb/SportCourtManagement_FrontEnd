@@ -1,0 +1,29 @@
+@model ServiceDto
+@{
+    ViewData["Title"] = Model.ServiceName;
+    var (catLabel, catCss) = DisplayHelpers.GetServiceCategory(Model.Category);
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">@Model.ServiceName</h1>
+        <p class="page-subtitle"><span class="@catCss">@catLabel</span></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.ServiceId" class="btn-secondary-custom"><i class="fa-solid fa-pen"></i> Sửa</a>
+        <a asp-action="Index" class="btn-secondary-custom"><i class="fa-solid fa-arrow-left"></i> Quay lại</a>
+    </div>
+</div>
+
+<div class="admin-card p-4" style="max-width:500px">
+    <dl class="row mb-0 small">
+        <dt class="col-4 text-secondary">Giá</dt>
+        <dd class="col-8 text-white fw-semibold">@DisplayHelpers.FormatCurrency(Model.Price) / @Model.Unit</dd>
+        <dt class="col-4 text-secondary">Tồn kho</dt>
+        <dd class="col-8"><span class="fw-bold @(Model.StockQty < 10 ? "text-warning" : "text-success")">@Model.StockQty</span></dd>
+        <dt class="col-4 text-secondary">Trạng thái</dt>
+        <dd class="col-8">@(Model.IsActive ? "Đang hoạt động" : "Đã vô hiệu hóa")</dd>
+        <dt class="col-4 text-secondary">Mô tả</dt>
+        <dd class="col-8 text-secondary">@(Model.Description ?? "—")</dd>
+    </dl>
+</div>

@@ -1,0 +1,50 @@
+@model UserEditRolesViewModel
+
+<form asp-action="EditRoles" asp-route-id="@Model.UserId" method="post" class="form-dark" id="userRolesForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="UserId" />
+    <input type="hidden" asp-for="FullName" />
+    <input type="hidden" asp-for="Email" />
+
+    <div class="mb-2">
+        <div class="fw-semibold text-white">@Model.FullName</div>
+        <div class="text-secondary small">@Model.Email</div>
+        @if (Model.IsSelf)
+        {
+            <div class="form-text text-warning small mt-1">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i>Đây là tài khoản của bạn — không thể tự hạ quyền Admin hoặc tự khóa.
+            </div>
+        }
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Role" class="form-label">Vai trò</label>
+        <select asp-for="Role" class="form-select" id="userRoleSelect" disabled="@(Model.IsSelf)">
+            @foreach (var r in Model.RoleOptions)
+            {
+                <option value="@r">@r</option>
+            }
+        </select>
+        @if (Model.IsSelf)
+        {
+            <input type="hidden" asp-for="Role" />
+        }
+        <span asp-validation-for="Role" class="text-danger small field-error"></span>
+    </div>
+
+    <div class="mb-0 form-check">
+        <input asp-for="IsActive" class="form-check-input" id="userIsActive" disabled="@(Model.IsSelf)" />
+        <label asp-for="IsActive" class="form-check-label text-secondary">Tài khoản đang hoạt động</label>
+        @if (Model.IsSelf)
+        {
+            <input type="hidden" asp-for="IsActive" />
+        }
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end mt-4 pt-3 border-top border-secondary">
+        <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn-primary-custom" id="userRolesFormSubmit">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+        </button>
+    </div>
+</form>

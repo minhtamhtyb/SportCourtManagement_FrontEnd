@@ -112,6 +112,12 @@ $(document).ready(function () {
 
     // === 6. Book Now Button Click Handler (Xử lý khi click Đặt sân ngay) ===
     $('#btn-book-now').on('click', function () {
+        var isLoggedIn = $(this).data('logged-in') === true;
+        if (!isLoggedIn) {
+            alert("Bạn cần đăng nhập trước khi thực hiện đặt sân!");
+            return;
+        }
+
         var slotId = $('#selected-slot-id').val();
         var date = $('#booking-date').val();
         var courtId = $('#court-id').val();

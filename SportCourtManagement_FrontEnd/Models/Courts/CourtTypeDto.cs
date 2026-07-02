@@ -6,5 +6,6 @@ public class CourtTypeDto
     public string TypeName { get; set; } = string.Empty;
     public string? IconUrl { get; set; }
     public string? Description { get; set; }
+    public bool IsActive { get; set; } = true;
     public int CourtCount { get; set; }
 }

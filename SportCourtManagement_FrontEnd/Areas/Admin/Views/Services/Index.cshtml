@@ -1,0 +1,75 @@
+@model ServiceListViewModel
+@{
+    ViewData["Title"] = "Dịch vụ & Kho";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Quản lý dịch vụ & Kho</h1>
+        <p class="page-subtitle">Dụng cụ, đồ uống, huấn luyện viên và dịch vụ sự kiện</p>
+    </div>
+    <a asp-action="Create" class="btn-primary-custom"><i class="fa-solid fa-plus"></i> Thêm dịch vụ</a>
+</div>
+
+<form method="get" class="filter-bar">
+    <div class="filter-search">
+        <i class="fa-solid fa-magnifying-glass text-secondary"></i>
+        <input type="text" name="search" value="@Model.Search" placeholder="Tìm tên dịch vụ..." />
+    </div>
+    <a asp-action="Index" class="filter-chip @(string.IsNullOrEmpty(Model.Category) ? "active" : "")">Tất cả</a>
+    @foreach (var cat in new[] { "Equipment", "Drink", "Coach", "Event" })
+    {
+        var (label, _) = DisplayHelpers.GetServiceCategory(cat);
+        <a asp-action="Index" asp-route-category="@cat" asp-route-search="@Model.Search"
+           class="filter-chip @(Model.Category == cat ? "active" : "")">@label</a>
+    }
+</form>
+
+<div class="admin-card">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Dịch vụ</th>
+                <th>Loại</th>
+                <th>Giá</th>
+                <th>Tồn kho</th>
+                <th>Trạng thái</th>
+                <th class="text-end">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model.Services)
+            {
+                var (catLabel, catCss) = DisplayHelpers.GetServiceCategory(s.Category);
+                <tr class="@(!s.IsActive ? "opacity-50" : "")">
+                    <td>
+                        <div class="fw-semibold text-white">@s.ServiceName</div>
+                        <div class="text-secondary small">@s.Description</div>
+                    </td>
+                    <td><span class="@catCss small fw-semibold">@catLabel</span></td>
+                    <td>@DisplayHelpers.FormatCurrency(s.Price)<span class="text-secondary small">/@s.Unit</span></td>
+                    <td>
+                        <span class="fw-semibold @(s.StockQty < 10 ? "text-warning" : "")">@s.StockQty</span>
+                    </td>
+                    <td>
+                        @if (s.IsActive)
+                        { <span class="status-badge status-available">Hoạt động</span> }
+                        else
+                        { <span class="status-badge status-inactive">Ngưng</span> }
+                    </td>
+                    <td class="text-end">
+                        <a asp-action="Details" asp-route-id="@s.ServiceId" class="btn-ghost"><i class="fa-solid fa-eye"></i></a>
+                        <a asp-action="Edit" asp-route-id="@s.ServiceId" class="btn-ghost"><i class="fa-solid fa-pen"></i></a>
+                        @if (s.IsActive)
+                        {
+                            <form asp-action="Delete" asp-route-id="@s.ServiceId" method="post" class="d-inline" onsubmit="return confirm('Vô hiệu hóa dịch vụ?')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-ghost text-danger"><i class="fa-solid fa-ban"></i></button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
