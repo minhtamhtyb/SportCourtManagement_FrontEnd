@@ -21,5 +21,6 @@ public interface ICourtApiService
     Task<PaymentResponseDto?> CreatePaymentLinkAsync(PaymentRequestDto request, string? token);
     Task<BookingResponseDto?> GetBookingDetailAsync(int id, string? token);
     Task<List<PromotionDto>> GetActivePromotionsAsync();
+    Task<string> GetRawJsonAsync(string relativeUrl);
 }
 

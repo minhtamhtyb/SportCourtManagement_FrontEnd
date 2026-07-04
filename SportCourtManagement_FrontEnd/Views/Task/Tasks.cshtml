@@ -1,0 +1,678 @@
+
+@{
+    ViewData["Title"] = "Quản lý công việc | ProCourt";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Manager/tasks.css" asp-append-version="true" />
+}
+
+<div class="tasks-container">
+
+    <!-- Module Header -->
+    <div class="module-header">
+        <div class="module-title">
+            <h3>Quản lý công việc</h3>
+            <p>Phân công, giám sát và duyệt nghiệm thu các công việc vận hành tại cơ sở.</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                <span class="material-symbols-outlined">add</span>
+                Tạo công việc
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="summary-stats">
+        <div class="stat-card glass-panel">
+            <div class="stat-icon orange">
+                <span class="material-symbols-outlined">assignment_late</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Chờ thực hiện</p>
+                <span class="stat-value orange">1</span>
+                <p class="stat-sub">Pending</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon sky">
+                <span class="material-symbols-outlined">pending</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Đang làm</p>
+                <span class="stat-value sky">1</span>
+                <p class="stat-sub">In Progress</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon emerald">
+                <span class="material-symbols-outlined">fact_check</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Chờ nghiệm thu</p>
+                <span class="stat-value emerald">1</span>
+                <p class="stat-sub">Completed</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon gold">
+                <span class="material-symbols-outlined">task_alt</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Đã duyệt</p>
+                <span class="stat-value gold">1</span>
+                <p class="stat-sub">Approved</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar-container">
+        <div class="toolbar-filters">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" id="searchInput" placeholder="Tìm theo tiêu đề, mô tả..." />
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">filter_list</span>
+                <select id="statusFilter">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Pending">Pending (Chờ làm)</option>
+                    <option value="InProgress">In Progress (Đang làm)</option>
+                    <option value="Completed">Completed (Chờ nghiệm thu)</option>
+                    <option value="Approved">Approved (Đã duyệt)</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">sell</span>
+                <select id="categoryFilter">
+                    <option value="">Tất cả danh mục</option>
+                    <option value="Cleanup">Cleanup (Dọn dẹp)</option>
+                    <option value="ServicePrep">ServicePrep (Chuẩn bị dịch vụ)</option>
+                    <option value="Repair">Repair (Sửa chữa)</option>
+                    <option value="Complaint">Complaint (Khiếu nại)</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">priority_high</span>
+                <select id="priorityFilter">
+                    <option value="">Tất cả độ ưu tiên</option>
+                    <option value="Urgent">Urgent (Khẩn cấp)</option>
+                    <option value="High">High (Cao)</option>
+                    <option value="Medium">Medium (Trung bình)</option>
+                    <option value="Low">Low (Thấp)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Table -->
+    <div class="table-panel glass-panel">
+        <table class="tasks-table">
+            <thead>
+                <tr>
+                    <th>Công việc</th>
+                    <th>Danh mục</th>
+                    <th>Độ ưu tiên</th>
+                    <th>Hạn hoàn thành</th>
+                    <th>Trạng thái</th>
+                    <th>Nhân viên thực hiện</th>
+                    <th>Nghiệm thu</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Row 1: Pending Task for Nguyen Van A -->
+                <tr data-id="101"
+                    data-title="Dọn dẹp vệ sinh sân Cầu Lông A1"
+                    data-description="Lau dọn sân và thu gom rác sau ca thuê buổi sáng"
+                    data-category="Cleanup"
+                    data-priority="Medium"
+                    data-duedate="2026-06-30T12:00"
+                    data-status="Pending"
+                    data-staff-id="1"
+                    data-staff-name="Nguyen Van A">
+                    <td>
+                        <div class="task-cell">
+                            <div class="task-icon">
+                                <span class="material-symbols-outlined">assignment</span>
+                            </div>
+                            <div>
+                                <p class="task-title">Dọn dẹp vệ sinh sân Cầu Lông A1</p>
+                                <p class="task-desc" title="Lau dọn sân và thu gom rác sau ca thuê buổi sáng">Lau dọn sân và thu gom rác sau ca thuê buổi sáng</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="category-badge cleanup">Cleanup</span></td>
+                    <td><span class="priority-badge medium">Medium</span></td>
+                    <td>
+                        <p class="due-date">30/06/2026 12:00</p>
+                    </td>
+                    <td><span class="status-badge pending">Pending</span></td>
+                    <td>
+                        <div class="assigned-cell">
+                            <div class="assigned-avatar">
+                                <img alt="Nguyen Van A" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
+                            </div>
+                            <span class="assigned-name">Nguyen Van A</span>
+                        </div>
+                    </td>
+                    <td class="completed-cell">
+                        <span>–</span>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-icon-btn verify" title="Duyệt / Từ chối">
+                                <span class="material-symbols-outlined">how_to_reg</span>
+                            </button>
+                            <button class="action-icon-btn edit" title="Chỉnh sửa">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="action-icon-btn delete" title="Xóa">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Row 2: InProgress Task for Tran Thi B -->
+                <tr data-id="102"
+                    data-title="Sửa lưới sân bóng đá B1"
+                    data-description="Vá lại phần lưới bị rách ở góc gôn trái phía đông"
+                    data-category="Repair"
+                    data-priority="High"
+                    data-duedate="2026-06-30T18:00"
+                    data-status="InProgress"
+                    data-staff-id="2"
+                    data-staff-name="Tran Thi B">
+                    <td>
+                        <div class="task-cell">
+                            <div class="task-icon">
+                                <span class="material-symbols-outlined">assignment</span>
+                            </div>
+                            <div>
+                                <p class="task-title">Sửa lưới sân bóng đá B1</p>
+                                <p class="task-desc" title="Vá lại phần lưới bị rách ở góc gôn trái phía đông">Vá lại phần lưới bị rách ở góc gôn trái phía đông</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="category-badge repair">Repair</span></td>
+                    <td><span class="priority-badge high">High</span></td>
+                    <td>
+                        <p class="due-date">30/06/2026 18:00</p>
+                    </td>
+                    <td><span class="status-badge in-progress">InProgress</span></td>
+                    <td>
+                        <div class="assigned-cell">
+                            <div class="assigned-avatar">
+                                <img alt="Tran Thi B" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
+                            </div>
+                            <span class="assigned-name">Tran Thi B</span>
+                        </div>
+                    </td>
+                    <td class="completed-cell">
+                        <span>–</span>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-icon-btn verify" title="Duyệt / Từ chối">
+                                <span class="material-symbols-outlined">how_to_reg</span>
+                            </button>
+                            <button class="action-icon-btn edit" title="Chỉnh sửa">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="action-icon-btn delete" title="Xóa">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Row 3: Completed Task for Nguyen Van A -->
+                <tr data-id="103"
+                    data-title="Chuẩn bị nước uống và bóng cho giải đấu"
+                    data-description="Chuẩn bị 2 thùng nước khoáng và 5 quả bóng cho sân Tennis 2"
+                    data-category="ServicePrep"
+                    data-priority="Urgent"
+                    data-duedate="2026-06-30T10:00"
+                    data-status="Completed"
+                    data-staff-id="1"
+                    data-staff-name="Nguyen Van A">
+                    <td>
+                        <div class="task-cell">
+                            <div class="task-icon">
+                                <span class="material-symbols-outlined">assignment</span>
+                            </div>
+                            <div>
+                                <p class="task-title">Chuẩn bị nước uống và bóng cho giải đấu</p>
+                                <p class="task-desc" title="Chuẩn bị 2 thùng nước khoáng và 5 quả bóng cho sân Tennis 2">Chuẩn bị 2 thùng nước khoáng và 5 quả bóng...</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="category-badge serviceprep">ServicePrep</span></td>
+                    <td><span class="priority-badge urgent">Urgent</span></td>
+                    <td>
+                        <p class="due-date">30/06/2026 10:00</p>
+                    </td>
+                    <td><span class="status-badge completed">Completed</span></td>
+                    <td>
+                        <div class="assigned-cell">
+                            <div class="assigned-avatar">
+                                <img alt="Nguyen Van A" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
+                            </div>
+                            <span class="assigned-name">Nguyen Van A</span>
+                        </div>
+                    </td>
+                    <td class="completed-cell">
+                        <p class="completed-time">30/06 09:30</p>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-icon-btn verify" title="Duyệt / Từ chối">
+                                <span class="material-symbols-outlined">how_to_reg</span>
+                            </button>
+                            <button class="action-icon-btn edit" title="Chỉnh sửa">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="action-icon-btn delete" title="Xóa">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Row 4: Approved Task for Le Van C -->
+                <tr data-id="104"
+                    data-title="Giải quyết khiếu nại về hệ thống đèn sân Cầu Lông A2"
+                    data-description="Khách hàng phản ánh đèn bị nhấp nháy liên tục ở hiệp 2"
+                    data-category="Complaint"
+                    data-priority="Low"
+                    data-duedate="2026-07-01T16:00"
+                    data-status="Approved"
+                    data-staff-id="3"
+                    data-staff-name="Le Van C">
+                    <td>
+                        <div class="task-cell">
+                            <div class="task-icon">
+                                <span class="material-symbols-outlined">assignment</span>
+                            </div>
+                            <div>
+                                <p class="task-title">Giải quyết khiếu nại về hệ thống đèn</p>
+                                <p class="task-desc" title="Khách hàng phản ánh đèn bị nhấp nháy liên tục ở hiệp 2">Khách hàng phản ánh đèn bị nhấp nháy liên tục...</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="category-badge complaint">Complaint</span></td>
+                    <td><span class="priority-badge low">Low</span></td>
+                    <td>
+                        <p class="due-date">01/07/2026 16:00</p>
+                    </td>
+                    <td><span class="status-badge approved">Approved</span></td>
+                    <td>
+                        <div class="assigned-cell">
+                            <div class="assigned-avatar">
+                                <img alt="Le Van C" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
+                            </div>
+                            <span class="assigned-name">Le Van C</span>
+                        </div>
+                    </td>
+                    <td class="completed-cell">
+                        <p class="completed-time">30/06 14:00</p>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-icon-btn edit" title="Chỉnh sửa">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-panel">
+        <p class="pagination-info"></p>
+        <div class="pagination-buttons">
+            <button class="pagination-btn" disabled>
+                <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn" disabled>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Create Task Modal -->
+<div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content tasks-modal-content">
+            <form asp-controller="Task" asp-action="CreateTask" method="post" id="createTaskForm">
+                <div class="modal-header tasks-modal-header">
+                    <h5 class="modal-title" id="createTaskLabel">
+                        <span class="material-symbols-outlined">assignment_ind</span>
+                        Tạo công việc mới
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-form-grid">
+                        <div class="form-group form-group-full">
+                            <label class="form-label-custom">Tiêu đề công việc</label>
+                            <input type="text" class="form-input-custom" name="Title" id="createTitle" placeholder="Nhập tiêu đề công việc..." required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Danh mục</label>
+                            <select class="form-input-custom" name="Category" id="createCategory" required>
+                                <option value="Cleanup">Cleanup – Dọn dẹp</option>
+                                <option value="ServicePrep">ServicePrep – Chuẩn bị dịch vụ</option>
+                                <option value="Repair">Repair – Sửa chữa</option>
+                                <option value="Complaint">Complaint – Phản hồi khiếu nại</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Độ ưu tiên</label>
+                            <select class="form-input-custom" name="Priority" id="createPriority" required>
+                                <option value="Urgent">Urgent – Khẩn cấp</option>
+                                <option value="High" selected>High – Cao</option>
+                                <option value="Medium">Medium – Trung bình</option>
+                                <option value="Low">Low – Thấp</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Nhân viên thực hiện</label>
+                            <select class="form-input-custom" name="AssignedStaffId" id="createAssignedStaffId">
+                                <option value="">-- Chưa phân công --</option>
+                                <option value="1">Nguyen Van A</option>
+                                <option value="2">Tran Thi B</option>
+                                <option value="3">Le Van C</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Hạn hoàn thành (Due Date)</label>
+                            <input type="datetime-local" class="form-input-custom" name="DueDate" id="createDueDate" required />
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="form-label-custom">Mô tả công việc (Description)</label>
+                            <textarea class="form-input-custom" name="Description" id="createDescription" rows="3" maxlength="500" placeholder="Mô tả chi tiết công việc cần làm..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer tasks-modal-footer">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom">
+                        <span class="material-symbols-outlined">check</span>
+                        Tạo công việc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Task Modal -->
+<div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content tasks-modal-content">
+            <form asp-controller="Task" asp-action="UpdateTask" method="post" id="editTaskForm">
+                <input type="hidden" name="TaskId" id="editTaskId" />
+                <div class="modal-header tasks-modal-header">
+                    <h5 class="modal-title" id="editTaskLabel">
+                        <span class="material-symbols-outlined">edit_note</span>
+                        Chỉnh sửa công việc
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-form-grid">
+                        <div class="form-group form-group-full">
+                            <label class="form-label-custom">Tiêu đề công việc</label>
+                            <input type="text" class="form-input-custom" name="Title" id="editTitle" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Danh mục</label>
+                            <select class="form-input-custom" name="Category" id="editCategory" required>
+                                <option value="Cleanup">Cleanup – Dọn dẹp</option>
+                                <option value="ServicePrep">ServicePrep – Chuẩn bị dịch vụ</option>
+                                <option value="Repair">Repair – Sửa chữa</option>
+                                <option value="Complaint">Complaint – Phản hồi khiếu nại</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Độ ưu tiên</label>
+                            <select class="form-input-custom" name="Priority" id="editPriority" required>
+                                <option value="Urgent">Urgent – Khẩn cấp</option>
+                                <option value="High">High – Cao</option>
+                                <option value="Medium">Medium – Trung bình</option>
+                                <option value="Low">Low – Thấp</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Nhân viên thực hiện</label>
+                            <select class="form-input-custom" name="AssignedStaffId" id="editAssignedStaffId">
+                                <option value="">-- Chưa phân công --</option>
+                                <option value="1">Nguyen Van A</option>
+                                <option value="2">Tran Thi B</option>
+                                <option value="3">Le Van C</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Hạn hoàn thành</label>
+                            <input type="datetime-local" class="form-input-custom" name="DueDate" id="editDueDate" required />
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="form-label-custom">Mô tả công việc</label>
+                            <textarea class="form-input-custom" name="Description" id="editDescription" rows="3" maxlength="500"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer tasks-modal-footer">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom">
+                        <span class="material-symbols-outlined">save</span>
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Verify Task Modal -->
+<div class="modal fade" id="verifyTaskModal" tabindex="-1" aria-labelledby="verifyTaskLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content tasks-modal-content">
+            <form asp-controller="Task" asp-action="VerifyTask" method="post" id="verifyTaskForm">
+                <input type="hidden" name="TaskId" id="verifyTaskId" />
+                <div class="modal-header tasks-modal-header">
+                    <h5 class="modal-title" id="verifyTaskLabel">
+                        <span class="material-symbols-outlined">how_to_reg</span>
+                        Duyệt nghiệm thu công việc
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div class="form-group">
+                            <label class="form-label-custom">Quyết định nghiệm thu</label>
+                            <div style="display: flex; gap: 20px; margin-top: 6px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; color: var(--on-surface);">
+                                    <input type="radio" name="IsApproved" value="true" checked style="accent-color: var(--primary);" />
+                                    <span class="material-symbols-outlined" style="color: var(--emerald-400); font-size: 18px;">check_circle</span>
+                                    Duyệt nghiệm thu (Approved)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; color: var(--on-surface);">
+                                    <input type="radio" name="IsApproved" value="false" style="accent-color: var(--primary);" />
+                                    <span class="material-symbols-outlined" style="color: var(--rose-400); font-size: 18px;">cancel</span>
+                                    Từ chối (Cần sửa lại)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-custom">Ghi chú nghiệm thu / Lý do từ chối (Note)</label>
+                            <textarea class="form-input-custom" name="Note" id="verifyNote" rows="3" maxlength="500" placeholder="Nhập ghi chú chi tiết kết quả nghiệm thu..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer tasks-modal-footer">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom">
+                        <span class="material-symbols-outlined">send</span>
+                        Gửi kết quả
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Task Modal -->
+<div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content tasks-modal-content">
+            <form asp-controller="Task" asp-action="DeleteTask" method="post" id="deleteTaskForm">
+                <div class="modal-header tasks-modal-header" style="border-bottom: none; padding-bottom: 0;">
+                    <h5 class="modal-title" id="deleteTaskLabel" style="color: var(--rose-400);">
+                        <span class="material-symbols-outlined" style="color: var(--rose-400);">warning</span>
+                        Xác nhận xoá công việc
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding-top: 10px;">
+                    <p>Bạn có chắc chắn muốn xoá công việc <strong id="deleteTaskTitleDisplay"></strong>?</p>
+                    <input type="hidden" id="deleteTaskId" name="TaskId" />
+                </div>
+                <div class="modal-footer tasks-modal-footer" style="border-top: none; padding-top: 0;">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom" style="background-color: var(--rose-500); color: white;">
+                        <span class="material-symbols-outlined">delete</span>
+                        Xoá
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toast Helper
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            const icon = type === 'error' ? 'error' : (type === 'info' ? 'info' : 'check_circle');
+            toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span><div>${message}</div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');</text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
+        }
+
+        // Search & Filter Logic
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const priorityFilter = document.getElementById('priorityFilter');
+        const tableRows = document.querySelectorAll('.tasks-table tbody tr');
+
+        function filterTable() {
+            const query = searchInput.value.toLowerCase().trim();
+            const status = statusFilter.value;
+            const category = categoryFilter.value;
+            const priority = priorityFilter.value;
+
+            tableRows.forEach(row => {
+                if (row.cells.length === 1 && row.cells[0].colSpan > 1) return; // Skip empty row
+
+                const title = row.dataset.title ? row.dataset.title.toLowerCase() : '';
+                const desc = row.dataset.description ? row.dataset.description.toLowerCase() : '';
+                const rowStatus = row.dataset.status || '';
+                const rowCategory = row.dataset.category || '';
+                const rowPriority = row.dataset.priority || '';
+
+                const matchesSearch = title.includes(query) || desc.includes(query);
+                const matchesStatus = !status || rowStatus === status;
+                const matchesCategory = !category || rowCategory === category;
+                const matchesPriority = !priority || rowPriority === priority;
+
+                if (matchesSearch && matchesStatus && matchesCategory && matchesPriority) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            updatePaginationInfo();
+        }
+
+        searchInput.addEventListener('input', filterTable);
+        statusFilter.addEventListener('change', filterTable);
+        categoryFilter.addEventListener('change', filterTable);
+        priorityFilter.addEventListener('change', filterTable);
+
+        function updatePaginationInfo() {
+            const activeRows = document.querySelectorAll('.tasks-table tbody tr:not([style*="display: none"])');
+            const totalRows = document.querySelectorAll('.tasks-table tbody tr');
+
+            const isNoData = totalRows.length === 1 && totalRows[0].cells[0].colSpan > 1;
+            const activeCount = isNoData ? 0 : activeRows.length;
+            const totalCount = isNoData ? 0 : totalRows.length;
+
+            document.querySelector('.pagination-info').textContent = `Hiển thị 1 - ${activeCount} của ${totalCount} công việc`;
+        }
+
+        updatePaginationInfo();
+
+        // Event Delegation for row actions
+        document.querySelector('.tasks-table tbody').addEventListener('click', function(e) {
+            const btnEdit = e.target.closest('.action-icon-btn.edit');
+            const btnVerify = e.target.closest('.action-icon-btn.verify');
+            const btnDelete = e.target.closest('.action-icon-btn.delete');
+            const row = e.target.closest('tr');
+
+            if (!row || (row.cells.length === 1 && row.cells[0].colSpan > 1)) return;
+
+            if (btnEdit) {
+                document.getElementById('editTaskId').value = row.dataset.id;
+                document.getElementById('editTitle').value = row.dataset.title;
+                document.getElementById('editCategory').value = row.dataset.category;
+                document.getElementById('editPriority').value = row.dataset.priority;
+                document.getElementById('editDueDate').value = row.dataset.duedate;
+                document.getElementById('editAssignedStaffId').value = row.dataset.staffId || '';
+                document.getElementById('editDescription').value = row.dataset.description;
+
+                const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+                editModal.show();
+            }
+
+            if (btnVerify) {
+                document.getElementById('verifyTaskId').value = row.dataset.id;
+                document.getElementById('verifyNote').value = '';
+                document.querySelector('input[name="IsApproved"][value="true"]').checked = true;
+
+                const verifyModal = new bootstrap.Modal(document.getElementById('verifyTaskModal'));
+                verifyModal.show();
+            }
+
+            if (btnDelete) {
+                document.getElementById('deleteTaskId').value = row.dataset.id;
+                document.getElementById('deleteTaskTitleDisplay').textContent = row.dataset.title;
+
+                const deleteModal = new bootstrap.Modal(document.getElementById('deleteTaskModal'));
+                deleteModal.show();
+            }
+        });
+    </script>
+}

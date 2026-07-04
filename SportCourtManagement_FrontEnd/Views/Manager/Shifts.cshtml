@@ -1,0 +1,555 @@
+@model SportCourtManagement_FrontEnd.Models.WeeklyScheduleResponse
+@{
+    ViewData["Title"] = "Shift Management";
+    DateTime currentWeekStart;
+    if (!DateTime.TryParse(Model.WeekStart, out currentWeekStart))
+    {
+        currentWeekStart = DateTime.Today;
+    }
+    var prevWeekStart = currentWeekStart.AddDays(-7).ToString("yyyy-MM-dd");
+    var nextWeekStart = currentWeekStart.AddDays(7).ToString("yyyy-MM-dd");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Manager/shifts.css" asp-append-version="true" />
+}
+
+<div class="shift-dashboard-container">
+    <!-- Module Header -->
+    <div class="module-header">
+        <div class="module-title">
+            <h3>Quản lý nhân sự</h3>
+            <p>Lịch trực hàng tuần – 3 ca cố định: Morning (06–14h), Afternoon (14–22h), Evening (22–06h).</p>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-navigation">
+        <a class="tab-link active" href="/manager/staff/shifts">Lịch trực hàng tuần</a>
+        <a class="tab-link" href="/manager/staff/attendance">Chấm công &amp; Chuyên cần</a>
+        <a class="tab-link" href="/manager/staff/list">Danh sách nhân viên</a>
+        <a class="tab-link" href="/manager/staff/salary">Cấu hình tiền lương</a>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="shift-toolbar glass-panel">
+        <div class="toolbar-left">
+            <div class="week-picker">
+                <a class="picker-btn" href="/manager/staff/shifts?weekStart=@prevWeekStart">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </a>
+                <div class="picker-label">
+                    @Model.WeekStart – @Model.WeekEnd
+                </div>
+                <a class="picker-btn" href="/manager/staff/shifts?weekStart=@nextWeekStart">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </a>
+            </div>
+            @* <button class="today-btn">Hôm nay</button> *@
+        </div>
+        <div class="toolbar-right">
+            <div class="shift-legend">
+                <span class="legend-dot morning"></span><span>Morning 06–14h</span>
+                <span class="legend-dot afternoon"></span><span>Afternoon 14–22h</span>
+                <span class="legend-dot evening"></span><span>Evening 22–06h</span>
+            </div>
+
+            <button class="add-staff-btn" data-bs-toggle="modal" data-bs-target="#createShiftModal" style="height: 38px;">
+                <span class="material-symbols-outlined">add</span>
+                Thêm ca trực
+            </button>
+        </div>
+    </div>
+
+    <!-- Shift Grid Table (WeeklyScheduleResponse) -->
+    <div class="shift-grid-container glass-panel">
+        <div class="table-responsive custom-scrollbar">
+            <table class="shift-table">
+                <thead>
+                    <tr class="court-grid-header">
+                        <th class="sticky-col">NHÂN VIÊN</th>
+                        @foreach (var dailyShift in Model.Days)
+                        {
+                            @if (@dailyShift.DayName == "Thứ Bảy" || @dailyShift.DayName == "Chủ Nhật")
+                            {
+                                <th class="weekend-col">@dailyShift.DayName<br /><span class="day-sub">@dailyShift.Date</span></th>
+                            }
+                            else
+                            {
+                                <th>@dailyShift.DayName<br /><span class="day-sub">@dailyShift.Date</span></th>
+                            }
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var staff in Model.Staffs ?? new List<SportCourtManagement_FrontEnd.Models.StaffSummaryResponse>())
+                    {
+                        <tr>
+                            <td class="sticky-col staff-info-col">
+                                <div class="staff-info">
+                                    <div class="avatar-container">
+                                        <img class="avatar-img" alt="@staff.FullName"
+                                             src="@(string.IsNullOrEmpty(staff.AvatarUrl) ? "https://lh3.googleusercontent.com/aida-public/AB6AXuC7qVwjVMMInSzX3jgRwu6VFj5ISqC8nl3eY7u518JJyWie9Isu9jELtYGhmgwfHM80nNsq7qaj_jLZbGmQRdPKkI4dRYHS_c5YsUlS_HnEE30urPzP4H_0YColY_vGrCmUOqKJa1u_2QUEx11vndCWIVYUElcJUb7ChmgMN4EYQ3v-1wyzY1lQhUuz7Rdq4UK0fABHjJZ8hP2FdeqhklXdaFfXUUZWYLned69BxcTYjZUDe6VQRimnzEYbB1i5fFG6ES7FJ5X479Q" : staff.AvatarUrl)" />
+                                        <span class="status-dot @(staff.IsActive ? "online" : "offline")"></span>
+                                    </div>
+                                    <div class="staff-details">
+                                        <p class="staff-name">@staff.FullName</p>
+                                        <span class="staff-role">Staff</span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            @foreach (var dailyShift in Model.Days)
+                            {
+                                var shifts = dailyShift.Shifts.Where(s => s.StaffId == staff.UserId).ToList();
+                                var isWeekend = dailyShift.DayName == "Thứ Bảy" || dailyShift.DayName == "Chủ Nhật";
+
+                                <td class="shift-cell @(isWeekend ? "weekend-cell" : "")">
+                                    @if (shifts.Any())
+                                    {
+                                        @foreach (var shift in shifts)
+                                        {
+                                            <div class="shift-card @shift.ShiftType.ToLower()"
+                                                 data-shift-id="@shift.ShiftId"
+                                                 data-staff-id="@shift.StaffId"
+                                                 data-staff-name="@shift.StaffName"
+                                                 data-staff-email="@shift.StaffEmail"
+                                                 data-staff-role="@shift.StaffRole"
+                                                 data-avatar-url="@(shift.AvatarUrl ?? "")"
+                                                 data-date="@dailyShift.Date"
+                                                 data-type="@shift.ShiftType"
+                                                 data-start-time="@shift.StartTime"
+                                                 data-end-time="@shift.EndTime"
+                                                 data-complex-name="@shift.ComplexName"
+                                                 data-checkin="@(shift.CheckInTime?.ToString("dd/MM/yyyy HH:mm") ?? "")"
+                                                 data-checkout="@(shift.CheckOutTime?.ToString("dd/MM/yyyy HH:mm") ?? "")"
+                                                 data-late="@shift.LateMinutes"
+                                                 data-early="@shift.EarlyLeaveMinutes"
+                                                 data-note="@shift.Note"
+                                                 title="@(string.IsNullOrEmpty(shift.Note) ? "Không có ghi chú" : $"Note: {shift.Note}")">
+                                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                                    <span class="shift-type-label">@shift.ShiftType</span>
+                                                </div>
+                                                <span class="shift-time-label">@shift.StartTime–@shift.EndTime</span>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="shift-card off"
+                                             data-staff-id="@staff.UserId"
+                                             data-staff-name="@staff.FullName"
+                                             data-date="@dailyShift.Date">
+                                            OFF
+                                        </div>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- Create Shift Modal -->
+<div class="modal fade" id="createShiftModal" tabindex="-1" aria-labelledby="createShiftLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shift-modal-content">
+            <form asp-controller="Manager" asp-action="CreateShift" method="post">
+                <div class="modal-header shift-modal-header">
+                    <h5 class="modal-title" id="createShiftLabel">
+                        <span class="material-symbols-outlined">calendar_add_on</span>
+                        Tạo ca trực mới
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="shift-form-grid">
+                        <div class="shift-form-group shift-form-full">
+                            <label class="shift-form-label">Nhân viên</label>
+                            <select class="shift-form-input" id="createShiftStaffId" name="StaffId" required>
+                                <option value="">-- Chọn nhân viên --</option>
+                                @foreach (var s in Model.Staffs ?? new List<SportCourtManagement_FrontEnd.Models.StaffSummaryResponse>())
+                                {
+                                    <option value="@s.UserId">@s.FullName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="shift-form-group shift-form-full">
+                            <label class="shift-form-label">Ngày trực</label>
+                            <input type="date" class="shift-form-input" id="createShiftDate" name="ShiftDate" required />
+                        </div>
+                        <div class="shift-form-group shift-form-full">
+                            <label class="shift-form-label">Loại ca</label>
+                            <div class="shift-type-selector">
+                                <label class="shift-type-option morning-opt">
+                                    <input type="radio" name="ShiftType" value="Morning" checked />
+                                    <span>Morning</span>
+                                    <small>06:00 – 14:00</small>
+                                </label>
+                                <label class="shift-type-option afternoon-opt">
+                                    <input type="radio" name="ShiftType" value="Afternoon" />
+                                    <span>Afternoon</span>
+                                    <small>14:00 – 22:00</small>
+                                </label>
+                                <label class="shift-type-option evening-opt">
+                                    <input type="radio" name="ShiftType" value="Evening" />
+                                    <span>Evening</span>
+                                    <small>22:00 – 06:00</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="shift-form-group shift-form-full">
+                            <label class="shift-form-label">Ghi chú</label>
+                            <textarea class="shift-form-input" id="createShiftNote" name="Note" rows="2" maxlength="300" placeholder="Nhập ghi chú (tối đa 300 ký tự)..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer shift-modal-footer">
+                    <button type="button" class="shift-btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="shift-btn-primary">
+                        <span class="material-symbols-outlined">check</span>
+                        Tạo ca trực
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- View Shift Detail Modal -->
+<div class="modal fade" id="viewShiftDetailModal" tabindex="-1" aria-labelledby="viewShiftDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shift-modal-content">
+            <div class="modal-header shift-modal-header">
+                <h5 class="modal-title" id="viewShiftDetailLabel">
+                    <span class="material-symbols-outlined">badge</span>
+                    Chi tiết ca trực &amp; Chấm công
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="detail-modal-body">
+                <!-- Staff Header Card -->
+                <div class="detail-staff-profile">
+                    <div class="detail-staff-avatar">
+                        <img id="detailStaffAvatar" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                    <div class="detail-staff-info">
+                        <h4 id="detailStaffName"></h4>
+                        <p id="detailStaffEmail"></p>
+                        <span id="detailStaffRole" class="detail-staff-badge"></span>
+                    </div>
+                </div>
+
+                <!-- Shift Timing Info -->
+                <div class="detail-section-title">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">schedule</span>
+                    Thông tin ca trực
+                </div>
+                <div class="detail-info-grid">
+                    <div class="detail-info-row">
+                        <span class="detail-info-label">Loại ca:</span>
+                        <strong id="detailShiftType" class="detail-info-value"></strong>
+                    </div>
+                    <div class="detail-info-row">
+                        <span class="detail-info-label">Ngày trực:</span>
+                        <span id="detailShiftDate" class="detail-info-value"></span>
+                    </div>
+                    <div class="detail-info-row">
+                        <span class="detail-info-label">Giờ ca trực:</span>
+                        <span id="detailShiftHours" class="detail-info-value" style="font-family: monospace;"></span>
+                    </div>
+                    <div class="detail-info-row">
+                        <span class="detail-info-label">Cơ sở:</span>
+                        <span id="detailComplexName" class="detail-info-value"></span>
+                    </div>
+                </div>
+
+                <!-- Attendance Details Section -->
+                <div class="detail-section-title">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">fact_check</span>
+                    Chấm công thực tế
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <!-- Check-in -->
+                    <div class="detail-attendance-card">
+                        <div class="detail-attendance-left">
+                            <span class="material-symbols-outlined" style="color: var(--emerald-400);">login</span>
+                            <span class="detail-info-label">Giờ vào:</span>
+                        </div>
+                        <span id="detailCheckInTime" class="detail-attendance-time"></span>
+                    </div>
+
+                    <!-- Check-out -->
+                    <div class="detail-attendance-card">
+                        <div class="detail-attendance-left">
+                            <span class="material-symbols-outlined" style="color: var(--rose-400);">logout</span>
+                            <span class="detail-info-label">Giờ ra:</span>
+                        </div>
+                        <span id="detailCheckOutTime" class="detail-attendance-time"></span>
+                    </div>
+
+                    <!-- Late / Early Stats -->
+                    <div class="detail-stats-grid">
+                        <div class="detail-stat-box late">
+                            <span class="detail-stat-title" style="color: var(--orange-400);">Đi muộn (Late)</span>
+                            <strong id="detailLateMinutes" class="detail-stat-value" style="color: var(--orange-400);">0 phút</strong>
+                        </div>
+                        <div class="detail-stat-box early">
+                            <span class="detail-stat-title" style="color: var(--rose-400);">Về sớm (Early)</span>
+                            <strong id="detailEarlyLeaveMinutes" class="detail-stat-value" style="color: var(--rose-400);">0 phút</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Note section -->
+                <div id="detailNoteSection" style="display: none;">
+                    <div class="detail-section-title">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">description</span>
+                        Ghi chú
+                    </div>
+                    <div class="detail-note-box" id="detailNoteText"></div>
+                </div>
+            </div>
+            <div class="modal-footer shift-modal-footer">
+                <button type="button" class="shift-btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Shift Modal (form submits to controller) -->
+<div class="modal fade" id="editShiftModal" tabindex="-1" aria-labelledby="editShiftLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shift-modal-content">
+            <form asp-controller="Manager" asp-action="UpdateShift" method="post">
+                <div class="modal-header shift-modal-header">
+                    <h5 class="modal-title" id="editShiftLabel">
+                        <span class="material-symbols-outlined">edit_calendar</span>
+                        Chỉnh sửa ca trực
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editShiftId" name="ShiftId" />
+                    <div class="shift-form-grid">
+                        <div class="shift-form-group">
+                            <label class="shift-form-label">Nhân viên (Không thể sửa)</label>
+                            <input type="text" class="shift-form-input" id="editStaffNameDisplay" readonly style="opacity: 0.7; cursor: not-allowed;" />
+                        </div>
+                        <div class="shift-form-group">
+                            <label class="shift-form-label">Ngày (Không thể sửa)</label>
+                            <input type="text" class="shift-form-input" id="editShiftDateDisplay" readonly style="opacity: 0.7; cursor: not-allowed;" />
+                        </div>
+                        <div class="shift-form-group shift-form-full">
+                            <label class="shift-form-label">Loại ca</label>
+                            <div class="shift-type-selector">
+                                <label class="shift-type-option morning-opt">
+                                    <input type="radio" name="ShiftType" value="Morning" id="editShiftMorning" />
+                                    <span>Morning</span>
+                                    <small>06:00 – 14:00</small>
+                                </label>
+                                <label class="shift-type-option afternoon-opt">
+                                    <input type="radio" name="ShiftType" value="Afternoon" id="editShiftAfternoon" />
+                                    <span>Afternoon</span>
+                                    <small>14:00 – 22:00</small>
+                                </label>
+                                <label class="shift-type-option evening-opt">
+                                    <input type="radio" name="ShiftType" value="Evening" id="editShiftEvening" />
+                                    <span>Evening</span>
+                                    <small>22:00 – 06:00</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="shift-form-group shift-form-full">
+                            <label class="shift-form-label">Ghi chú</label>
+                            <textarea class="shift-form-input" id="editShiftNote" name="Note" rows="2" maxlength="300" placeholder="Nhập ghi chú (tối đa 300 ký tự)..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer shift-modal-footer">
+                    <button type="button" class="shift-btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="shift-btn-primary">
+                        <span class="material-symbols-outlined">save</span>
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Shift Modal (form submits to controller) -->
+<div class="modal fade" id="deleteShiftModal" tabindex="-1" aria-labelledby="deleteShiftLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shift-modal-content">
+            <form asp-controller="Manager" asp-action="DeleteShift" method="post">
+                <div class="modal-header shift-modal-header" style="border-bottom: none; padding-bottom: 0;">
+                    <h5 class="modal-title" id="deleteShiftLabel" style="color: var(--rose-400);">
+                        <span class="material-symbols-outlined" style="color: var(--rose-400);">warning</span>
+                        Xác nhận xoá ca trực
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding-top: 10px;">
+                    <p>Bạn có chắc chắn muốn xoá ca trực của <strong id="deleteShiftStaffName"></strong>?</p>
+                    <input type="hidden" id="deleteShiftId" name="ShiftId" />
+                </div>
+                <div class="modal-footer shift-modal-footer" style="border-top: none; padding-top: 0;">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn-primary-custom" style="background-color: var(--rose-500); color: white;">
+                        <span class="material-symbols-outlined">delete</span>
+                        Xoá
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Context Menu -->
+<div id="context-menu" class="context-menu" style="display: none;">
+    <div class="context-header">
+        <p class="context-title" id="contextMenuTitle">Tùy chọn ca trực</p>
+    </div>
+    <button class="context-item" id="contextDetailBtn">
+        <span class="material-symbols-outlined">visibility</span>
+        Xem chi tiết
+    </button>
+    <button class="context-item" id="contextEditBtn">
+        <span class="material-symbols-outlined">edit</span>
+        Chỉnh sửa ca trực
+    </button>
+    <button class="context-item danger" id="contextDeleteBtn">
+        <span class="material-symbols-outlined">delete</span>
+        Xoá ca trực
+    </button>
+</div>
+
+@section Scripts {
+    <script>
+        let activeCard = null;
+
+        // ── Toast Helper ──────────────────────────────────────────────────────
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            const icon = type === 'error' ? 'error' : (type === 'info' ? 'info' : 'check_circle');
+            toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span><div>${message}</div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ── TempData Toasts (server redirect feedback) ────────────────────────
+        @if (TempData["SuccessMessage"] != null)
+        {
+                    <text>showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');</text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+                    <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
+        }
+
+        // ── Context Menu positioning helper ───────────────────────────────────
+        const ctxMenu = document.getElementById('context-menu');
+
+        function openCtxMenu(card, x, y) {
+            activeCard = card;
+            document.getElementById('contextMenuTitle').textContent = card.dataset.staffName;
+            ctxMenu.style.display = 'block';
+            ctxMenu.style.left = x + 'px';
+            ctxMenu.style.top  = y + 'px';
+        }
+
+        document.addEventListener('click', () => ctxMenu.style.display = 'none');
+
+        // ── Table event delegation ─────────────────────────────────────────────
+        const tableBody = document.querySelector('.shift-table tbody');
+
+        tableBody.addEventListener('click', function(e) {
+            const card = e.target.closest('.shift-card');
+            if (!card) return;
+
+            if (card.classList.contains('off')) {
+                document.getElementById('createShiftStaffId').value = card.dataset.staffId;
+                document.getElementById('createShiftDate').value = card.dataset.date;
+                const createModal = new bootstrap.Modal(document.getElementById('createShiftModal'));
+                createModal.show();
+            } else {
+                e.stopPropagation();
+                openCtxMenu(card, e.clientX, e.clientY);
+            }
+        });
+
+        // ── Context Menu actions ───────────────────────────────────────────────
+        document.getElementById('contextDetailBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (activeCard) fillAndShowDetailModal(activeCard);
+        });
+
+        document.getElementById('contextEditBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!activeCard) return;
+            const d = activeCard.dataset;
+            document.getElementById('editShiftId').value = d.shiftId;
+            document.getElementById('editStaffNameDisplay').value = d.staffName;
+            document.getElementById('editShiftDateDisplay').value = d.date;
+            document.getElementById('editShiftNote').value = d.note || '';
+            const radio = document.getElementById(d.type === 'Morning' ? 'editShiftMorning' : d.type === 'Afternoon' ? 'editShiftAfternoon' : 'editShiftEvening');
+            if (radio) radio.checked = true;
+            const editModal = new bootstrap.Modal(document.getElementById('editShiftModal'));
+            editModal.show();
+        });
+
+        document.getElementById('contextDeleteBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!activeCard) return;
+            document.getElementById('deleteShiftId').value = activeCard.dataset.shiftId;
+            document.getElementById('deleteShiftStaffName').textContent = activeCard.dataset.staffName;
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteShiftModal'));
+            deleteModal.show();
+        });
+
+        // ── Detail Modal populate ──────────────────────────────────────────────
+        function fillAndShowDetailModal(card) {
+            const d = card.dataset;
+            document.getElementById('detailStaffAvatar').src    = d.avatarUrl;
+            document.getElementById('detailStaffName').textContent    = d.staffName;
+            document.getElementById('detailStaffEmail').textContent   = d.staffEmail || 'Chưa cập nhật';
+            document.getElementById('detailStaffRole').textContent    = d.staffRole || 'Nhân viên';
+            document.getElementById('detailShiftType').textContent    = d.type;
+            document.getElementById('detailShiftDate').textContent    = d.date;
+            document.getElementById('detailShiftHours').textContent   = `${d.startTime} – ${d.endTime}`;
+            document.getElementById('detailComplexName').textContent  = d.complexName || '—';
+            document.getElementById('detailCheckInTime').textContent  = d.checkin  || 'Chưa chấm công';
+            document.getElementById('detailCheckOutTime').textContent = d.checkout || 'Chưa chấm công'; 
+
+            const late  = parseInt(d.late  || '0');
+            const early = parseInt(d.early || '0');
+            const lateEl  = document.getElementById('detailLateMinutes');
+            const earlyEl = document.getElementById('detailEarlyLeaveMinutes');
+            lateEl.textContent  = late  > 0 ? `${late} phút`  : 'Đúng giờ';
+            lateEl.style.color  = late  > 0 ? 'var(--orange-400)' : 'var(--emerald-400)';
+            earlyEl.textContent = early > 0 ? `${early} phút` : 'Đúng giờ';
+            earlyEl.style.color = early > 0 ? 'var(--rose-400)'   : 'var(--emerald-400)';
+
+            const noteSection = document.getElementById('detailNoteSection');
+            if (d.note && d.note.trim() && d.note !== 'null') {
+                document.getElementById('detailNoteText').textContent = d.note;
+                noteSection.style.display = 'block';
+            } else {
+                noteSection.style.display = 'none';
+            }
+            const detailModal = new bootstrap.Modal(document.getElementById('viewShiftDetailModal'));
+            detailModal.show();
+        }
+
+
+    </script>
+}

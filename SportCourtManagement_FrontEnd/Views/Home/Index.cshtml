@@ -129,7 +129,7 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="text-sc-muted font-inter uppercase mb-2 d-block" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Loại sân</label>
-                        <select name="CourtTypeId" class="sc-input py-2">
+                        <select name="CourtTypeId" id="home-court-type-select" class="sc-input py-2">
                             <option value="">Tất cả loại sân</option>
                             <option value="1">Cầu lông</option>
                             <option value="2">Bóng đá</option>
@@ -159,43 +159,14 @@
             <p class="text-sc-muted" style="font-size: 14px;">Những sân đấu chất lượng cao được cộng đồng thành viên đánh giá xuất sắc nhất</p>
         </div>
 
-        <!-- Filter tabs -->
-        <div class="d-flex flex-column align-items-center gap-3 mb-5">
-            <p class="text-sc-muted font-inter uppercase tracking-wider mb-0" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Lọc nhanh theo bộ môn</p>
-            <div class="p-1 rounded-3 d-flex flex-wrap justify-content-center gap-1 border" style="background: rgba(20,27,45,0.4); border-color: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
-                <button type="button" class="tab-filter-btn active sc-btn sc-btn-primary px-3 py-2" data-type="All" style="font-size: 13px; border-radius: 8px;">
-                    <i class="bi bi-grid-fill me-1"></i> Tất cả
-                </button>
-                <button type="button" class="tab-filter-btn sc-btn sc-btn-secondary px-3 py-2" data-type="Pickleball" style="font-size: 13px; border-radius: 8px;">
-                    <i class="bi bi-dribbble me-1 text-warning"></i> Pickleball
-                </button>
-                <button type="button" class="tab-filter-btn sc-btn sc-btn-secondary px-3 py-2" data-type="Cầu lông" style="font-size: 13px; border-radius: 8px;">
-                    <i class="bi bi-dribbble me-1 text-info"></i> Cầu lông
-                </button>
-                <button type="button" class="tab-filter-btn sc-btn sc-btn-secondary px-3 py-2" data-type="Bóng đá" style="font-size: 13px; border-radius: 8px;">
-                    <i class="bi bi-dribbble me-1 text-success"></i> Bóng đá
-                </button>
-                <button type="button" class="tab-filter-btn sc-btn sc-btn-secondary px-3 py-2" data-type="Tennis" style="font-size: 13px; border-radius: 8px;">
-                    <i class="bi bi-dribbble me-1 text-danger"></i> Tennis
-                </button>
-            </div>
-        </div>
 
         <!-- Courts grid -->
         <div class="row g-4" id="courts-container">
-            @foreach (var court in Model.FeaturedCourts)
-            {
-                <div class="col-md-6 col-lg-4 d-flex align-items-stretch court-item" data-category="@court.CourtTypeName">
-                    @await Html.PartialAsync("_CourtCard", court)
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải danh sách sân...</span>
                 </div>
-            }
-
-            @if (Model.FeaturedCourts.Count == 0)
-            {
-                <div class="col-12 text-center py-5">
-                    <p class="text-sc-muted">Chưa có sân nổi bật nào, vui lòng quay lại sau.</p>
-                </div>
-            }
+            </div>
         </div>
 
         <div class="text-center mt-5">
@@ -426,29 +397,163 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            // Category tab filtering logic
-            $('.tab-filter-btn').on('click', function() {
-                $('.tab-filter-btn').removeClass('active sc-btn-primary').addClass('sc-btn-secondary');
-                $(this).removeClass('sc-btn-secondary').addClass('active sc-btn-primary');
+        // Shared Helper to render court card
+        function renderCourtCard(court) {
+            const courtId = court.courtId !== undefined ? court.courtId : court.CourtId;
+            const courtName = court.courtName !== undefined ? court.courtName : court.CourtName;
+            const courtCode = court.courtCode !== undefined ? court.courtCode : court.CourtCode;
+            const courtTypeName = court.courtTypeName !== undefined ? court.courtTypeName : (court.CourtTypeName || (court.courtType && court.courtType.typeName) || (court.CourtType && court.CourtType.TypeName) || '');
+            const imageUrl = court.imageUrl !== undefined ? court.imageUrl : court.ImageUrl;
+            const status = court.status !== undefined ? court.status : court.Status;
+            const location = court.location !== undefined ? court.location : court.Location;
+            const openTime = court.openTime !== undefined ? court.openTime : court.OpenTime;
+            const closeTime = court.closeTime !== undefined ? court.closeTime : court.CloseTime;
+            const averageRating = court.averageRating !== undefined ? court.averageRating : (court.AverageRating || 0.0);
+            const reviewCount = court.reviewCount !== undefined ? court.reviewCount : (court.ReviewCount || 0);
+            const minPrice = court.minPrice !== undefined ? court.minPrice : (court.MinPrice || court.pricePerHour || court.PricePerHour || 0);
 
-                const selectedType = ($(this).attr('data-type') || '').trim().toLowerCase().normalize("NFC");
-                console.log("Filtering by:", selectedType);
-                
-                if (selectedType === 'all') {
-                    $('.court-item').fadeIn(300);
-                } else {
-                    $('.court-item').each(function() {
-                        const category = ($(this).attr('data-category') || '').trim().toLowerCase().normalize("NFC");
-                        console.log("Checking court with category:", category);
-                        if (category.indexOf(selectedType) !== -1 || selectedType.indexOf(category) !== -1) {
-                            $(this).fadeIn(300);
-                        } else {
-                            $(this).fadeOut(300);
+            const detailUrl = `/Courts/Detail/${courtId}`;
+            const cardFeaturedClass = averageRating >= 4.8 ? 'sc-card-featured' : '';
+            
+            let imageHtml = '';
+            if (imageUrl) {
+                const imgUrl = imageUrl.startsWith('http') || imageUrl.startsWith('/') ? imageUrl : `/images/courts/${imageUrl}`;
+                imageHtml = `<img src="${imgUrl}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />`;
+            } else {
+                imageHtml = `
+                    <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: var(--sc-text-secondary);">
+                        <span><i class="bi bi-dribbble me-1"></i> Sân thể thao</span>
+                    </div>`;
+            }
+            
+            let badgesHtml = '';
+            if (averageRating >= 4.9) {
+                badgesHtml += `<span class="sc-badge sc-badge-amber"><i class="bi bi-trophy-fill me-1"></i> VIP</span>`;
+            } else if (reviewCount > 200) {
+                badgesHtml += `<span class="sc-badge sc-badge-amber"><i class="bi bi-fire me-1"></i> Hot</span>`;
+            }
+            badgesHtml += `<span class="sc-badge sc-badge-blue">${courtTypeName}</span>`;
+            
+            let statusBadgeHtml = '';
+            if (status && status.toLowerCase() === 'available') {
+                statusBadgeHtml = `<span class="sc-badge sc-badge-green">Còn trống</span>`;
+            } else if (status && status.toLowerCase() === 'maintenance') {
+                statusBadgeHtml = `<span class="sc-badge sc-badge-red">Bảo trì</span>`;
+            } else {
+                statusBadgeHtml = `<span class="sc-badge sc-badge-muted">${status || ''}</span>`;
+            }
+            
+            let starsHtml = '';
+            const floorStars = Math.round(averageRating);
+            for (let i = 1; i <= 5; i++) {
+                const filled = i <= floorStars ? 'sc-star-filled' : '';
+                starsHtml += `<span class="sc-star ${filled}" style="font-size: 12px;"><i class="bi bi-star-fill"></i></span>`;
+            }
+            
+            const formatTime = (t) => {
+                if (!t) return '00:00';
+                return t.substring(0, 5);
+            };
+
+            return `
+                <div class="col-md-6 col-lg-4 d-flex align-items-stretch court-item" data-category="${courtTypeName}">
+                    <article class="sc-card ${cardFeaturedClass} w-100" style="cursor: pointer;" onclick="location.href='${detailUrl}'">
+                        <div class="position-relative w-full overflow-hidden" style="aspect-ratio: 8/5;">
+                            ${imageHtml}
+                            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(0deg, rgba(15,17,23,0.7) 0%, rgba(15,17,23,0) 60%); pointer-events: none;"></div>
+                            <div class="position-absolute top-0 start-0 p-3 d-flex gap-2">
+                                ${badgesHtml}
+                            </div>
+                            <div class="position-absolute top-0 end-0 p-3">
+                                ${statusBadgeHtml}
+                            </div>
+                        </div>
+                        <div class="sc-card-body d-flex flex-column justify-content-between h-100">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                    <h4 class="font-outfit text-white mb-0" style="font-weight: 700; font-size: 15px; line-height: 1.3;">
+                                        ${courtName}
+                                    </h4>
+                                    <span class="px-2 py-1 rounded text-sc-muted font-inter" style="font-size: 11px; font-weight: 600; background-color: rgba(255,255,255,0.04); white-space: nowrap;">
+                                        <i class="bi bi-clipboard me-1"></i> ${courtCode}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mb-1" style="font-size: 13px; color: var(--sc-text-secondary);">
+                                    <span><i class="bi bi-geo-alt-fill"></i></span>
+                                    <span>${location || ''}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mb-3" style="font-size: 13px; color: var(--sc-text-secondary);">
+                                    <span><i class="bi bi-clock"></i></span>
+                                    <span>${formatTime(openTime)} - ${formatTime(closeTime)}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="height: 1px; background-color: rgba(255,255,255,0.05); margin-bottom: 14px;"></div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <div class="d-flex gap-0.5">
+                                            ${starsHtml}
+                                        </div>
+                                        <span class="text-white font-inter" style="font-weight: 700; font-size: 13px;">${averageRating.toFixed(1)}</span>
+                                        <span class="text-sc-muted font-inter" style="font-size: 12px;">(${reviewCount})</span>
+                                    </div>
+                                    <div class="d-flex align-items-baseline gap-0.5">
+                                        <span class="font-inter text-sc-green" style="font-weight: 800; font-size: 16px;">
+                                            ${minPrice.toLocaleString('vi-VN')}đ
+                                        </span>
+                                        <span class="text-sc-muted" style="font-size: 11px;">/giờ</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>`;
+        }
+
+        $(document).ready(function() {
+            // Fetch featured courts on page load
+            function loadFeaturedCourts() {
+                $.ajax({
+                    url: '/Courts/GetCourtsJson?SortBy=rating&SortDescending=true&PageSize=12',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        let courts = [];
+                        if (data && Array.isArray(data.value)) {
+                            courts = data.value;
+                        } else if (Array.isArray(data)) {
+                            courts = data;
+                        } else if (data && data.data && Array.isArray(data.data.items)) {
+                            courts = data.data.items;
+                        } else if (data && Array.isArray(data.items)) {
+                            courts = data.items;
                         }
-                    });
-                }
-            });
+
+                        // Lọc sân có đánh giá trên 4 sao và lấy 3 sân đầu tiên
+                        courts = courts.filter(function(court) {
+                            const rating = court.averageRating !== undefined ? court.averageRating : (court.AverageRating || 0.0);
+                            return rating > 4.0;
+                        }).slice(0, 3);
+
+                        const container = $('#courts-container');
+                        container.empty();
+
+                        if (courts.length === 0) {
+                            container.html('<div class="col-12 text-center py-5"><p class="text-sc-muted">Không có sân nào đạt đánh giá trên 4 sao.</p></div>');
+                            return;
+                        }
+
+                        courts.forEach(function(court) {
+                            const cardHtml = renderCourtCard(court);
+                            container.append(cardHtml);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error loading featured courts:", error);
+                        $('#courts-container').html('<div class="col-12 text-center py-5"><p class="text-danger">Không thể tải danh sách sân nổi bật. Vui lòng thử lại sau.</p></div>');
+                    }
+                });
+            }
 
             // Copy coupon code logic
             $('.btn-copy-code').on('click', function() {
@@ -466,6 +571,24 @@
                     console.error('Failed to copy text: ', err);
                 });
             });
+
+            // Load Court Types for Quick Search Dropdown
+            function loadQuickSearchCourtTypes() {
+                $.getJSON('/Courts/GetCourtTypesJson', function(types) {
+                    const select = $('#home-court-type-select');
+                    select.empty();
+                    select.append('<option value="">Tất cả loại sân</option>');
+                    types.forEach(function(type) {
+                        select.append(`<option value="${type.courtTypeId}">${type.typeName}</option>`);
+                    });
+                }).fail(function() {
+                    console.warn("Failed to load dynamic court types for homepage quick search, using fallback.");
+                });
+            }
+
+            // Initial load
+            loadQuickSearchCourtTypes();
+            loadFeaturedCourts();
         });
     </script>
 }

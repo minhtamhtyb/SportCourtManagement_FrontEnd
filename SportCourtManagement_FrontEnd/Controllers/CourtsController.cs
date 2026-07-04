@@ -18,62 +18,61 @@ public class CourtsController : Controller
     }
 
     // GET: /Courts
-    public async Task<IActionResult> Index(CourtSearchParams searchParams)
+    public IActionResult Index()
     {
-        searchParams.PageSize = 6; // Display 6 courts per page matching Figma design
-        var courtsTask = _apiService.SearchCourtsAsync(searchParams);
-        var typesTask = _apiService.GetCourtTypesAsync();
-
-        await Task.WhenAll(courtsTask, typesTask);
-
-        var viewModel = new CourtSearchViewModel
-        {
-            CourtsResult = courtsTask.Result,
-            CourtTypes = typesTask.Result,
-            SearchParams = searchParams
-        };
-
-        return View(viewModel);
+        return View();
     }
 
     // GET: /Courts/Detail/{id}
-    public async Task<IActionResult> Detail(int id, DateOnly? date)
+    public IActionResult Detail(int id, DateOnly? date)
+    {
+        ViewBag.CourtId = id;
+        ViewBag.SelectedDate = date ?? DateOnly.FromDateTime(DateTime.Today);
+        return View();
+    }
+
+    // GET: /Courts/GetCourtsJson
+    [HttpGet]
+    public async Task<IActionResult> GetCourtsJson(CourtSearchParams searchParams)
+    {
+        var result = await _apiService.SearchCourtsAsync(searchParams);
+        return Json(result);
+    }
+
+    // GET: /Courts/GetCourtDetailJson/{id}
+    [HttpGet]
+    public async Task<IActionResult> GetCourtDetailJson(int id)
     {
         var court = await _apiService.GetCourtDetailAsync(id);
-        if (court == null)
+        return Json(court);
+    }
+
+    // GET: /Courts/GetCourtAvailabilityJson/{id}?date=YYYY-MM-DD
+    [HttpGet]
+    public async Task<IActionResult> GetCourtAvailabilityJson(int id, string date)
+    {
+        if (!DateTime.TryParse(date, out var parsedDate))
         {
-            return NotFound();
+            parsedDate = DateTime.Today;
         }
+        var availability = await _apiService.GetCourtAvailabilityAsync(id, parsedDate);
+        return Json(availability);
+    }
 
-        var selectedDate = date ?? DateOnly.FromDateTime(DateTime.Today);
-        var availabilityTask = _apiService.GetCourtAvailabilityAsync(id, selectedDate.ToDateTime(TimeOnly.MinValue));
-        var reviewsTask = _apiService.GetCourtReviewsAsync(id, 1, 5); // Fetch first 5 reviews
+    // GET: /Courts/GetCourtReviewsJson/{courtId}?pageNumber=N
+    [HttpGet]
+    public async Task<IActionResult> GetCourtReviewsJson(int courtId, int pageNumber = 1)
+    {
+        var reviews = await _apiService.GetCourtReviewsAsync(courtId, pageNumber, 5);
+        return Json(reviews);
+    }
 
-        // Fetch similar courts (same type, excluding current, take 3)
-        var similarParams = new CourtSearchParams
-        {
-            CourtTypeId = court.CourtType.CourtTypeId,
-            PageSize = 4 // Fetch 4 to filter out current one
-        };
-        var similarTask = _apiService.SearchCourtsAsync(similarParams);
-
-        await Task.WhenAll(availabilityTask, reviewsTask, similarTask);
-
-        var similarCourts = similarTask.Result.Items
-            .Where(c => c.CourtId != id)
-            .Take(3)
-            .ToList();
-
-        var viewModel = new CourtDetailViewModel
-        {
-            Court = court,
-            Availability = availabilityTask.Result ?? new CourtAvailabilityDto { CourtId = id, Date = selectedDate.ToDateTime(TimeOnly.MinValue) },
-            ReviewsResult = reviewsTask.Result,
-            SimilarCourts = similarCourts,
-            SelectedDate = selectedDate
-        };
-
-        return View(viewModel);
+    // GET: /Courts/GetCourtTypesJson
+    [HttpGet]
+    public async Task<IActionResult> GetCourtTypesJson()
+    {
+        var types = await _apiService.GetCourtTypesAsync();
+        return Json(types);
     }
 
     // GET: /Courts/Availability/{id}?date=YYYY-MM-DD (AJAX)

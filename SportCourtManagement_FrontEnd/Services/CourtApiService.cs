@@ -102,12 +102,11 @@ public class CourtApiService : ICourtApiService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<PagedResult<ReviewDto>>>($"api/courts/{courtId}/reviews?pageNumber={pageNumber}&pageSize={pageSize}");
-            if (response != null && response.Success && response.Data != null)
+            var response = await _httpClient.GetFromJsonAsync<PagedResult<ReviewDto>>($"api/courts/{courtId}/reviews?pageNumber={pageNumber}&pageSize={pageSize}");
+            if (response != null)
             {
-                return response.Data;
+                return response;
             }
-            _logger.LogWarning("GetCourtReviews API returned unsuccessful: {Message}", response?.Message);
         }
         catch (Exception ex)
         {
@@ -388,5 +387,26 @@ public class CourtApiService : ICourtApiService
             _logger.LogError(ex, "Error calling GetActivePromotions API");
         }
         return new List<PromotionDto>();
+    }
+
+    public async Task<string> GetRawJsonAsync(string relativeUrl)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync(relativeUrl);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                _logger.LogWarning("GetRawJsonAsync from {Url} returned non-success status: {StatusCode}", relativeUrl, response.StatusCode);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing GetRawJsonAsync for url {Url}", relativeUrl);
+        }
+        return "{}";
     }
 }

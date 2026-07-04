@@ -26,16 +26,11 @@ public class HomeController : Controller
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
         }
 
-        var featuredCourtsResult = await _apiService.SearchCourtsAsync(new Models.Courts.CourtSearchParams
-        {
-            SortBy = "rating",
-            PageSize = 3
-        });
         var activePromotions = await _apiService.GetActivePromotionsAsync();
 
         var viewModel = new Models.ViewModels.HomePageViewModel
         {
-            FeaturedCourts = featuredCourtsResult?.Items ?? new(),
+            FeaturedCourts = new(),
             ActivePromotions = activePromotions ?? new()
         };
 

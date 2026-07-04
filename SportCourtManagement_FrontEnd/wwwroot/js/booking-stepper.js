@@ -243,9 +243,9 @@ $(document).ready(function () {
             const promise = $.get('/Courts/CheckAvailabilityJson', { id: courtId, date: dateStr })
                 .done(function (response) {
                     // Check if targeted slot is available or booked
-                    const slot = response.slots ? response.slots.find(s => s.timeSlotId === slotId) : null;
+                    const slot = response.slots ? response.slots.find(s => s.slotId === slotId || s.SlotId === slotId || s.timeSlotId === slotId) : null;
                     const status = slot ? slot.status : 'Booked';
-                    checkedDatesAvailability.push({ date: date, dateStr: dateStr, status: status, slotName: slot ? slot.startTime : "" });
+                    checkedDatesAvailability.push({ date: date, dateStr: dateStr, status: status, slotName: slot ? (slot.startTime || slot.StartTime) : "" });
                 })
                 .fail(function () {
                     checkedDatesAvailability.push({ date: date, dateStr: dateStr, status: 'Booked' });
