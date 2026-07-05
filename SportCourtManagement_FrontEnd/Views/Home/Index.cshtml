@@ -525,8 +525,12 @@
                             courts = data;
                         } else if (data && data.data && Array.isArray(data.data.items)) {
                             courts = data.data.items;
+                        } else if (data && data.data && Array.isArray(data.data.Items)) {
+                            courts = data.data.Items;
                         } else if (data && Array.isArray(data.items)) {
                             courts = data.items;
+                        } else if (data && Array.isArray(data.Items)) {
+                            courts = data.Items;
                         }
 
                         // Lọc sân có đánh giá trên 4 sao và lấy 3 sân đầu tiên

@@ -559,9 +559,9 @@
                 $.getJSON('/Courts/GetCourtsJson' + query, function(data) {
                     let courts = [];
                     if (data && data.data) {
-                        courts = data.data.items || [];
+                        courts = data.data.items || data.data.Items || [];
                     } else if (data) {
-                        courts = data.items || data;
+                        courts = data.items || data.Items || [];
                     }
 
                     // Filter out current court
