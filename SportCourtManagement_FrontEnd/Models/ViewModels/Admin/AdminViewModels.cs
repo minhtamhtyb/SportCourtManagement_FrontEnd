@@ -137,6 +137,9 @@ public class CourtFormViewModel
     [Display(Name = "URL ảnh")]
     public string ImageUrl { get; set; } = "";
 
+    [Display(Name = "Ảnh sân")]
+    public IFormFile? ImageFile { get; set; }
+
     [Display(Name = "Trạng thái")]
     public string Status { get; set; } = "Available";
 

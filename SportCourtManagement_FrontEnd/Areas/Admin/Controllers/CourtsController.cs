@@ -16,6 +16,7 @@ public class CourtsController(ICourtService courtService) : Controller
         if (complex == null) return NotFound();
 
         var vm = await BuildFormViewModel(complexId, complex.ComplexName);
+        if (IsAjaxRequest()) return PartialView("_CourtFormModal", vm);
         return View(vm);
     }
 
@@ -25,20 +26,35 @@ public class CourtsController(ICourtService courtService) : Controller
     {
         if (!ModelState.IsValid)
         {
+            if (IsAjaxRequest()) return JsonValidationErrors();
             await PopulateFormOptions(model, complexId);
             return View("Create", model);
         }
 
         if (model.CloseTime.CompareTo(model.OpenTime) <= 0)
         {
+            if (IsAjaxRequest()) return BadRequest(new { success = false, message = "Giờ đóng cửa phải sau giờ mở cửa." });
             ModelState.AddModelError(nameof(model.CloseTime), "Giờ đóng cửa phải sau giờ mở cửa.");
             await PopulateFormOptions(model, complexId);
             return View("Create", model);
         }
 
-        await courtService.CreateCourtAsync(MapToDto(model, complexId));
-        TempData["Success"] = "Thêm sân mới thành công!";
-        return RedirectToAction("Details", "Complexes", new { id = complexId });
+        try
+        {
+            await ApplyImageUploadAsync(model);
+            await courtService.CreateCourtAsync(MapToDto(model, complexId));
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Thêm sân mới thành công!" });
+            TempData["Success"] = "Thêm sân mới thành công!";
+            return RedirectToAction("Details", "Complexes", new { id = complexId });
+        }
+        catch (Exception ex)
+        {
+            if (IsAjaxRequest()) return StatusCode(400, new { success = false, message = ex.Message });
+            ModelState.AddModelError(string.Empty, ex.Message);
+            await PopulateFormOptions(model, complexId);
+            return View("Create", model);
+        }
     }
 
     public async Task<IActionResult> Edit(int id)
@@ -61,6 +77,7 @@ public class CourtsController(ICourtService courtService) : Controller
         vm.CloseTime = court.CloseTime;
         vm.PricePerHour = court.PricePerHour;
         vm.CourtSize = court.CourtSize;
+        if (IsAjaxRequest()) return PartialView("_CourtFormModal", vm);
         return View("Create", vm);
     }
 
@@ -73,13 +90,27 @@ public class CourtsController(ICourtService courtService) : Controller
 
         if (!ModelState.IsValid)
         {
+            if (IsAjaxRequest()) return JsonValidationErrors();
             await PopulateFormOptions(model, model.ComplexId);
             return View("Create", model);
         }
 
-        await courtService.UpdateCourtAsync(id, MapToDto(model, model.ComplexId));
-        TempData["Success"] = "Cập nhật sân thành công!";
-        return RedirectToAction("Details", "Complexes", new { id = model.ComplexId });
+        try
+        {
+            await ApplyImageUploadAsync(model);
+            await courtService.UpdateCourtAsync(id, MapToDto(model, model.ComplexId));
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Cập nhật sân thành công!" });
+            TempData["Success"] = "Cập nhật sân thành công!";
+            return RedirectToAction("Details", "Complexes", new { id = model.ComplexId });
+        }
+        catch (Exception ex)
+        {
+            if (IsAjaxRequest()) return StatusCode(400, new { success = false, message = ex.Message });
+            ModelState.AddModelError(string.Empty, ex.Message);
+            await PopulateFormOptions(model, model.ComplexId);
+            return View("Create", model);
+        }
     }
 
     [HttpPost]
@@ -130,4 +161,30 @@ public class CourtsController(ICourtService courtService) : Controller
         PricePerHour = model.PricePerHour,
         CourtSize = model.CourtSize
     };
+    private bool IsAjaxRequest() =>
+        Request.Headers.XRequestedWith == "XMLHttpRequest";
+
+    private JsonResult JsonValidationErrors()
+    {
+        var errors = ModelState
+            .Where(x => x.Value?.Errors.Count > 0)
+            .ToDictionary(
+                k => k.Key,
+                v => v.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
+
+        var firstMessage = errors.Values.SelectMany(v => v).FirstOrDefault()
+            ?? "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
+
+        return Json(new { success = false, message = firstMessage, errors });
+    }
+
+    private async Task ApplyImageUploadAsync(CourtFormViewModel model)
+    {
+        if (model.ImageFile is { Length: > 0 })
+        {
+            if (model.ImageFile.Length > 5 * 1024 * 1024)
+                throw new InvalidOperationException("Ảnh không được vượt quá 5MB.");
+            model.ImageUrl = await courtService.UploadComplexImageAsync(model.ImageFile);
+        }
+    }
 }

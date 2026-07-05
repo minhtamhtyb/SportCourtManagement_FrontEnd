@@ -1,0 +1,113 @@
+@model CourtFormViewModel
+@{
+    var isEdit = Model.CourtId.HasValue;
+    var formAction = isEdit ? "Edit" : "Create";
+}
+
+<form asp-action="@formAction" asp-route-id="@Model.CourtId" method="post" enctype="multipart/form-data" class="form-dark" id="courtForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ComplexId" />
+    @if (isEdit)
+    {
+        <input type="hidden" asp-for="CourtId" />
+    }
+    <input type="hidden" asp-for="ImageUrl" id="courtImageUrl" />
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small d-none"></div>
+
+    <div class="row g-3">
+        <div class="col-md-6 mb-3">
+            <label asp-for="CourtName" class="form-label"></label>
+            <input asp-for="CourtName" class="form-control" placeholder="VD: Sân Pickleball A1" />
+            <span asp-validation-for="CourtName" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="CourtCode" class="form-label"></label>
+            <input asp-for="CourtCode" class="form-control" placeholder="VD: PCK-A1" />
+            <span asp-validation-for="CourtCode" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="CourtTypeId" class="form-label"></label>
+            <select asp-for="CourtTypeId" class="form-select" asp-items="@(new SelectList(Model.CourtTypes, "CourtTypeId", "TypeName"))"></select>
+            <span asp-validation-for="CourtTypeId" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Status" class="form-label"></label>
+            <select asp-for="Status" class="form-select">
+                @foreach (var s in Model.StatusOptions)
+                {
+                    <option value="@s">@DisplayHelpers.GetCourtStatus(s).Label</option>
+                }
+            </select>
+            <span asp-validation-for="Status" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Location" class="form-label"></label>
+            <input asp-for="Location" class="form-control" placeholder="Khu A - Tầng 1" />
+            <span asp-validation-for="Location" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Capacity" class="form-label"></label>
+            <input asp-for="Capacity" class="form-control" type="number" min="1" />
+            <span asp-validation-for="Capacity" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="OpenTime" class="form-label"></label>
+            <input asp-for="OpenTime" class="form-control" type="time" />
+            <span asp-validation-for="OpenTime" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="CloseTime" class="form-label"></label>
+            <input asp-for="CloseTime" class="form-control" type="time" />
+            <span asp-validation-for="CloseTime" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="PricePerHour" class="form-label"></label>
+            <input asp-for="PricePerHour" class="form-control" type="number" min="0" step="1000" />
+            <span asp-validation-for="PricePerHour" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Surface" class="form-label"></label>
+            <input asp-for="Surface" class="form-control" placeholder="Polymer cao cấp" />
+            <span asp-validation-for="Surface" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-12 mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+            <span asp-validation-for="Description" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-12 mb-0">
+            <label asp-for="ImageFile" class="form-label">Ảnh sân</label>
+            <input asp-for="ImageFile" type="file" class="form-control" accept="image/jpeg,image/png,image/webp,image/gif" id="courtImageFile" />
+            <div class="form-text text-secondary small">Chọn ảnh từ máy (JPG, PNG, WEBP — tối đa 5MB).</div>
+            <img id="courtImagePreview" src="@Model.ImageUrl" alt="preview"
+                 class="mt-2 rounded court-image-preview @(string.IsNullOrEmpty(Model.ImageUrl) ? "d-none" : "")"
+                 style="max-height:140px;width:100%;object-fit:cover" />
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end mt-4 pt-3 border-top border-secondary">
+        <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn-primary-custom" id="courtFormSubmit">
+            <i class="fa-solid fa-floppy-disk"></i> @(isEdit ? "Lưu thay đổi" : "Thêm mới")
+        </button>
+    </div>
+</form>
+
+<script>
+    // Preview image on selection
+    document.getElementById('courtImageFile')?.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        const preview = document.getElementById('courtImagePreview');
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                if (preview) {
+                    preview.src = event.target.result;
+                    preview.classList.remove('d-none');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
