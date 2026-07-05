@@ -14,7 +14,7 @@ public class ReviewDto
     public string? ImageUrl { get; set; }
     public string? AdminReply { get; set; }
     public DateTime? RepliedAt { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 }
 
 public class CourtReviewSummaryDto

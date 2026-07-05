@@ -1,0 +1,83 @@
+@model ServiceOfferingFormViewModel
+@{
+    var isEdit = Model.OfferingId.HasValue;
+    var formAction = isEdit ? "EditService" : "AddService";
+}
+
+<form asp-action="@formAction" asp-route-offeringId="@Model.OfferingId" method="post" class="form-dark" id="serviceOfferingForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ComplexId" />
+    <input type="hidden" asp-for="OfferingId" />
+
+    <div class="mb-3">
+        <label asp-for="CourtTypeId" class="form-label"></label>
+        <select asp-for="CourtTypeId" class="form-select" disabled="@isEdit">
+            @foreach (var ct in Model.CourtTypeOptions)
+            {
+                <option value="@ct.CourtTypeId">@ct.TypeName</option>
+            }
+        </select>
+        @if (isEdit)
+        {
+            <input type="hidden" asp-for="CourtTypeId" />
+        }
+        <span asp-validation-for="CourtTypeId" class="text-danger small field-error"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ServiceId" class="form-label"></label>
+        @if (isEdit)
+        {
+            var svc = Model.CatalogServices.FirstOrDefault(s => s.ServiceId == Model.ServiceId);
+            <input type="hidden" asp-for="ServiceId" />
+            <div class="form-control bg-dark text-white border-secondary">@(svc?.ServiceName ?? "—")</div>
+        }
+        else
+        {
+            <select asp-for="ServiceId" class="form-select" id="catalogServiceSelect">
+                <option value="">-- Chọn dịch vụ từ danh mục --</option>
+                @foreach (var s in Model.CatalogServices.Where(x => x.IsActive))
+                {
+                    <option value="@s.ServiceId" data-price="@s.Price" data-unit="@s.Unit">@s.ServiceName (@s.Category)</option>
+                }
+            </select>
+            <span asp-validation-for="ServiceId" class="text-danger small field-error"></span>
+        }
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ServiceMode" class="form-label"></label>
+        <select asp-for="ServiceMode" class="form-select" id="serviceModeSelect">
+            @foreach (var mode in Model.ServiceModeOptions)
+            {
+                <option value="@mode">@(mode == "Included" ? "Luôn cung cấp (miễn phí)" : "Tùy chọn khi đặt")</option>
+            }
+        </select>
+        <div class="form-text text-secondary small">Included: tự động gắn vào đơn, không tính phí.</div>
+    </div>
+
+    <div class="row g-3 mb-3" id="priceRow">
+        <div class="col-md-6">
+            <label asp-for="Price" class="form-label"></label>
+            <input asp-for="Price" class="form-control" type="number" min="0" id="priceInput" />
+            <span asp-validation-for="Price" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="StockQty" class="form-label"></label>
+            <input asp-for="StockQty" class="form-control" type="number" min="0" />
+            <span asp-validation-for="StockQty" class="text-danger small field-error"></span>
+        </div>
+    </div>
+
+    <div class="mb-0 form-check">
+        <input asp-for="IsActive" class="form-check-input" />
+        <label asp-for="IsActive" class="form-check-label text-secondary"></label>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end mt-4 pt-3 border-top border-secondary">
+        <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn-primary-custom" id="serviceFormSubmit">
+            <i class="fa-solid fa-floppy-disk"></i> @(isEdit ? "Lưu thay đổi" : "Thêm mới")
+        </button>
+    </div>
+</form>

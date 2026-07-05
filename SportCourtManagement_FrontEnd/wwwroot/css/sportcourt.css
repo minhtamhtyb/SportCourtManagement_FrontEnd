@@ -33,6 +33,10 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
     font-family: 'Outfit', sans-serif;
 }
 
+.object-fit-cover {
+    object-fit: cover;
+}
+
 a {
     color: var(--sc-blue-light);
     text-decoration: none;
@@ -460,4 +464,24 @@ a:hover {
     .sc-gallery-thumb {
         display: none;
     }
+}
+
+/* Stepper Styles */
+.z-index-1 { z-index: 1; }
+.z-index-2 { z-index: 2; }
+.sc-indicator-active span {
+    background-color: var(--sc-blue) !important;
+    border-color: var(--sc-blue) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 12px rgba(79, 110, 247, 0.4);
+}
+.sc-indicator-completed span {
+    border-color: rgba(16, 185, 129, 0.5) !important;
+    background-color: rgba(16, 185, 129, 0.1) !important;
+}
+.sc-indicator-active .small {
+    color: #ffffff !important;
+}
+.sc-indicator-completed .small {
+    color: var(--sc-green) !important;
 }

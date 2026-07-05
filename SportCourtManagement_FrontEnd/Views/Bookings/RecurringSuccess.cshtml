@@ -1,0 +1,138 @@
+@model SportCourtManagement_FrontEnd.Models.Bookings.RecurringBookingResponseDto
+
+@{
+    ViewData["Title"] = "Kết quả đặt sân định kỳ";
+}
+
+<main class="sc-container py-5 my-3">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            
+            <!-- Success Header Banner -->
+            <div class="p-5 rounded-5 border text-center mb-5 position-relative overflow-hidden" style="background: #0D121F; border-color: rgba(255,255,255,0.05);">
+                <div class="position-absolute w-100 h-100 top-0 start-0" style="background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.1) 0%, rgba(0,0,0,0) 70%); pointer-events: none;"></div>
+                
+                <span class="bg-success-subtle text-success d-inline-flex align-items-center justify-content-center rounded-circle mb-4" style="width: 68px; height: 68px; font-size: 32px; background: rgba(16, 185, 129, 0.15);"><i class="bi bi-check-circle-fill"></i></span>
+                
+                <h1 class="font-outfit text-white display-6 mb-2" style="font-weight: 800;">Đăng Ký Đặt Lịch Định Kỳ Thành Công!</h1>
+                <p class="text-sc-muted mx-auto max-w-[500px]" style="font-size: 14px; max-width: 550px;">
+                    Hệ thống đã ghi nhận lịch trình đặt của bạn. Dưới đây là bảng phân bổ các buổi chơi đã đăng ký.
+                </p>
+            </div>
+
+            <!-- Booking details summary -->
+            <div class="sc-card p-4 mb-4" style="background-color: #0D121F;">
+                <h4 class="font-outfit text-white mb-4" style="font-weight: 800; border-left: 4px solid var(--sc-blue); padding-left: 12px;">
+                    Tóm Tắt Lịch Đăng Ký Định Kỳ
+                </h4>
+
+                <div class="row g-4" style="font-size: 14px; line-height: 1.8;">
+                    <div class="col-sm-6">
+                        <span class="text-sc-muted d-block">Sân thể thao:</span>
+                        <strong class="text-white fs-5 font-outfit">@Model.CourtName</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-sc-muted d-block">Khung giờ cố định:</span>
+                        <strong class="text-white fs-5 font-outfit">@Model.SlotName</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-sc-muted d-block">Thời gian:</span>
+                        <strong class="text-white"><i class="bi bi-calendar-range me-1 text-sc-blue-light"></i> Từ @Model.StartDate.ToString("dd/MM/yyyy") đến @Model.EndDate.ToString("dd/MM/yyyy")</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-sc-muted d-block">Thứ áp dụng trong tuần:</span>
+                        <strong class="text-sc-blue-light"><i class="bi bi-repeat me-1"></i> @Model.DaysOfWeek</strong>
+                    </div>
+                </div>
+
+                <hr class="my-4" style="border-color: rgba(255,255,255,0.05);" />
+
+                <!-- Session summary counts -->
+                <div class="row g-3 text-center">
+                    <div class="col-4 border-end" style="border-end-color: rgba(255,255,255,0.05) !important;">
+                        <span class="text-sc-muted d-block small mb-1">Tổng số buổi đăng ký</span>
+                        <span class="font-outfit text-white fw-bold fs-4">@Model.TotalRequestedSessions</span>
+                    </div>
+                    <div class="col-4 border-end" style="border-end-color: rgba(255,255,255,0.05) !important;">
+                        <span class="text-sc-muted d-block small mb-1">Số buổi đã đặt thành công</span>
+                        <span class="font-outfit text-success fw-bold fs-4">@Model.TotalBookedSessions</span>
+                    </div>
+                    <div class="col-4">
+                        <span class="text-sc-muted d-block small mb-1">Bỏ qua do trùng lịch</span>
+                        <span class="font-outfit text-danger fw-bold fs-4">@Model.ConflictDates.Count</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List of Valid Sessions -->
+            <div class="sc-card p-4 mb-4" style="background-color: #0D121F;">
+                <h5 class="text-white font-outfit mb-3" style="font-weight: 700;"><i class="bi bi-calendar-check text-success me-1"></i> Danh sách các buổi đã đặt</h5>
+                
+                <div class="space-y-2 mb-3" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                    @foreach (var booking in Model.CreatedBookings)
+                    {
+                        <div class="p-3 rounded border mb-2 d-flex justify-content-between align-items-center" style="background: rgba(16, 185, 129, 0.03); border-color: rgba(16, 185, 129, 0.1);">
+                            <div>
+                                <strong class="text-white d-block" style="font-size: 13.5px;">Buổi ngày @booking.BookingDate.ToString("dd/MM/yyyy")</strong>
+                                <span class="text-sc-muted font-monospace" style="font-size: 11px;">Mã: #@booking.BookingId</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-sc-green fw-bold d-block" style="font-size: 13.5px;">@booking.TotalAmount.ToString("N0")đ</span>
+                                <span class="badge bg-success-subtle text-success border border-success border-opacity-10" style="font-size: 10px;">Chờ thanh toán</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- List of Skipped Conflicts (If any) -->
+            @if (Model.ConflictDates.Count > 0)
+            {
+                <div class="sc-card p-4 mb-4" style="background-color: #0D121F;">
+                    <h5 class="text-white font-outfit mb-3" style="font-weight: 700;"><i class="bi bi-calendar-x text-danger me-1"></i> Danh sách các ngày bị trùng (Được tự động bỏ qua)</h5>
+                    <p class="text-sc-muted mb-3" style="font-size: 13px;">Các ngày dưới đây đã có người khác đặt từ trước. Hệ thống đã tự động loại bỏ để tránh xung đột lịch:</p>
+                    
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var date in Model.ConflictDates)
+                        {
+                            <span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 p-2 font-monospace" style="font-size: 12px; background: rgba(239, 68, 68, 0.08);">
+                                <i class="bi bi-exclamation-circle me-1"></i> @date
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Checkout / Actions Section -->
+            <div class="p-4 rounded-4 border text-center" style="background: rgba(13,18,31,0.6); border-color: rgba(255,255,255,0.05);">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 text-start">
+                    <div>
+                        <span class="text-sc-muted d-block" style="font-size: 13px;">Tổng tiền tạm tính cho chuỗi ngày đặt:</span>
+                        <strong class="text-white font-outfit" style="font-size: 16px;">Tính cho @Model.TotalBookedSessions buổi chơi hợp lệ</strong>
+                    </div>
+                    <div class="text-end">
+                        <span class="font-outfit text-sc-green fw-black" style="font-size: 32px; font-weight: 900;">@Model.TotalEstimatedAmount.ToString("N0")đ</span>
+                    </div>
+                </div>
+
+                <div class="alert alert-info py-2 px-3 border border-info border-opacity-25 rounded-3 mb-4 text-start d-flex align-items-start gap-2" style="background: rgba(79, 110, 247, 0.05); font-size: 12.5px; color: var(--sc-blue-light);">
+                    <i class="bi bi-info-circle-fill fs-5 mt-0.5"></i>
+                    <div>
+                        <strong>Thông báo:</strong> Chức năng thanh toán trực tuyến chưa được thực hiện (phân hệ này do thành viên khác trong nhóm phụ trách). Đặt lịch định kỳ đã được ghi nhận trên hệ thống dưới trạng thái chờ thanh toán.
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 justify-content-center">
+                    <a asp-controller="Courts" asp-action="Index" class="sc-btn sc-btn-secondary px-4 py-2.5" style="border-radius: 10px;">
+                        Quay lại danh sách sân
+                    </a>
+                    <!-- Dummy Payment redirection button -->
+                    <button type="button" class="sc-btn sc-btn-gradient px-5 py-2.5 font-outfit fw-bold" style="border-radius: 10px; background: linear-gradient(135deg, #4F6EF7 0%, #3B5BDF 100%);" onclick="alert('Chức năng này chưa được làm')">
+                        <i class="bi bi-wallet2 me-1"></i> Thanh toán
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>

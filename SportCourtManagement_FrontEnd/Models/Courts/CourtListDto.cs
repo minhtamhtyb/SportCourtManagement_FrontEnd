@@ -13,9 +13,11 @@ public class CourtListDto
     public string? ImageUrl { get; set; }
     public string? Surface { get; set; }
     public int? Capacity { get; set; }
+    public string? CourtSize { get; set; }
     public string Status { get; set; } = string.Empty;
-    public TimeOnly OpenTime { get; set; }
-    public TimeOnly CloseTime { get; set; }
+    public TimeSpan OpenTime { get; set; }
+    public TimeSpan CloseTime { get; set; }
+    public decimal PricePerHour { get; set; }
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }
     public double? AverageRating { get; set; }

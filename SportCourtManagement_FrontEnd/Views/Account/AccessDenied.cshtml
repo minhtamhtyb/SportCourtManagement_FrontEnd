@@ -1,0 +1,13 @@
+@{
+    ViewData["Title"] = "Truy cập bị từ chối";
+    Layout = "_AuthLayout";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card text-center">
+        <i class="fa-solid fa-shield-halved fa-3x text-warning mb-3"></i>
+        <h1 class="h4 text-white">Bạn không có quyền truy cập</h1>
+        <p class="text-secondary">Vui lòng đăng nhập bằng tài khoản có quyền phù hợp.</p>
+        <a asp-action="Login" class="btn btn-success mt-2">Quay lại đăng nhập</a>
+    </div>
+</div>
