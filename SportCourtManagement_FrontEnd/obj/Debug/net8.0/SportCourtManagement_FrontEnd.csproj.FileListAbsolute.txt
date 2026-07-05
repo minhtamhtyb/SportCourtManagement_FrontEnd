@@ -66,3 +66,4 @@ D:\FPT_University\SU26\PRN232\argirment\SportCourtManagement_FrontEnd\SportCourt
 D:\FPT_University\SU26\PRN232\argirment\SportCourtManagement_FrontEnd\SportCourtManagement_FrontEnd\obj\Debug\net8.0\SportCourtManagement_FrontEnd.pdb
 D:\FPT_University\SU26\PRN232\argirment\SportCourtManagement_FrontEnd\SportCourtManagement_FrontEnd\obj\Debug\net8.0\SportCourtManagement_FrontEnd.genruntimeconfig.cache
 D:\FPT_University\SU26\PRN232\argirment\SportCourtManagement_FrontEnd\SportCourtManagement_FrontEnd\obj\Debug\net8.0\ref\SportCourtManagement_FrontEnd.dll
+D:\FPT_University\SU26\PRN232\argirment\SportCourtManagement_FrontEnd\SportCourtManagement_FrontEnd\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
