@@ -100,3 +100,4 @@ D:\FPT\FPT_Ky_8\PRN232\P\clone1\FE\SportCourtManagement_FrontEnd\SportCourtManag
 D:\FPT\FPT_Ky_8\PRN232\P\clone1\FE\SportCourtManagement_FrontEnd\SportCourtManagement_FrontEnd\obj\Debug\net8.0\SportCourtManagement_FrontEnd.genruntimeconfig.cache
 D:\FPT\FPT_Ky_8\PRN232\P\clone1\FE\SportCourtManagement_FrontEnd\SportCourtManagement_FrontEnd\obj\Debug\net8.0\ref\SportCourtManagement_FrontEnd.dll
 D:\FPT\FPT_Ky_8\PRN232\P\clone1\FE\SportCourtManagement_FrontEnd\SportCourtManagement_FrontEnd\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+D:\FPT_University\SU26\PRN232\argirment\SportCourtManagement_FrontEnd\SportCourtManagement_FrontEnd\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
