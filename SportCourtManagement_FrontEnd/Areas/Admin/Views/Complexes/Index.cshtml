@@ -70,6 +70,7 @@ else
                     <th>Địa chỉ</th>
                     <th>Quản lý</th>
                     <th>Sân</th>
+                    <th>Loại sân</th>
                     <th>Trạng thái</th>
                     <th class="text-end">Thao tác</th>
                 </tr>
@@ -102,6 +103,22 @@ else
                         <td>
                             <span class="fw-semibold">@c.TotalCourts</span>
                             <span class="text-secondary small">(@c.ActiveCourts hoạt động)</span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1" style="max-width: 180px;">
+                                @foreach (var id in c.CourtTypeIds)
+                                {
+                                    var typeName = Model.CourtTypes.FirstOrDefault(t => t.CourtTypeId == id)?.TypeName;
+                                    if (!string.IsNullOrEmpty(typeName))
+                                    {
+                                        <span class="badge bg-dark border border-secondary text-secondary small py-1 px-2" style="font-size: 0.7rem; font-weight: 500;">@typeName</span>
+                                    }
+                                }
+                                @if (!c.CourtTypeIds.Any())
+                                {
+                                    <span class="text-secondary small">—</span>
+                                }
+                            </div>
                         </td>
                         <td>
                             @if (c.MaintenanceCourts > 0)

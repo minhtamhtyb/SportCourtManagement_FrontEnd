@@ -93,21 +93,3 @@
         </button>
     </div>
 </form>
-
-<script>
-    // Preview image on selection
-    document.getElementById('courtImageFile')?.addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        const preview = document.getElementById('courtImagePreview');
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                if (preview) {
-                    preview.src = event.target.result;
-                    preview.classList.remove('d-none');
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-</script>

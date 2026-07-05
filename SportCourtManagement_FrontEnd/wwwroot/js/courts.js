@@ -46,10 +46,35 @@
             if (!response.ok) throw new Error('Không thể tải form. Vui lòng thử lại.');
             modalBody.innerHTML = await response.text();
             bindFormSubmit();
+            bindImagePreview();
         } catch (err) {
             modal.hide();
             showToast(err.message || 'Không thể tải form.', 'error');
         }
+    }
+
+    function bindImagePreview() {
+        const fileInput = document.getElementById('courtImageFile');
+        const preview = document.getElementById('courtImagePreview');
+        if (!fileInput || !preview) return;
+
+        fileInput.addEventListener('change', function () {
+            const file = fileInput.files && fileInput.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Ảnh không được vượt quá 5MB.', 'error');
+                fileInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+            };
+            reader.readAsDataURL(file);
+        });
     }
 
     function bindFormSubmit() {
@@ -59,6 +84,12 @@
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
             const submitBtn = document.getElementById('courtFormSubmit');
+            const fileInput = document.getElementById('courtImageFile');
+
+            if (fileInput && fileInput.files && fileInput.files[0] && fileInput.files[0].size > 5 * 1024 * 1024) {
+                showToast('Ảnh không được vượt quá 5MB.', 'error');
+                return;
+            }
 
             if (submitBtn) {
                 submitBtn.disabled = true;
