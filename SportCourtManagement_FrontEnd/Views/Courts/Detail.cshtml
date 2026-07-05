@@ -597,9 +597,17 @@
                 const location = court.location !== undefined ? court.location : court.Location;
                 const openTime = court.openTime !== undefined ? court.openTime : court.OpenTime;
                 const closeTime = court.closeTime !== undefined ? court.closeTime : court.CloseTime;
-                const averageRating = court.averageRating !== undefined ? court.averageRating : (court.AverageRating || 0.0);
-                const reviewCount = court.reviewCount !== undefined ? court.reviewCount : (court.ReviewCount || 0);
-                const minPrice = court.minPrice !== undefined ? court.minPrice : (court.MinPrice || court.pricePerHour || court.PricePerHour || 0);
+                
+                let averageRating = court.averageRating !== undefined ? court.averageRating : court.AverageRating;
+                if (averageRating === undefined || averageRating === null) {
+                    averageRating = 0.0;
+                }
+                const reviewCount = court.reviewCount !== undefined && court.reviewCount !== null ? court.reviewCount : (court.ReviewCount || 0);
+                
+                let minPrice = court.minPrice !== undefined ? court.minPrice : (court.MinPrice || court.pricePerHour || court.PricePerHour);
+                if (minPrice === undefined || minPrice === null) {
+                    minPrice = 0;
+                }
 
                 const detailUrl = `/Courts/Detail/${courtId}`;
                 const cardFeaturedClass = averageRating >= 4.8 ? 'sc-card-featured' : '';
