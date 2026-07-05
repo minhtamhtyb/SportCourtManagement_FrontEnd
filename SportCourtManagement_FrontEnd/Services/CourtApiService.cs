@@ -50,10 +50,10 @@ public class CourtApiService : ICourtApiService
             query.Append($"PageNumber={searchParams.PageNumber}&");
             query.Append($"PageSize={searchParams.PageSize}");
 
-            var response = await _httpClient.GetFromJsonAsync<PagedResult<CourtListDto>>(query.ToString());
-            if (response != null)
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<PagedResult<CourtListDto>>>(query.ToString());
+            if (response != null && response.Success && response.Data != null)
             {
-                return response;
+                return response.Data;
             }
         }
         catch (Exception ex)
@@ -68,10 +68,10 @@ public class CourtApiService : ICourtApiService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<CourtDetailDto>($"api/courts/{id}");
-            if (response != null)
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<CourtDetailDto>>($"api/courts/{id}");
+            if (response != null && response.Success && response.Data != null)
             {
-                return response;
+                return response.Data;
             }
         }
         catch (Exception ex)
@@ -85,10 +85,10 @@ public class CourtApiService : ICourtApiService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<CourtAvailabilityDto>($"api/courts/{id}/availability?date={date:yyyy-MM-dd}");
-            if (response != null)
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<CourtAvailabilityDto>>($"api/courts/{id}/availability?date={date:yyyy-MM-dd}");
+            if (response != null && response.Success && response.Data != null)
             {
-                return response;
+                return response.Data;
             }
         }
         catch (Exception ex)
@@ -102,10 +102,10 @@ public class CourtApiService : ICourtApiService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<PagedResult<ReviewDto>>($"api/courts/{courtId}/reviews?pageNumber={pageNumber}&pageSize={pageSize}");
-            if (response != null)
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<PagedResult<ReviewDto>>>($"api/courts/{courtId}/reviews?pageNumber={pageNumber}&pageSize={pageSize}");
+            if (response != null && response.Success && response.Data != null)
             {
-                return response;
+                return response.Data;
             }
         }
         catch (Exception ex)
@@ -119,12 +119,12 @@ public class CourtApiService : ICourtApiService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<PagedResult<CourtListDto>>("api/courts?PageSize=50");
-            if (response != null && response.Items != null)
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<PagedResult<CourtListDto>>>("api/courts?PageSize=50");
+            if (response != null && response.Success && response.Data != null && response.Data.Items != null)
             {
                 var types = new List<CourtTypeDto>();
                 var seenIds = new HashSet<int>();
-                foreach (var court in response.Items)
+                foreach (var court in response.Data.Items)
                 {
                     if (court.CourtTypeId > 0 && !seenIds.Contains(court.CourtTypeId))
                     {
@@ -134,7 +134,7 @@ public class CourtApiService : ICourtApiService
                             CourtTypeId = court.CourtTypeId,
                             TypeName = court.CourtTypeName,
                             IsActive = true,
-                            CourtCount = response.Items.Count(c => c.CourtTypeId == court.CourtTypeId)
+                            CourtCount = response.Data.Items.Count(c => c.CourtTypeId == court.CourtTypeId)
                         });
                     }
                 }
