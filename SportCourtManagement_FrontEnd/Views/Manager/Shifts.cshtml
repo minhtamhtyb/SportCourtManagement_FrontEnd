@@ -1,13 +1,16 @@
-@model SportCourtManagement_FrontEnd.Models.WeeklyScheduleResponse
+@model SportCourtManagement_FrontEnd.Models.Manager.WeeklyScheduleResponse
 @{
+    Layout = "_ManagerLayout";
     ViewData["Title"] = "Shift Management";
     DateTime currentWeekStart;
     if (!DateTime.TryParse(Model.WeekStart, out currentWeekStart))
     {
         currentWeekStart = DateTime.Today;
     }
-    var prevWeekStart = currentWeekStart.AddDays(-7).ToString("yyyy-MM-dd");
-    var nextWeekStart = currentWeekStart.AddDays(7).ToString("yyyy-MM-dd");
+    int diffToMonday = (7 + (currentWeekStart.DayOfWeek - DayOfWeek.Monday)) % 7;
+    DateTime mondayOfCurrentWeek = currentWeekStart.AddDays(-1 * diffToMonday).Date;
+    var prevWeekStart = mondayOfCurrentWeek.AddDays(-7).ToString("yyyy-MM-dd");
+    var nextWeekStart = mondayOfCurrentWeek.AddDays(7).ToString("yyyy-MM-dd");
 }
 
 @section Styles {
@@ -82,7 +85,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var staff in Model.Staffs ?? new List<SportCourtManagement_FrontEnd.Models.StaffSummaryResponse>())
+                    @foreach (var staff in Model.Staffs ?? new List<SportCourtManagement_FrontEnd.Models.Manager.StaffSummaryResponse>())
                     {
                         <tr>
                             <td class="sticky-col staff-info-col">
@@ -172,7 +175,7 @@
                             <label class="shift-form-label">Nhân viên</label>
                             <select class="shift-form-input" id="createShiftStaffId" name="StaffId" required>
                                 <option value="">-- Chọn nhân viên --</option>
-                                @foreach (var s in Model.Staffs ?? new List<SportCourtManagement_FrontEnd.Models.StaffSummaryResponse>())
+                                @foreach (var s in Model.Staffs ?? new List<SportCourtManagement_FrontEnd.Models.Manager.StaffSummaryResponse>())
                                 {
                                     <option value="@s.UserId">@s.FullName</option>
                                 }

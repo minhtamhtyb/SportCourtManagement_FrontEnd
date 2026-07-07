@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using SportCourtManagement_FrontEnd.Models;
+using SportCourtManagement_FrontEnd.Models.Manager;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -27,6 +27,12 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [HttpGet("staff/shifts")]
         public async Task<IActionResult> Shifts([FromQuery] string? weekStart = null)
         {
+            AttachAuthToken();
+            if (string.IsNullOrEmpty(weekStart))
+            {
+                weekStart = DateTime.Today.ToString("yyyy-MM-dd");
+            }
+
             var weeklyData = new WeeklyScheduleResponse();
             var url = _apiBase + "/staff/shifts/weekly";
             if (!string.IsNullOrEmpty(weekStart))
@@ -85,6 +91,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [HttpPost("staff/shifts/create")]
         public async Task<IActionResult> CreateShift(CreateShiftRequest model)
         {
+            AttachAuthToken();
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
@@ -112,6 +119,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [HttpPost("staff/shifts/update")]
         public async Task<IActionResult> UpdateShift([FromForm] int ShiftId, UpdateShiftRequest model)
         {
+            AttachAuthToken();
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
@@ -139,6 +147,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteShift([FromForm] int ShiftId)
         {
+            AttachAuthToken();
             if (ShiftId <= 0)
             {
                 TempData["ErrorMessage"] = "ID ca trực không hợp lệ.";
@@ -170,6 +179,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
             [FromQuery] string? search = null,
             [FromQuery] int page = 1)
         {
+            AttachAuthToken();
             var model = new AttendanceViewModel();
             
             var today = DateTime.Today;
@@ -251,6 +261,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [HttpGet("staff/list")]
         public async Task<IActionResult> StaffList([FromQuery] string? search = null, [FromQuery] int page = 1)
         {
+            AttachAuthToken();
             var model = new PagedStaffResponse();
             int pageSize = 10;
             page = page < 1 ? 1 : page;
@@ -270,6 +281,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignStaff([FromForm] int staffId)
         {
+            AttachAuthToken();
             if (staffId <= 0)
             {
                 TempData["ErrorMessage"] = "ID nhân viên không hợp lệ.";
@@ -309,6 +321,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UnassignStaff([FromForm] int staffId)
         {
+            AttachAuthToken();
             if (staffId <= 0)
             {
                 TempData["ErrorMessage"] = "ID nhân viên không hợp lệ.";
@@ -349,5 +362,15 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
         [HttpGet("dashboard")]
         public IActionResult Dashboard() => RedirectToAction(nameof(Shifts));
+
+        private void AttachAuthToken()
+        {
+            var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
+            _client.DefaultRequestHeaders.Authorization = null;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+        }
     }
 }

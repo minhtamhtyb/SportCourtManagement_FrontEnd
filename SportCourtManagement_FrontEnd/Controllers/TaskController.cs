@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using SportCourtManagement_FrontEnd.Models;
+using SportCourtManagement_FrontEnd.Models.Manager;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -27,6 +27,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [HttpGet]
         public async Task<IActionResult> Tasks()
         {
+            AttachAuthToken();
             var model = new TaskViewModel();
             
 
@@ -68,6 +69,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateTask(CreateTaskRequest model)
         {
+            AttachAuthToken();
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
@@ -112,6 +114,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateTask([FromForm] int TaskId, UpdateTaskRequest model)
         {
+            AttachAuthToken();
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
@@ -156,6 +159,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> VerifyTask([FromForm] int TaskId, VerifyTaskRequest model)
         {
+            AttachAuthToken();
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Dữ liệu xác nhận không hợp lệ.";
@@ -184,6 +188,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTask([FromForm] int TaskId)
         {
+            AttachAuthToken();
             if (TaskId <= 0)
             {
                 TempData["ErrorMessage"] = "Mã công việc không hợp lệ.";
@@ -219,6 +224,16 @@ namespace SportCourtManagement_FrontEnd.Controllers
             }
 
             return RedirectToAction(nameof(Tasks));
+        }
+
+        private void AttachAuthToken()
+        {
+            var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
+            _client.DefaultRequestHeaders.Authorization = null;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
         }
     }
 }

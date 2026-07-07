@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace SportCourtManagement_FrontEnd.Models
+namespace SportCourtManagement_FrontEnd.Models.Manager
 {
     public enum TaskCategory
     {
