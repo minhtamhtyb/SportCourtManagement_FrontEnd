@@ -1,0 +1,78 @@
+@model SportCourtManagement_FrontEnd.Models.Tournaments.TournamentPublicDto
+@{
+  ViewData["Title"] = Model.TournamentName;
+}
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <a asp-action="PublicIndex" class="btn btn-outline-secondary rounded-pill mb-4 px-4">
+        <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách giải đấu
+      </a>
+
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-primary text-white p-5">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">Giải Đấu Công Khai</span>
+            <small class="text-white-50"><i class="bi bi-clock me-1"></i>Ngày đăng ký: @Model.CreatedAt.ToString("dd/MM/yyyy")</small>
+          </div>
+          <h1 class="fw-bold mb-3">@Model.TournamentName</h1>
+          <p class="lead mb-0 text-white-50">@(Model.Description ?? "Không có mô tả chi tiết.")</p>
+        </div>
+        
+        <div class="card-body p-4 p-md-5">
+          <div class="row g-4 mb-4">
+            <div class="col-md-6">
+              <div class="p-4 bg-light rounded-4 h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle-fill text-primary me-2"></i>Ban Tổ Chức</h5>
+                <p class="fs-5 fw-semibold text-primary mb-1">@Model.OrganizerName</p>
+                <span class="badge bg-success px-3 py-2 rounded-pill">Trạng thái: @Model.Status</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-4 bg-light rounded-4 h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Quy Mô Tổ Chức</h5>
+                <p class="fs-5 fw-semibold text-dark mb-1">@Model.Courts.Count sân thi đấu</p>
+                <p class="text-muted small mb-0">Các trận đấu được phân bổ tại các sân chất lượng cao của hệ thống.</p>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="fw-bold text-dark mb-3"><i class="bi bi-calendar-range me-2 text-primary"></i>Lịch Trình & Khung Giờ Thi Đấu</h4>
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle rounded-3 overflow-hidden">
+              <thead class="bg-light">
+                <tr>
+                  <th class="py-3 px-4">Tên Sân</th>
+                  <th class="py-3">Ngày Tổ Chức</th>
+                  <th class="py-3">Khung Giờ (Slot)</th>
+                  <th class="py-3">Trạng Thái Sân</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (Model.Courts != null && Model.Courts.Count > 0)
+                {
+                  foreach (var c in Model.Courts)
+                  {
+                    <tr>
+                      <td class="px-4 fw-bold text-primary">@c.CourtName</td>
+                      <td>@c.BookingDate.ToString("dd/MM/yyyy")</td>
+                      <td><span class="badge bg-dark px-3 py-2 fs-6">@c.SlotName (@c.StartTime - @c.EndTime)</span></td>
+                      <td><span class="badge bg-info text-dark px-3 py-2">Đã giữ sân</span></td>
+                    </tr>
+                  }
+                }
+                else
+                {
+                  <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">Chi tiết lịch các sân đang được ban tổ chức cập nhật.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

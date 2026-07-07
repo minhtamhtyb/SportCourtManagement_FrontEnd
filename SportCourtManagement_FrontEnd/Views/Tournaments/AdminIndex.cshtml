@@ -1,0 +1,174 @@
+@model SportCourtManagement_FrontEnd.Models.Tournaments.TournamentListViewModel
+@{
+  ViewData["Title"] = "Duyệt & Quản Lý Giải Đấu (Admin)";
+}
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-dark mb-1"><i class="bi bi-trophy-fill me-2 text-warning"></i>Quản Lý Giải Đấu (Admin)</h2>
+      <p class="text-muted mb-0">Phê duyệt, hủy và quản lý toàn bộ các giải đấu đăng ký bởi khách hàng</p>
+    </div>
+  </div>
+
+  @if (TempData["SuccessMessage"] != null)
+  {
+    <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm">
+      <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  }
+  @if (TempData["ErrorMessage"] != null)
+  {
+    <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  }
+
+  <!-- Filter Card -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-light">
+    <div class="card-body p-4">
+      <form method="get" asp-action="AdminIndex" class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold text-secondary">Từ khóa (Tên giải, Khách hàng...)</label>
+          <input type="text" name="keyword" value="@Model.Keyword" class="form-control rounded-3" placeholder="Tìm giải đấu..." />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold text-secondary">Từ ngày tạo</label>
+          <input type="date" name="fromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control rounded-3" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold text-secondary">Đến ngày</label>
+          <input type="date" name="toDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" class="form-control rounded-3" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold text-secondary">Trạng thái</label>
+          <select name="status" class="form-select rounded-3">
+            <option value="">-- Tất cả --</option>
+            <option value="Pending" selected="@(Model.Status == "Pending")">Chờ duyệt</option>
+            <option value="Confirmed" selected="@(Model.Status == "Confirmed")">Đã duyệt</option>
+            <option value="Paid" selected="@(Model.Status == "Paid")">Đã thanh toán</option>
+            <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Đã hủy</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary px-4 rounded-3 w-100 shadow-sm">Lọc</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tournaments Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-dark text-white">
+          <tr>
+            <th class="py-3 px-4">ID</th>
+            <th class="py-3">Tên giải đấu</th>
+            <th class="py-3">Người tổ chức</th>
+            <th class="py-3">Ngày tạo</th>
+            <th class="py-3">Số booking con</th>
+            <th class="py-3">Tổng chi phí</th>
+            <th class="py-3">Trạng thái</th>
+            <th class="py-3 text-end px-4">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (Model.PagedData.Items != null && Model.PagedData.Items.Count > 0)
+          {
+            foreach (var item in Model.PagedData.Items)
+            {
+              <tr>
+                <td class="px-4 fw-bold">#@item.TournamentId</td>
+                <td>
+                  <span class="fw-bold text-dark d-block fs-6">@item.TournamentName</span>
+                  <small class="text-muted">@(item.Description ?? "Không có mô tả")</small>
+                </td>
+                <td class="fw-semibold text-primary">@item.CustomerName</td>
+                <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                <td><span class="badge bg-info text-dark fs-6">@item.Bookings.Count lịch đặt</span></td>
+                <td><span class="text-danger fw-bold fs-6">@item.TotalAmount.ToString("N0")đ</span></td>
+                <td>
+                  @switch (item.Status)
+                  {
+                    case "Confirmed":
+                      <span class="badge bg-primary px-3 py-2">Đã duyệt</span>
+                      break;
+                    case "Paid":
+                      <span class="badge bg-success px-3 py-2">Đã thanh toán</span>
+                      break;
+                    case "Pending":
+                      <span class="badge bg-warning text-dark px-3 py-2">Chờ duyệt</span>
+                      break;
+                    case "Cancelled":
+                      <span class="badge bg-danger px-3 py-2">Đã hủy</span>
+                      break;
+                    default:
+                      <span class="badge bg-secondary px-3 py-2">@item.Status</span>
+                      break;
+                  }
+                </td>
+                <td class="text-end px-4">
+                  <a asp-action="AdminDetail" asp-route-id="@item.TournamentId" class="btn btn-sm btn-outline-info rounded-pill px-3 me-1 shadow-sm">
+                    <i class="bi bi-eye me-1"></i>Chi tiết
+                  </a>
+                  @if (item.Status == "Pending")
+                  {
+                    <form asp-action="UpdateStatus" method="post" class="d-inline me-1">
+                      <input type="hidden" name="id" value="@item.TournamentId" />
+                      <input type="hidden" name="status" value="Confirmed" />
+                      <input type="hidden" name="returnUrl" value="@Url.Action("AdminIndex")" />
+                      <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">Duyệt giải</button>
+                    </form>
+                  }
+                  @if (item.Status != "Cancelled")
+                  {
+                    <form asp-action="UpdateStatus" method="post" class="d-inline" onsubmit="return confirm('Xác nhận hủy giải đấu này?');">
+                      <input type="hidden" name="id" value="@item.TournamentId" />
+                      <input type="hidden" name="status" value="Cancelled" />
+                      <input type="hidden" name="cancelReason" value="Quản trị viên từ chối/hủy" />
+                      <input type="hidden" name="returnUrl" value="@Url.Action("AdminIndex")" />
+                      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">Hủy</button>
+                    </form>
+                  }
+                </td>
+              </tr>
+            }
+          }
+          else
+          {
+            <tr>
+              <td colspan="8" class="text-center py-5 text-muted">
+                <i class="bi bi-trophy fs-1 d-block mb-2"></i>
+                Chưa có yêu cầu giải đấu nào.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (Model.PagedData.TotalPages > 1)
+    {
+      <div class="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center border-top">
+        <span class="text-muted small">Trang @Model.PagedData.PageNumber / @Model.PagedData.TotalPages</span>
+        <ul class="pagination mb-0">
+          <li class="page-item @(Model.PagedData.PageNumber <= 1 ? "disabled" : "")">
+            <a class="page-link" asp-action="AdminIndex" asp-route-page="@(Model.PagedData.PageNumber - 1)">Trước</a>
+          </li>
+          @for (int i = 1; i <= Model.PagedData.TotalPages; i++)
+          {
+            <li class="page-item @(i == Model.PagedData.PageNumber ? "active" : "")">
+              <a class="page-link" asp-action="AdminIndex" asp-route-page="@i">@i</a>
+            </li>
+          }
+          <li class="page-item @(Model.PagedData.PageNumber >= Model.PagedData.TotalPages ? "disabled" : "")">
+            <a class="page-link" asp-action="AdminIndex" asp-route-page="@(Model.PagedData.PageNumber + 1)">Sau</a>
+          </li>
+        </ul>
+      </div>
+    }
+  </div>
+</div>

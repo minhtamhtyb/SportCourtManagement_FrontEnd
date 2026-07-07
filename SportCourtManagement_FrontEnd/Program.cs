@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using SportCourtManagement_FrontEnd.Models.Configuration;
@@ -7,6 +9,14 @@ using SportCourtManagement_FrontEnd.Services.Implementations;
 using SportCourtManagement_FrontEnd.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Register global standardized JSON options
+builder.Services.AddSingleton(new JsonSerializerOptions
+{
+    PropertyNameCaseInsensitive = true,
+    NumberHandling = JsonNumberHandling.AllowReadingFromString,
+    Converters = { new JsonStringEnumConverter() }
+});
 
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection(ApiSettings.SectionName));
 builder.Services.AddHttpContextAccessor();
@@ -92,7 +102,7 @@ builder.Services.AddSession(options =>
 // Register HttpClient and CourtApiService with BaseAddress configured from appsettings
 builder.Services.AddHttpClient<ICourtApiService, CourtApiService>(client =>
 {
-    var baseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5001/";
+    var baseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7075/";
     if (!baseUrl.EndsWith("/"))
     {
         baseUrl += "/";
@@ -110,10 +120,10 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.MapControllerRoute(
     name: "areas",

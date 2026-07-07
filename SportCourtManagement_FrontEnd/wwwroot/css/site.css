@@ -20,3 +20,45 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Fix text contrast in Bootstrap cards when body defaults to light text */
+.card:not(.bg-dark):not(.sc-card) {
+  color: #1e293b !important;
+  background-color: #ffffff !important;
+}
+.card:not(.bg-dark):not(.sc-card) .form-label,
+.card:not(.bg-dark):not(.sc-card) .form-check-label,
+.card:not(.bg-dark):not(.sc-card) label,
+.card:not(.bg-dark):not(.sc-card) h1,
+.card:not(.bg-dark):not(.sc-card) h2,
+.card:not(.bg-dark):not(.sc-card) h3,
+.card:not(.bg-dark):not(.sc-card) h4,
+.card:not(.bg-dark):not(.sc-card) h5,
+.card:not(.bg-dark):not(.sc-card) h6,
+.card:not(.bg-dark):not(.sc-card) p {
+  color: #1e293b !important;
+}
+.card:not(.bg-dark):not(.sc-card) .text-muted,
+.card:not(.bg-dark):not(.sc-card) .text-secondary {
+  color: #64748b !important;
+}
+.card:not(.bg-dark):not(.sc-card) .text-danger {
+  color: #ef4444 !important;
+}
+.card:not(.bg-dark):not(.sc-card) .text-success {
+  color: #10b981 !important;
+}
+.card:not(.bg-dark):not(.sc-card) .text-primary {
+  color: #3b82f6 !important;
+}
+
+/* Ensure dark headers and white text elements inside cards remain white */
+.card .card-header.bg-dark,
+.card .card-header.bg-dark *,
+.card .bg-dark,
+.card .bg-dark *,
+.card .text-white,
+.card .text-white * {
+  color: #ffffff !important;
+}
+

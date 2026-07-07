@@ -4,12 +4,17 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SportCourtManagement_FrontEnd.Models.Api;
 using SportCourtManagement_FrontEnd.Models.Courts;
 using SportCourtManagement_FrontEnd.Models.Reviews;
 using SportCourtManagement_FrontEnd.Models.Bookings;
+using SportCourtManagement_FrontEnd.Models.Promotions;
+using SportCourtManagement_FrontEnd.Models.Tournaments;
+using SportCourtManagement_FrontEnd.Models.Services;
 
 namespace SportCourtManagement_FrontEnd.Services;
 
@@ -17,11 +22,13 @@ public class CourtApiService : ICourtApiService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<CourtApiService> _logger;
+    private readonly JsonSerializerOptions _jsonOptions;
 
-    public CourtApiService(HttpClient httpClient, ILogger<CourtApiService> logger)
+    public CourtApiService(HttpClient httpClient, ILogger<CourtApiService> logger, JsonSerializerOptions jsonOptions)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _jsonOptions = jsonOptions;
     }
 
     public async Task<PagedResult<CourtListDto>> SearchCourtsAsync(CourtSearchParams searchParams)
@@ -50,10 +57,10 @@ public class CourtApiService : ICourtApiService
             query.Append($"PageNumber={searchParams.PageNumber}&");
             query.Append($"PageSize={searchParams.PageSize}");
 
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<PagedResult<CourtListDto>>>(query.ToString());
-            if (response != null && response.Success && response.Data != null)
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<PagedResult<CourtListDto>>>(query.ToString(), _jsonOptions);
+            if (response != null && (response.Success || response.Data != null))
             {
-                return response.Data;
+                return response.Data ?? new PagedResult<CourtListDto>();
             }
         }
         catch (Exception ex)
@@ -68,7 +75,7 @@ public class CourtApiService : ICourtApiService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<CourtDetailDto>>($"api/courts/{id}");
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<CourtDetailDto>>($"api/courts/{id}", _jsonOptions);
             if (response != null && response.Success && response.Data != null)
             {
                 return response.Data;
@@ -146,6 +153,40 @@ public class CourtApiService : ICourtApiService
             _logger.LogError(ex, "Error executing GetCourtTypes workaround");
         }
         return new List<CourtTypeDto>();
+    }
+
+    public async Task<List<ServiceDto>> GetServicesAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ServiceDto>>>("api/Services");
+            if (response != null && (response.Success || response.Data != null))
+            {
+                return response.Data ?? new List<ServiceDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling GetServices API");
+        }
+        return new List<ServiceDto>();
+    }
+
+    public async Task<List<TimeSlotDto>> GetTimeSlotsAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<TimeSlotDto>>>("api/time-slots");
+            if (response != null && (response.Success || response.Data != null))
+            {
+                return response.Data ?? new List<TimeSlotDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling GetTimeSlots API");
+        }
+        return new List<TimeSlotDto>();
     }
 
     public async Task<(bool success, string message)> SubmitReviewAsync(int courtId, int bookingId, byte rating, string? comment, string? token)
@@ -369,6 +410,372 @@ public class CourtApiService : ICourtApiService
             _logger.LogError(ex, "Error getting booking detail for {Id}", id);
         }
         return null;
+    }
+
+    // Promotions
+    public async Task<PagedResult<PromotionDto>> GetPagedPromotionsAsync(string? keyword, bool? isActive, int pageNumber, int pageSize, string? token)
+    {
+        try
+        {
+            var url = $"api/promotions?PageNumber={pageNumber}&PageSize={pageSize}";
+            if (!string.IsNullOrEmpty(keyword)) url += $"&Keyword={Uri.EscapeDataString(keyword)}";
+            if (isActive.HasValue) url += $"&IsActive={isActive}";
+            var req = CreateAuthRequest(HttpMethod.Get, url, token);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<PagedResult<PromotionDto>>>(_jsonOptions);
+                if (body != null && body.Data != null) return body.Data;
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error GetPagedPromotionsAsync"); }
+        return new PagedResult<PromotionDto>();
+    }
+
+    public async Task<PromotionDto?> CreatePromotionAsync(PromotionFormDto form, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Post, "api/promotions", token);
+            req.Content = JsonContent.Create(form, null, _jsonOptions);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<PromotionDto>>(_jsonOptions);
+                return body?.Data;
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error CreatePromotionAsync"); }
+        return null;
+    }
+
+    public async Task<PromotionDto?> UpdatePromotionAsync(int id, PromotionFormDto form, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Put, $"api/promotions/{id}", token);
+            req.Content = JsonContent.Create(form, null, _jsonOptions);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<PromotionDto>>(_jsonOptions);
+                return body?.Data;
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error UpdatePromotionAsync for id {Id}", id); }
+        return null;
+    }
+
+    public async Task<bool> DeletePromotionAsync(int id, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Delete, $"api/promotions/{id}", token);
+            var res = await _httpClient.SendAsync(req);
+            return res.IsSuccessStatusCode;
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error DeletePromotionAsync for id {Id}", id); }
+        return false;
+    }
+
+    // Bookings (Admin & Customer)
+    public async Task<PagedResult<BookingDetailDto>> GetPagedMyBookingsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize, string? token)
+    {
+        try
+        {
+            var url = BuildFilterQuery("api/bookings/my", keyword, fromDate, toDate, status, pageNumber, pageSize);
+            var req = CreateAuthRequest(HttpMethod.Get, url, token);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<PagedResult<BookingDetailDto>>>(_jsonOptions);
+                if (body != null && body.Data != null) return body.Data;
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error GetPagedMyBookingsAsync"); }
+        return new PagedResult<BookingDetailDto>();
+    }
+
+    public async Task<PagedResult<BookingDetailDto>> GetPagedAdminBookingsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, int? courtTypeId, string? status, int pageNumber, int pageSize, string? token)
+    {
+        try
+        {
+            var url = BuildFilterQuery("api/bookings/admin", keyword, fromDate, toDate, status, pageNumber, pageSize);
+            if (courtTypeId.HasValue && courtTypeId.Value > 0) url += $"&CourtTypeId={courtTypeId.Value}";
+            var req = CreateAuthRequest(HttpMethod.Get, url, token);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<PagedResult<BookingDetailDto>>>(_jsonOptions);
+                if (body != null && body.Data != null) return body.Data;
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error GetPagedAdminBookingsAsync"); }
+        return new PagedResult<BookingDetailDto>();
+    }
+
+    public async Task<bool> UpdateBookingStatusAsync(int id, string status, string? cancelReason, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Put, $"api/bookings/{id}/status", token);
+            req.Content = JsonContent.Create(new { Status = status, CancelReason = cancelReason }, null, _jsonOptions);
+            var res = await _httpClient.SendAsync(req);
+            return res.IsSuccessStatusCode;
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error UpdateBookingStatusAsync for id {Id}", id); }
+        return false;
+    }
+
+    // Tournaments
+    public async Task<PagedResult<TournamentDto>> GetPagedMyTournamentsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize, string? token)
+    {
+        try
+        {
+            var url = BuildFilterQuery("api/bookings/tournament/my", keyword, fromDate, toDate, status, pageNumber, pageSize);
+            var req = CreateAuthRequest(HttpMethod.Get, url, token);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<PagedResult<TournamentDto>>>(_jsonOptions);
+                if (body != null && body.Data != null) return body.Data;
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error GetPagedMyTournamentsAsync"); }
+        return new PagedResult<TournamentDto>();
+    }
+
+    public async Task<PagedResult<TournamentDto>> GetPagedAdminTournamentsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize, string? token)
+    {
+        try
+        {
+            var url = BuildFilterQuery("api/bookings/tournament/admin", keyword, fromDate, toDate, status, pageNumber, pageSize);
+            var req = CreateAuthRequest(HttpMethod.Get, url, token);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<PagedResult<TournamentDto>>>(_jsonOptions);
+                if (body != null && body.Data != null) return body.Data;
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error GetPagedAdminTournamentsAsync"); }
+        return new PagedResult<TournamentDto>();
+    }
+
+    public async Task<PagedResult<TournamentPublicDto>> GetPagedPublicTournamentsAsync(string? keyword, int pageNumber, int pageSize)
+    {
+        try
+        {
+            var url = $"api/bookings/tournament/public?PageNumber={pageNumber}&PageSize={pageSize}";
+            if (!string.IsNullOrEmpty(keyword)) url += $"&Keyword={Uri.EscapeDataString(keyword)}";
+            var res = await _httpClient.GetAsync(url);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<PagedResult<TournamentPublicDto>>>(_jsonOptions);
+                if (body != null && body.Data != null) return body.Data;
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error GetPagedPublicTournamentsAsync"); }
+        return new PagedResult<TournamentPublicDto>();
+    }
+
+    public async Task<TournamentDto?> CreateTournamentAsync(CreateTournamentFormDto form, string? token)
+    {
+        var (data, _) = await CreateTournamentResultAsync(form, token);
+        return data;
+    }
+
+    public async Task<(TournamentDto? Data, string? ErrorMessage)> CreateTournamentResultAsync(CreateTournamentFormDto form, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Post, "api/bookings/tournament", token);
+            req.Content = JsonContent.Create(form, null, _jsonOptions);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<TournamentDto>>(_jsonOptions);
+                return (body?.Data, null);
+            }
+            var rawErr = await res.Content.ReadAsStringAsync();
+            try
+            {
+                var errBody = System.Text.Json.JsonSerializer.Deserialize<ApiResponse<object>>(rawErr, _jsonOptions);
+                if (errBody != null && !string.IsNullOrWhiteSpace(errBody.Message)) return (null, errBody.Message);
+
+                // Thử parse xem có phải ValidationProblemDetails không
+                var problem = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(rawErr);
+                if (problem.TryGetProperty("errors", out var errors) && errors.ValueKind == System.Text.Json.JsonValueKind.Object)
+                {
+                    var firstErr = errors.EnumerateObject().FirstOrDefault();
+                    if (firstErr.Value.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    {
+                        var msg = firstErr.Value.EnumerateArray().FirstOrDefault().GetString();
+                        if (!string.IsNullOrEmpty(msg)) return (null, msg);
+                    }
+                }
+            }
+            catch { }
+            
+            // Hiển thị chi tiết lỗi để dễ debug
+            string finalErr = $"Lỗi {res.StatusCode} ({(int)res.StatusCode}). ";
+            if (!string.IsNullOrWhiteSpace(rawErr)) {
+                finalErr += $"Chi tiết: {rawErr}";
+            } else {
+                finalErr += "Server không trả về chi tiết lỗi.";
+            }
+            return (null, finalErr);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error CreateTournamentResultAsync");
+            return (null, "Lỗi kết nối đến máy chủ.");
+        }
+    }
+
+    public async Task<TournamentDto?> GetMyTournamentDetailAsync(int id, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Get, $"api/bookings/tournament/{id}", token);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<TournamentDto>>(_jsonOptions);
+                return body?.Data;
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error GetMyTournamentDetailAsync for tournament {Id}", id); }
+        return null;
+    }
+
+    public async Task<bool> UpdateTournamentStatusAsync(int id, string status, string? cancelReason, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Put, $"api/bookings/tournament/{id}/status", token);
+            req.Content = JsonContent.Create(new { Status = status, CancelReason = cancelReason }, null, _jsonOptions);
+            var res = await _httpClient.SendAsync(req);
+            return res.IsSuccessStatusCode;
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error UpdateTournamentStatusAsync"); }
+        return false;
+    }
+
+    public async Task<SePayQrCodeDto?> GetSePayQrCodeAsync(string bookingOrTournamentCode)
+    {
+        try
+        {
+            var res = await _httpClient.GetAsync($"api/SePay/qr-code/{Uri.EscapeDataString(bookingOrTournamentCode)}");
+            if (res.IsSuccessStatusCode)
+            {
+                return await res.Content.ReadFromJsonAsync<SePayQrCodeDto>(_jsonOptions);
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error GetSePayQrCodeAsync for {Code}", bookingOrTournamentCode); }
+        return null;
+    }
+
+    private static HttpRequestMessage CreateAuthRequest(HttpMethod method, string url, string? token)
+    {
+        var req = new HttpRequestMessage(method, url);
+        if (!string.IsNullOrEmpty(token)) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return req;
+    }
+
+    private static string BuildFilterQuery(string baseUrl, string? kw, DateTime? from, DateTime? to, string? st, int page, int size)
+    {
+        var url = $"{baseUrl}?PageNumber={page}&PageSize={size}";
+        if (!string.IsNullOrEmpty(kw)) url += $"&Keyword={Uri.EscapeDataString(kw)}";
+        if (from.HasValue) url += $"&FromDate={from.Value:yyyy-MM-dd}";
+        if (to.HasValue) url += $"&ToDate={to.Value:yyyy-MM-dd}";
+        if (!string.IsNullOrEmpty(st)) url += $"&Status={Uri.EscapeDataString(st)}";
+        return url;
+    }
+
+    // Auth Implementations
+    public async Task<Models.Auth.AuthLoginResult> LoginAsync(Models.Auth.LoginRequest request)
+    {
+        try
+        {
+            var res = await _httpClient.PostAsJsonAsync("api/auth/login", request, _jsonOptions);
+            var body = await res.Content.ReadAsStringAsync();
+            if (res.IsSuccessStatusCode)
+            {
+                var wrapper = JsonSerializer.Deserialize<ApiResponse<Models.Auth.AuthResponse>>(body, _jsonOptions);
+                if (wrapper?.Data != null)
+                    return Models.Auth.AuthLoginResult.Ok(wrapper.Data);
+            }
+
+            // Parse error
+            string errMsg = "Email hoặc mật khẩu không đúng.";
+            bool requiresVerify = false;
+            try
+            {
+                var errWrapper = JsonSerializer.Deserialize<ApiResponse<object>>(body, _jsonOptions);
+                if (!string.IsNullOrEmpty(errWrapper?.Message)) errMsg = errWrapper.Message;
+                if ((int)res.StatusCode == 403 && errMsg.Contains("xác thực", StringComparison.OrdinalIgnoreCase))
+                    requiresVerify = true;
+            }
+            catch { }
+
+            return Models.Auth.AuthLoginResult.Fail(errMsg, requiresVerify);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in LoginAsync");
+            return Models.Auth.AuthLoginResult.Fail("Không kết nối được API Backend.");
+        }
+    }
+
+    public async Task<(bool Success, string? ErrorMessage)> RegisterAsync(Models.Auth.RegisterRequest request)
+    {
+        try
+        {
+            var res = await _httpClient.PostAsJsonAsync("api/auth/register", request, _jsonOptions);
+            var body = await res.Content.ReadAsStringAsync();
+            if (res.IsSuccessStatusCode)
+            {
+                return (true, null);
+            }
+            try
+            {
+                var errWrapper = JsonSerializer.Deserialize<ApiResponse<object>>(body, _jsonOptions);
+                return (false, errWrapper?.Message ?? "Đăng ký thất bại.");
+            }
+            catch { }
+            return (false, "Đăng ký thất bại.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in RegisterAsync");
+            return (false, "Không kết nối được API Backend.");
+        }
+    }
+
+    public async Task<(bool Success, string? ErrorMessage)> VerifyEmailAsync(Models.Auth.VerifyEmailRequest request)
+    {
+        try
+        {
+            var res = await _httpClient.PostAsJsonAsync("api/auth/verify-email", request, _jsonOptions);
+            var body = await res.Content.ReadAsStringAsync();
+            if (res.IsSuccessStatusCode)
+            {
+                return (true, null);
+            }
+            try
+            {
+                var errWrapper = JsonSerializer.Deserialize<ApiResponse<object>>(body, _jsonOptions);
+                return (false, errWrapper?.Message ?? "Xác thực thất bại.");
+            }
+            catch { }
+            return (false, "Xác thực thất bại.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in VerifyEmailAsync");
+            return (false, "Không kết nối được API Backend.");
+        }
     }
 
     public async Task<List<PromotionDto>> GetActivePromotionsAsync()

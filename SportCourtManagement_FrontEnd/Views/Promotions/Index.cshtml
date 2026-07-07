@@ -1,0 +1,147 @@
+@model SportCourtManagement_FrontEnd.Models.Promotions.PromotionListViewModel
+@{
+  ViewData["Title"] = "Quản lý Chương trình Khuyến mãi";
+}
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-primary mb-1"><i class="bi bi-gift-fill me-2"></i>Quản lý Khuyến mãi</h2>
+      <p class="text-muted mb-0">Quản lý các mã giảm giá và chiến dịch ưu đãi cho khách hàng</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary px-4 py-2 rounded-pill shadow-sm">
+      <i class="bi bi-plus-lg me-1"></i> Tạo khuyến mãi mới
+    </a>
+  </div>
+
+  @if (TempData["SuccessMessage"] != null)
+  {
+    <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  }
+  @if (TempData["ErrorMessage"] != null)
+  {
+    <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  }
+
+  <!-- Filter Card -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-light">
+    <div class="card-body p-4">
+      <form method="get" asp-action="Index" class="row g-3 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label fw-semibold text-secondary">Từ khóa tìm kiếm</label>
+          <input type="text" name="keyword" value="@Model.Keyword" class="form-control rounded-3" placeholder="Mã khuyến mãi hoặc tên chương trình..." />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold text-secondary">Trạng thái hoạt động</label>
+          <select name="isActive" class="form-select rounded-3">
+            <option value="">-- Tất cả trạng thái --</option>
+            <option value="true" selected="@(Model.IsActive == true)">Đang kích hoạt</option>
+            <option value="false" selected="@(Model.IsActive == false)">Đã khóa / Hết hạn</option>
+          </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-secondary px-4 rounded-3 w-100">Lọc dữ liệu</button>
+          <a asp-action="Index" class="btn btn-outline-secondary rounded-3">Đặt lại</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-primary text-white">
+          <tr>
+            <th class="py-3 px-4">Mã CODE</th>
+            <th class="py-3">Tên chương trình</th>
+            <th class="py-3">Mức giảm</th>
+            <th class="py-3">Đơn tối thiểu</th>
+            <th class="py-3">Thời gian áp dụng</th>
+            <th class="py-3">Đã dùng</th>
+            <th class="py-3">Trạng thái</th>
+            <th class="py-3 text-end px-4">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (Model.PagedData.Items != null && Model.PagedData.Items.Count > 0)
+          {
+            foreach (var item in Model.PagedData.Items)
+            {
+              <tr>
+                <td class="px-4"><span class="badge bg-dark px-3 py-2 fs-6 rounded-pill">@item.PromoCode</span></td>
+                <td class="fw-semibold">@item.PromoName</td>
+                <td>
+                  <span class="text-success fw-bold">
+                    @(item.DiscountType == SportCourtManagement_FrontEnd.Models.Promotions.DiscountType.Percent ? $"{item.DiscountValue}%" : $"{item.DiscountValue:N0}đ")
+                  </span>
+                </td>
+                <td>@item.MinOrderAmount.ToString("N0")đ</td>
+                <td>
+                  <small class="text-muted d-block">Từ: @item.StartDate.ToString("dd/MM/yyyy")</small>
+                  <small class="text-muted d-block">Đến: @item.EndDate.ToString("dd/MM/yyyy")</small>
+                </td>
+                <td>
+                  <span class="badge bg-info text-dark">@item.UsedCount / @(item.UsageLimit?.ToString() ?? "∞")</span>
+                </td>
+                <td>
+                  @if (item.IsActive && item.EndDate >= DateTime.UtcNow)
+                  {
+                    <span class="badge bg-success">Hoạt động</span>
+                  }
+                  else
+                  {
+                    <span class="badge bg-secondary">Ngừng hoạt động</span>
+                  }
+                </td>
+                <td class="text-end px-4">
+                  <a asp-action="Edit" asp-route-id="@item.PromotionId" class="btn btn-sm btn-outline-primary rounded-pill me-1">Sửa</a>
+                  <form asp-action="Delete" asp-route-id="@item.PromotionId" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa khuyến mãi này?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">Xóa</button>
+                  </form>
+                </td>
+              </tr>
+            }
+          }
+          else
+          {
+            <tr>
+              <td colspan="8" class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                Chưa có dữ liệu chương trình khuyến mãi nào.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.PagedData.TotalPages > 1)
+    {
+      <div class="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center border-top">
+        <span class="text-muted small">Hiển thị trang @Model.PagedData.PageNumber / @Model.PagedData.TotalPages (@Model.PagedData.TotalCount bản ghi)</span>
+        <ul class="pagination mb-0">
+          <li class="page-item @(Model.PagedData.PageNumber <= 1 ? "disabled" : "")">
+            <a class="page-link" asp-action="Index" asp-route-page="@(Model.PagedData.PageNumber - 1)" asp-route-keyword="@Model.Keyword" asp-route-isActive="@Model.IsActive">Trước</a>
+          </li>
+          @for (int i = 1; i <= Model.PagedData.TotalPages; i++)
+          {
+            <li class="page-item @(i == Model.PagedData.PageNumber ? "active" : "")">
+              <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-keyword="@Model.Keyword" asp-route-isActive="@Model.IsActive">@i</a>
+            </li>
+          }
+          <li class="page-item @(Model.PagedData.PageNumber >= Model.PagedData.TotalPages ? "disabled" : "")">
+            <a class="page-link" asp-action="Index" asp-route-page="@(Model.PagedData.PageNumber + 1)" asp-route-keyword="@Model.Keyword" asp-route-isActive="@Model.IsActive">Sau</a>
+          </li>
+        </ul>
+      </div>
+    }
+  </div>
+</div>

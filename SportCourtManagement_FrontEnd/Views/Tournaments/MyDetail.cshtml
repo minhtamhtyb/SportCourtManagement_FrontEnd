@@ -1,0 +1,419 @@
+@model SportCourtManagement_FrontEnd.Models.Tournaments.TournamentDto
+@using SportCourtManagement_FrontEnd.Models.Tournaments
+@{
+  ViewData["Title"] = $"Chi Tiết Giải Đấu #{Model.TournamentId} - {Model.TournamentName}";
+  bool isPending = Model.Status == "Pending";
+  bool isConfirmedOrPaid = Model.Status == "Confirmed" || Model.Status == "Paid";
+  bool isCancelled = Model.Status == "Cancelled";
+
+  // TTL 10 phút tính từ CreatedAt
+  var expiredAt = Model.CreatedAt.AddMinutes(10);
+  var now = DateTime.UtcNow.AddHours(7); // Giả sử UTC+7 hoặc lấy theo thời gian thực JS
+  var remainingSeconds = (int)(expiredAt - now).TotalSeconds;
+}
+
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+  }
+
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 1.25rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .header-banner {
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.25);
+  }
+
+  .header-banner::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .status-badge {
+    padding: 0.5rem 1.25rem;
+    border-radius: 50rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.025em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .service-chip {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.825rem;
+    font-weight: 500;
+    color: #334155;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0.2rem;
+  }
+
+  .service-chip i {
+    color: #4f46e5;
+  }
+
+  .summary-box {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #cbd5e1;
+    border-radius: 1rem;
+    padding: 1.5rem;
+  }
+
+  .hotline-box {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-left: 5px solid #f59e0b;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    color: #78350f;
+  }
+
+  @@keyframes pulse-red {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+
+  .ttl-alert {
+    animation: pulse-red 2s infinite;
+  }
+</style>
+
+<div class="container py-5">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a asp-action="MyTournaments" class="text-decoration-none text-primary fw-semibold"><i class="bi bi-arrow-left me-1"></i>Giải đấu của tôi</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Chi tiết giải đấu #@Model.TournamentId</li>
+    </ol>
+  </nav>
+
+  <!-- Header Banner -->
+  <div class="header-banner mb-5">
+    <div class="row align-items-center">
+      <div class="col-lg-8 mb-3 mb-lg-0">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <span class="badge bg-white text-primary px-3 py-1 fw-bold">MÃ GIẢI: #@Model.TournamentId</span>
+          @if (isConfirmedOrPaid)
+          {
+            <span class="status-badge bg-success text-white"><i class="bi bi-check-circle-fill"></i> Đã Phê Duyệt / Thanh Toán</span>
+          }
+          else if (isPending)
+          {
+            <span class="status-badge bg-warning text-dark"><i class="bi bi-clock-history"></i> Chờ Thanh Toán & Phê Duyệt</span>
+          }
+          else if (isCancelled)
+          {
+            <span class="status-badge bg-danger text-white"><i class="bi bi-x-circle-fill"></i> Đã Hủy</span>
+          }
+          else
+          {
+            <span class="status-badge bg-secondary text-white">@Model.Status</span>
+          }
+        </div>
+        <h1 class="fw-bold mb-2 text-white">@Model.TournamentName</h1>
+        <p class="mb-0 text-white-50"><i class="bi bi-calendar-check me-2"></i>Ngày tạo: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+          <p class="mt-2 mb-0 text-white-50"><i class="bi bi-info-circle me-2"></i>@Model.Description</p>
+        }
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <div class="p-3 rounded-4 bg-white bg-opacity-10 backdrop-blur d-inline-block text-end">
+          <small class="d-block text-white-50 text-uppercase fw-semibold mb-1">Tổng Chi Phí Giải Đấu</small>
+          <span class="fs-2 fw-bold text-white">@Model.TotalAmount.ToString("N0") <small class="fs-5">VNĐ</small></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TTL Countdown Banner (Nếu đang Pending) -->
+  @if (isPending)
+  {
+    <div id="ttlBannerContainer" class="mb-5">
+      <div class="alert alert-warning border-0 rounded-4 shadow-sm p-4 ttl-alert d-flex align-items-center justify-content-between flex-wrap gap-3" role="alert">
+        <div class="d-flex align-items-center gap-3">
+          <div class="fs-1 text-warning"><i class="bi bi-hourglass-split"></i></div>
+          <div>
+            <h5 class="fw-bold mb-1 text-dark">Đơn Giải Đấu Đang Giữ Chỗ Thanh Toán (TTL 10 Phút)</h5>
+            <p class="mb-0 text-secondary">Để tránh giữ chỗ ảo gây ảnh hưởng lịch sân, vui lòng hoàn tất thanh toán trong: <strong id="ttlCountdownDisplay" class="text-danger fs-5">@remainingSeconds</strong></p>
+          </div>
+        </div>
+        <div>
+          <a asp-action="Payment" asp-route-id="@Model.TournamentId" class="btn btn-danger btn-lg px-4 rounded-pill fw-bold shadow-sm">
+            <i class="bi bi-qr-code-scan me-2"></i>Thanh Toán Ngay
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Banner khi hết giờ (Ẩn mặc định) -->
+    <div id="ttlExpiredBanner" class="alert alert-danger border-0 rounded-4 shadow-sm p-4 mb-5 d-none" role="alert">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill fs-1 text-danger"></i>
+        <div>
+          <h5 class="fw-bold mb-1">Thời Gian Giữ Chỗ Đã Hết (TTL Expired)</h5>
+          <p class="mb-0">Các ca thi đấu của giải này đã tự động mở lại cho khách hàng khác đặt. Anh/chị vẫn có thể bấm thanh toán nếu các ca chưa bị người khác tranh mất, hoặc tạo đơn giải đấu mới!</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="row g-4">
+    <!-- Cột trái: Danh sách ca thi đấu & dịch vụ đi kèm -->
+    <div class="col-lg-8">
+      <div class="glass-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+          <h4 class="fw-bold text-primary mb-0"><i class="bi bi-grid-fill me-2"></i>Danh Sách Lịch Thi Đấu (@Model.Bookings.Count ca)</h4>
+          <span class="badge bg-primary rounded-pill px-3 py-2">Chi tiết từng ca</span>
+        </div>
+
+        @if (Model.Bookings != null && Model.Bookings.Count > 0)
+        {
+          <div class="row g-3">
+            @foreach (var booking in Model.Bookings)
+            {
+              <div class="col-12">
+                <div class="card border border-light-subtle rounded-4 shadow-sm h-100 overflow-hidden">
+                  <div class="card-header bg-light d-flex justify-content-between align-items-center py-3 px-4">
+                    <div>
+                      <span class="fw-bold text-dark fs-6"><i class="bi bi-geo-alt-fill text-danger me-2"></i>@booking.CourtName</span>
+                      <small class="text-muted ms-2">(Mã đơn: #@booking.BookingCode)</small>
+                    </div>
+                    <span class="badge @(booking.Status == "Confirmed" || booking.Status == "Paid" ? "bg-success" : (booking.Status == "Pending" ? "bg-warning text-dark" : "bg-secondary")) px-3 py-1 rounded-pill">
+                      @booking.Status
+                    </span>
+                  </div>
+                  <div class="card-body p-4">
+                    <div class="row align-items-center">
+                      <div class="col-md-5 mb-3 mb-md-0">
+                        <div class="d-flex align-items-center gap-3">
+                          <div class="p-3 bg-primary bg-opacity-10 rounded-3 text-primary">
+                            <i class="bi bi-clock-fill fs-4"></i>
+                          </div>
+                          <div>
+                            <span class="text-muted small d-block">Khung Giờ Thi Đấu</span>
+                            <strong class="fs-5 text-dark">@booking.StartTime - @booking.EndTime</strong>
+                            <small class="d-block text-secondary">Ngày: @booking.BookingDate.ToString("dd/MM/yyyy")</small>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-4 mb-3 mb-md-0 border-start-md ps-md-4">
+                        <span class="text-muted small d-block mb-1"><i class="bi bi-box-seam me-1"></i>Dịch Vụ Đi Kèm:</span>
+                        @if (booking.Services != null && booking.Services.Count > 0)
+                        {
+                          <div class="d-flex flex-wrap">
+                            @foreach (var s in booking.Services)
+                            {
+                              <span class="service-chip" title="Đơn giá: @s.UnitPrice.ToString("N0")đ">
+                                <i class="bi bi-check2-circle"></i>@s.ServiceName <strong>@($"x{s.Quantity}")</strong>
+                              </span>
+                            }
+                          </div>
+                        }
+                        else
+                        {
+                          <span class="text-muted small italic">Không sử dụng dịch vụ</span>
+                        }
+                      </div>
+                      <div class="col-md-3 text-md-end">
+                        <span class="text-muted small d-block">Thành Tiền</span>
+                        <span class="fs-5 fw-bold text-primary">@booking.TotalAmount.ToString("N0")đ</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+        else
+        {
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+            Chưa có ca thi đấu nào được lập cho giải này.
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Cột phải: Tổng hợp Dịch vụ, Thao tác & Hotline CSKH -->
+    <div class="col-lg-4">
+      <!-- Bảng Tổng Hợp Dịch Vụ Toàn Giải -->
+      <div class="glass-card p-4 mb-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-list-check me-2 text-primary"></i>Tổng Hợp Dịch Vụ Toàn Giải</h5>
+        <p class="text-muted small mb-3">Thống kê tổng số lượng vật phẩm và dịch vụ cần chuẩn bị cho toàn bộ các ca thi đấu trong giải:</p>
+        
+        @{
+          var allServices = (Model.Bookings ?? new List<TournamentBookingItemDto>())
+            .Where(b => b.Services != null)
+            .SelectMany(b => b.Services)
+            .GroupBy(s => new { s.ServiceId, s.ServiceName })
+            .Select(g => new {
+              ServiceName = g.Key.ServiceName,
+              TotalQuantity = g.Sum(x => x.Quantity),
+              TotalCost = g.Sum(x => x.TotalPrice)
+            })
+            .ToList();
+        }
+
+        @if (allServices.Any())
+        {
+          <div class="summary-box">
+            <ul class="list-unstyled mb-0">
+              @foreach (var s in allServices)
+              {
+                <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                  <div>
+                    <span class="fw-semibold text-dark">@s.ServiceName</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary ms-2">@($"x{s.TotalQuantity}")</span>
+                  </div>
+                  <span class="fw-bold text-secondary">@s.TotalCost.ToString("N0")đ</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+        else
+        {
+          <div class="text-center py-4 bg-light rounded-3 text-muted small">
+            <i class="bi bi-inbox fs-3 d-block mb-1"></i>
+            Giải đấu không sử dụng dịch vụ hoặc vật phẩm đi kèm nào.
+          </div>
+        }
+      </div>
+
+      <!-- Action Buttons Card -->
+      <div class="glass-card p-4 mb-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-sliders me-2 text-primary"></i>Thao Tác Quản Lý</h5>
+        
+        @if (isPending)
+        {
+          <a asp-action="Payment" asp-route-id="@Model.TournamentId" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm mb-3 d-flex align-items-center justify-content-center gap-2">
+            <i class="bi bi-credit-card-fill fs-5"></i> Tiến Hành Thanh Toán
+          </a>
+        }
+
+        <!-- Nút Chỉnh sửa giải đấu -->
+        <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 fw-semibold mb-3 d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#editTournamentModal">
+          <i class="bi bi-pencil-square"></i> Chỉnh Sửa Giải Đấu
+        </button>
+
+        <a asp-action="MyTournaments" class="btn btn-light w-100 py-2 rounded-3 text-secondary fw-semibold">
+          <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+        </a>
+      </div>
+
+      <!-- Hotline CSKH Box (Quy định không tự hủy) -->
+      <div class="hotline-box shadow-sm">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <i class="bi bi-shield-exclamation fs-4 text-warning"></i>
+          <h6 class="fw-bold mb-0">Quy Định Hủy & Đổi Lịch</h6>
+        </div>
+        <p class="small mb-3">
+          <strong>Quy định hệ thống:</strong> Khách hàng không được phép tự hủy giải đấu hoặc ca thi đấu đã đặt nhằm bảo đảm tính ổn định lịch sân.
+        </p>
+        <p class="small mb-0">
+          Nếu anh/chị cần hỗ trợ đổi sân, dời ngày hoặc hủy giải khẩn cấp, vui lòng liên hệ Ban Quản Lý qua Tổng đài CSKH: <strong class="fs-6 text-dark">1900 6868</strong> hoặc Zalo: <strong class="fs-6 text-dark">0988.888.888</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal hướng dẫn chỉnh sửa giải đấu -->
+<div class="modal fade" id="editTournamentModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header bg-primary text-white rounded-top-4">
+        <h5 class="modal-title fw-bold" id="editModalLabel"><i class="bi bi-info-circle-fill me-2"></i>Chỉnh Sửa Thông Tin Giải Đấu</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="text-dark">Theo quy định, anh/chị có thể cập nhật thông tin giải đấu, đổi sân, khung giờ hoặc thêm bớt dịch vụ trong vòng <strong>24 giờ</strong> kể từ khi tạo đơn thông qua hệ thống API hoặc nhờ nhân viên hỗ trợ.</p>
+        <div class="alert alert-info rounded-3 mb-0">
+          <i class="bi bi-telephone-fill me-2"></i>Vui lòng gọi Hotline <strong class="text-primary">1900 6868</strong> và cung cấp Mã Giải <strong class="text-primary">#@Model.TournamentId</strong> để nhân viên trực ca điều chỉnh lập tức cho anh/chị!
+        </div>
+      </div>
+      <div class="modal-footer bg-light rounded-bottom-4">
+        <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">Đã hiểu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (isPending)
+{
+  <script>
+    /**
+     * Bắt đầu đếm ngược thời gian TTL 10 phút trên trang chi tiết giải đấu.
+     * @@param {number} totalSeconds - Số giây còn lại kể từ CreatedAt + 10 phút.
+     */
+    function startDetailTtlCountdown(totalSeconds) {
+      let remaining = totalSeconds;
+      const displayEl = document.getElementById('ttlCountdownDisplay');
+      const containerEl = document.getElementById('ttlBannerContainer');
+      const expiredEl = document.getElementById('ttlExpiredBanner');
+
+      if (!displayEl || !containerEl || !expiredEl) return;
+
+      if (remaining <= 0) {
+        containerEl.classList.add('d-none');
+        expiredEl.classList.remove('d-none');
+        return;
+      }
+
+      const timer = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(timer);
+          containerEl.classList.add('d-none');
+          expiredEl.classList.remove('d-none');
+        } else {
+          const mins = Math.floor(remaining / 60);
+          const secs = remaining % 60;
+          displayEl.textContent = `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+        }
+      }, 1000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Tính số giây từ server hoặc mặc định 600s
+      const remaining = @((int)(Model.CreatedAt.AddMinutes(10) - DateTime.UtcNow.AddHours(7)).TotalSeconds);
+      startDetailTtlCountdown(remaining > 0 ? remaining : 600);
+    });
+  </script>
+}

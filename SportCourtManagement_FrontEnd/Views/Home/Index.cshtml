@@ -240,7 +240,7 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="p-4 rounded-4 border position-relative overflow-hidden h-100" style="background: rgba(20,27,45,0.6); border-color: rgba(255,255,255,0.08); border-left: 4px solid #4F6EF7 !important; backdrop-filter: blur(10px);">
                         <span class="d-block font-outfit text-sc-blue mb-3" style="font-size: 32px; font-weight: 900;">
-                            @if (promo.DiscountType.Equals("Percent", StringComparison.OrdinalIgnoreCase))
+                            @if (promo.DiscountType == SportCourtManagement_FrontEnd.Models.Promotions.DiscountType.Percent || promo.DiscountType.ToString().Equals("Percent", StringComparison.OrdinalIgnoreCase))
                             {
                                 @(promo.DiscountValue.ToString("0"))@("%")
                             }
