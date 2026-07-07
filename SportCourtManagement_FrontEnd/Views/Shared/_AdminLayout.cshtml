@@ -52,6 +52,15 @@
                 }
                 @if (isAdmin || isStaff)
                 {
+                    <a class="admin-nav-link @(controller=="Bookings"?"active":"")" asp-area="" asp-controller="Bookings" asp-action="AdminIndex">
+                        <i class="fa-solid fa-calendar-check"></i><span class="sidebar-text">Đặt sân</span>
+                    </a>
+                    <a class="admin-nav-link @(controller=="Tournaments"?"active":"")" asp-area="" asp-controller="Tournaments" asp-action="AdminIndex">
+                        <i class="fa-solid fa-trophy"></i><span class="sidebar-text">Giải đấu</span>
+                    </a>
+                    <a class="admin-nav-link @(controller=="Promotions"?"active":"")" asp-area="" asp-controller="Promotions" asp-action="Index">
+                        <i class="fa-solid fa-tags"></i><span class="sidebar-text">Khuyến mãi</span>
+                    </a>
                     <a class="admin-nav-link @(controller=="Services"?"active":"")" asp-area="Admin" asp-controller="Services" asp-action="Index">
                         <i class="fa-solid fa-toolbox"></i><span class="sidebar-text">Dịch vụ & Kho</span>
                     </a>
