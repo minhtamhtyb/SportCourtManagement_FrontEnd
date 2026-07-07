@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace SportCourtManagement_FrontEnd.Models
+namespace SportCourtManagement_FrontEnd.Models.Manager
 {
     public enum ShiftType
     {

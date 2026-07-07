@@ -1,5 +1,6 @@
-
+@model SportCourtManagement_FrontEnd.Models.Manager.TaskViewModel
 @{
+    Layout = "_ManagerLayout";
     ViewData["Title"] = "Quản lý công việc | ProCourt";
 }
 
@@ -31,7 +32,7 @@
             </div>
             <div class="stat-body">
                 <p class="stat-label">Chờ thực hiện</p>
-                <span class="stat-value orange">1</span>
+                <span class="stat-value orange">@Model.PendingCount</span>
                 <p class="stat-sub">Pending</p>
             </div>
         </div>
@@ -41,7 +42,7 @@
             </div>
             <div class="stat-body">
                 <p class="stat-label">Đang làm</p>
-                <span class="stat-value sky">1</span>
+                <span class="stat-value sky">@Model.InProgressCount</span>
                 <p class="stat-sub">In Progress</p>
             </div>
         </div>
@@ -51,7 +52,7 @@
             </div>
             <div class="stat-body">
                 <p class="stat-label">Chờ nghiệm thu</p>
-                <span class="stat-value emerald">1</span>
+                <span class="stat-value emerald">@Model.CompletedCount</span>
                 <p class="stat-sub">Completed</p>
             </div>
         </div>
@@ -61,7 +62,7 @@
             </div>
             <div class="stat-body">
                 <p class="stat-label">Đã duyệt</p>
-                <span class="stat-value gold">1</span>
+                <span class="stat-value gold">@Model.ApprovedCount</span>
                 <p class="stat-sub">Approved</p>
             </div>
         </div>
@@ -123,211 +124,101 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Row 1: Pending Task for Nguyen Van A -->
-                <tr data-id="101"
-                    data-title="Dọn dẹp vệ sinh sân Cầu Lông A1"
-                    data-description="Lau dọn sân và thu gom rác sau ca thuê buổi sáng"
-                    data-category="Cleanup"
-                    data-priority="Medium"
-                    data-duedate="2026-06-30T12:00"
-                    data-status="Pending"
-                    data-staff-id="1"
-                    data-staff-name="Nguyen Van A">
-                    <td>
-                        <div class="task-cell">
-                            <div class="task-icon">
-                                <span class="material-symbols-outlined">assignment</span>
+                @if (Model.Tasks == null || Model.Tasks.Items.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <div class="d-flex flex-column align-items-center gap-2">
+                                <span class="material-symbols-outlined fs-2">assignment_late</span>
+                                <span>Không tìm thấy công việc nào.</span>
                             </div>
-                            <div>
-                                <p class="task-title">Dọn dẹp vệ sinh sân Cầu Lông A1</p>
-                                <p class="task-desc" title="Lau dọn sân và thu gom rác sau ca thuê buổi sáng">Lau dọn sân và thu gom rác sau ca thuê buổi sáng</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="category-badge cleanup">Cleanup</span></td>
-                    <td><span class="priority-badge medium">Medium</span></td>
-                    <td>
-                        <p class="due-date">30/06/2026 12:00</p>
-                    </td>
-                    <td><span class="status-badge pending">Pending</span></td>
-                    <td>
-                        <div class="assigned-cell">
-                            <div class="assigned-avatar">
-                                <img alt="Nguyen Van A" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
-                            </div>
-                            <span class="assigned-name">Nguyen Van A</span>
-                        </div>
-                    </td>
-                    <td class="completed-cell">
-                        <span>–</span>
-                    </td>
-                    <td>
-                        <div class="actions-cell">
-                            <button class="action-icon-btn verify" title="Duyệt / Từ chối">
-                                <span class="material-symbols-outlined">how_to_reg</span>
-                            </button>
-                            <button class="action-icon-btn edit" title="Chỉnh sửa">
-                                <span class="material-symbols-outlined">edit</span>
-                            </button>
-                            <button class="action-icon-btn delete" title="Xóa">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-
-                <!-- Row 2: InProgress Task for Tran Thi B -->
-                <tr data-id="102"
-                    data-title="Sửa lưới sân bóng đá B1"
-                    data-description="Vá lại phần lưới bị rách ở góc gôn trái phía đông"
-                    data-category="Repair"
-                    data-priority="High"
-                    data-duedate="2026-06-30T18:00"
-                    data-status="InProgress"
-                    data-staff-id="2"
-                    data-staff-name="Tran Thi B">
-                    <td>
-                        <div class="task-cell">
-                            <div class="task-icon">
-                                <span class="material-symbols-outlined">assignment</span>
-                            </div>
-                            <div>
-                                <p class="task-title">Sửa lưới sân bóng đá B1</p>
-                                <p class="task-desc" title="Vá lại phần lưới bị rách ở góc gôn trái phía đông">Vá lại phần lưới bị rách ở góc gôn trái phía đông</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="category-badge repair">Repair</span></td>
-                    <td><span class="priority-badge high">High</span></td>
-                    <td>
-                        <p class="due-date">30/06/2026 18:00</p>
-                    </td>
-                    <td><span class="status-badge in-progress">InProgress</span></td>
-                    <td>
-                        <div class="assigned-cell">
-                            <div class="assigned-avatar">
-                                <img alt="Tran Thi B" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
-                            </div>
-                            <span class="assigned-name">Tran Thi B</span>
-                        </div>
-                    </td>
-                    <td class="completed-cell">
-                        <span>–</span>
-                    </td>
-                    <td>
-                        <div class="actions-cell">
-                            <button class="action-icon-btn verify" title="Duyệt / Từ chối">
-                                <span class="material-symbols-outlined">how_to_reg</span>
-                            </button>
-                            <button class="action-icon-btn edit" title="Chỉnh sửa">
-                                <span class="material-symbols-outlined">edit</span>
-                            </button>
-                            <button class="action-icon-btn delete" title="Xóa">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-
-                <!-- Row 3: Completed Task for Nguyen Van A -->
-                <tr data-id="103"
-                    data-title="Chuẩn bị nước uống và bóng cho giải đấu"
-                    data-description="Chuẩn bị 2 thùng nước khoáng và 5 quả bóng cho sân Tennis 2"
-                    data-category="ServicePrep"
-                    data-priority="Urgent"
-                    data-duedate="2026-06-30T10:00"
-                    data-status="Completed"
-                    data-staff-id="1"
-                    data-staff-name="Nguyen Van A">
-                    <td>
-                        <div class="task-cell">
-                            <div class="task-icon">
-                                <span class="material-symbols-outlined">assignment</span>
-                            </div>
-                            <div>
-                                <p class="task-title">Chuẩn bị nước uống và bóng cho giải đấu</p>
-                                <p class="task-desc" title="Chuẩn bị 2 thùng nước khoáng và 5 quả bóng cho sân Tennis 2">Chuẩn bị 2 thùng nước khoáng và 5 quả bóng...</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="category-badge serviceprep">ServicePrep</span></td>
-                    <td><span class="priority-badge urgent">Urgent</span></td>
-                    <td>
-                        <p class="due-date">30/06/2026 10:00</p>
-                    </td>
-                    <td><span class="status-badge completed">Completed</span></td>
-                    <td>
-                        <div class="assigned-cell">
-                            <div class="assigned-avatar">
-                                <img alt="Nguyen Van A" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
-                            </div>
-                            <span class="assigned-name">Nguyen Van A</span>
-                        </div>
-                    </td>
-                    <td class="completed-cell">
-                        <p class="completed-time">30/06 09:30</p>
-                    </td>
-                    <td>
-                        <div class="actions-cell">
-                            <button class="action-icon-btn verify" title="Duyệt / Từ chối">
-                                <span class="material-symbols-outlined">how_to_reg</span>
-                            </button>
-                            <button class="action-icon-btn edit" title="Chỉnh sửa">
-                                <span class="material-symbols-outlined">edit</span>
-                            </button>
-                            <button class="action-icon-btn delete" title="Xóa">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-
-                <!-- Row 4: Approved Task for Le Van C -->
-                <tr data-id="104"
-                    data-title="Giải quyết khiếu nại về hệ thống đèn sân Cầu Lông A2"
-                    data-description="Khách hàng phản ánh đèn bị nhấp nháy liên tục ở hiệp 2"
-                    data-category="Complaint"
-                    data-priority="Low"
-                    data-duedate="2026-07-01T16:00"
-                    data-status="Approved"
-                    data-staff-id="3"
-                    data-staff-name="Le Van C">
-                    <td>
-                        <div class="task-cell">
-                            <div class="task-icon">
-                                <span class="material-symbols-outlined">assignment</span>
-                            </div>
-                            <div>
-                                <p class="task-title">Giải quyết khiếu nại về hệ thống đèn</p>
-                                <p class="task-desc" title="Khách hàng phản ánh đèn bị nhấp nháy liên tục ở hiệp 2">Khách hàng phản ánh đèn bị nhấp nháy liên tục...</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="category-badge complaint">Complaint</span></td>
-                    <td><span class="priority-badge low">Low</span></td>
-                    <td>
-                        <p class="due-date">01/07/2026 16:00</p>
-                    </td>
-                    <td><span class="status-badge approved">Approved</span></td>
-                    <td>
-                        <div class="assigned-cell">
-                            <div class="assigned-avatar">
-                                <img alt="Le Van C" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZC88s__sDzig7zx6x5SRgxmC_F5FKkS3a6sskzkbNOIeavyfvYbYYaa2wKvYMaA1Wl_gWOSReizjq_R2G99Wpy79k4HMOFXGkgcSiEx5PuG_m9L_mGmLPWTmGpbZe6hn_u1AERYQhoR_F2MHib22eYE-VjaZ4OVRrc_-qhiRZpqHOYBfJrPB4pHx1BJEb2RErunCQ7NOv5FzQQ8s4PZ2C4Na_lXICTtJvS5SwXt5y9E730TjkiqOgPRJvl1lJ9mKaIF6hMOn3u1w" />
-                            </div>
-                            <span class="assigned-name">Le Van C</span>
-                        </div>
-                    </td>
-                    <td class="completed-cell">
-                        <p class="completed-time">30/06 14:00</p>
-                    </td>
-                    <td>
-                        <div class="actions-cell">
-                            <button class="action-icon-btn edit" title="Chỉnh sửa">
-                                <span class="material-symbols-outlined">edit</span>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var task in Model.Tasks.Items)
+                    {
+                        var staff = task.AssignedStaffId.HasValue 
+                            ? Model.Staffs.FirstOrDefault(s => s.UserId == task.AssignedStaffId.Value) 
+                            : null;
+                        var avatarUrl = staff?.AvatarUrl ?? "https://lh3.googleusercontent.com/aida-public/AB6AXuA2F8HPt7wWLUahORbOOsCiz40UDrnOOYBu__26_jVUEjwrjrAgGUyitMx1ElfkLnFw7H_X_C1H5paESWMxHEGj6ERwpj7sd0n1sQ_vCRplNAd5jI_axazv2IdmbHMZikI331-NPoXgcYUOxYbPGzahf0yMXscMGz5i-i5vo2JA-N4UBWneywYeEoeX3_MdHjEla0B6q0OPUkCLvneGc2q3hESdPF-e5C_Qvn9QQV-vmpinkZMntFn9wGtgSBx9Q8TEWRRfuxhjCkA";
+                        
+                        <tr data-id="@task.TaskId"
+                            data-title="@task.Title"
+                            data-description="@task.Description"
+                            data-category="@task.Category"
+                            data-priority="@task.Priority"
+                            data-duedate="@task.DueDate.ToString("yyyy-MM-ddTHH:mm")"
+                            data-status="@task.Status"
+                            data-staff-id="@task.AssignedStaffId"
+                            data-staff-name="@(task.AssignedStaffName ?? "")">
+                            <td>
+                                <div class="task-cell">
+                                    <div class="task-icon">
+                                        <span class="material-symbols-outlined">assignment</span>
+                                    </div>
+                                    <div>
+                                        <p class="task-title">@task.Title</p>
+                                        <p class="task-desc" title="@task.Description">@task.Description</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="category-badge @task.Category.ToLower()">@task.Category</span></td>
+                            <td><span class="priority-badge @task.Priority.ToLower()">@task.Priority</span></td>
+                            <td>
+                                <p class="due-date">@task.DueDate.ToString("dd/MM/yyyy HH:mm")</p>
+                            </td>
+                            <td>
+                                <span class="status-badge @(task.Status == "InProgress" ? "in-progress" : task.Status.ToLower())">@task.Status</span>
+                            </td>
+                            <td>
+                                @if (task.AssignedStaffId.HasValue)
+                                {
+                                    <div class="assigned-cell">
+                                        <div class="assigned-avatar">
+                                            <img alt="@task.AssignedStaffName" src="@avatarUrl" />
+                                        </div>
+                                        <span class="assigned-name">@task.AssignedStaffName</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted" style="font-size: 13px;">Chưa phân công</span>
+                                }
+                            </td>
+                            <td class="completed-cell">
+                                @if (task.CompletedAt.HasValue)
+                                {
+                                    <p class="completed-time">@task.CompletedAt.Value.ToString("dd/MM HH:mm")</p>
+                                }
+                                else
+                                {
+                                    <span>–</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="actions-cell">
+                                    @if (task.Status == "Completed")
+                                    {
+                                        <button class="action-icon-btn verify" title="Duyệt / Từ chối">
+                                            <span class="material-symbols-outlined">how_to_reg</span>
+                                        </button>
+                                    }
+                                    <button class="action-icon-btn edit" title="Chỉnh sửa">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </button>
+                                    @if (task.Status != "Approved")
+                                    {
+                                        <button class="action-icon-btn delete" title="Xóa">
+                                            <span class="material-symbols-outlined">delete</span>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
             </tbody>
         </table>
     </div>
@@ -388,9 +279,10 @@
                             <label class="form-label-custom">Nhân viên thực hiện</label>
                             <select class="form-input-custom" name="AssignedStaffId" id="createAssignedStaffId">
                                 <option value="">-- Chưa phân công --</option>
-                                <option value="1">Nguyen Van A</option>
-                                <option value="2">Tran Thi B</option>
-                                <option value="3">Le Van C</option>
+                                @foreach (var staff in Model.Staffs)
+                                {
+                                    <option value="@staff.UserId">@staff.FullName</option>
+                                }
                             </select>
                         </div>
                         <div class="form-group">
@@ -456,9 +348,10 @@
                             <label class="form-label-custom">Nhân viên thực hiện</label>
                             <select class="form-input-custom" name="AssignedStaffId" id="editAssignedStaffId">
                                 <option value="">-- Chưa phân công --</option>
-                                <option value="1">Nguyen Van A</option>
-                                <option value="2">Tran Thi B</option>
-                                <option value="3">Le Van C</option>
+                                @foreach (var staff in Model.Staffs)
+                                {
+                                    <option value="@staff.UserId">@staff.FullName</option>
+                                }
                             </select>
                         </div>
                         <div class="form-group">

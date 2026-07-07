@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using SportCourtManagement_FrontEnd.Models;
+using SportCourtManagement_FrontEnd.Models.Manager;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +32,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [HttpGet]
         public async Task<IActionResult> Maintenance()
         {
+            AttachAuthToken();
             var model = new MaintenanceViewModel();
 
             var scheduleResponse = await _client.GetAsync(_apiBase + "/maintenance?pageSize=100");
@@ -80,6 +81,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateMaintenance(CreateMaintenanceRequest model)
         {
+            AttachAuthToken();
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
@@ -123,6 +125,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateMaintenance([FromForm] int MaintenanceId, UpdateMaintenanceRequest model)
         {
+            AttachAuthToken();
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
@@ -166,6 +169,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> VerifyMaintenance([FromForm] int MaintenanceId, VerifyMaintenanceRequest model)
         {
+            AttachAuthToken();
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Dữ liệu xác nhận không hợp lệ.";
@@ -193,6 +197,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteMaintenance([FromForm] int MaintenanceId)
         {
+            AttachAuthToken();
             if (MaintenanceId <= 0)
             {
                 TempData["ErrorMessage"] = "Mã lịch bảo trì không hợp lệ.";
@@ -211,6 +216,16 @@ namespace SportCourtManagement_FrontEnd.Controllers
             }
 
             return RedirectToAction("Maintenance");
+        }
+
+        private void AttachAuthToken()
+        {
+            var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
+            _client.DefaultRequestHeaders.Authorization = null;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SportCourtManagement_FrontEnd.Models
+namespace SportCourtManagement_FrontEnd.Models.Manager
 {
     public class AttendanceViewModel
     {
