@@ -24,6 +24,8 @@ public class CourtsController(ICourtService courtService) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(int complexId, CourtFormViewModel model)
     {
+        await ValidateCourtCode(model);
+
         if (!ModelState.IsValid)
         {
             if (IsAjaxRequest()) return JsonValidationErrors();
@@ -87,6 +89,8 @@ public class CourtsController(ICourtService courtService) : Controller
     {
         var court = await courtService.GetCourtByIdAsync(id);
         if (court == null) return NotFound();
+
+        await ValidateCourtCode(model);
 
         if (!ModelState.IsValid)
         {
@@ -185,6 +189,65 @@ public class CourtsController(ICourtService courtService) : Controller
             if (model.ImageFile.Length > 5 * 1024 * 1024)
                 throw new InvalidOperationException("Ảnh không được vượt quá 5MB.");
             model.ImageUrl = await courtService.UploadComplexImageAsync(model.ImageFile);
+        }
+    }
+
+    private async Task ValidateCourtCode(CourtFormViewModel model)
+    {
+        if (string.IsNullOrWhiteSpace(model.CourtCode)) return;
+
+        var types = await courtService.GetCourtTypesAsync();
+        var courtType = types.FirstOrDefault(t => t.CourtTypeId == model.CourtTypeId);
+        if (courtType != null)
+        {
+            string typeName = courtType.TypeName.ToLowerInvariant().Trim();
+            string code = model.CourtCode.Trim().ToUpperInvariant();
+            
+            bool isValid = false;
+            string requiredPrefix = "";
+            string suggestion = "";
+            
+            if (typeName.Contains("cầu lông"))
+            {
+                requiredPrefix = "CL";
+                isValid = code.StartsWith("CL");
+                suggestion = "CL-01 hoặc CL-A1";
+            }
+            else if (typeName.Contains("bóng đá"))
+            {
+                requiredPrefix = "BD";
+                isValid = code.StartsWith("BD");
+                suggestion = "BD-01 hoặc BD-A1";
+            }
+            else if (typeName.Contains("pickleball"))
+            {
+                requiredPrefix = "PB, PK hoặc PCK";
+                isValid = code.StartsWith("PB") || code.StartsWith("PK") || code.StartsWith("PCK");
+                suggestion = "PB-01, PK-A1 hoặc PCK-A1";
+            }
+            else if (typeName.Contains("tennis"))
+            {
+                requiredPrefix = "TN hoặc TEN";
+                isValid = code.StartsWith("TN") || code.StartsWith("TEN");
+                suggestion = "TN-01 hoặc TEN-A1";
+            }
+            else if (typeName.Contains("bóng rổ"))
+            {
+                requiredPrefix = "BR";
+                isValid = code.StartsWith("BR");
+                suggestion = "BR-01 hoặc BR-A1";
+            }
+            else
+            {
+                isValid = code.Length >= 2 && char.IsLetter(code[0]) && char.IsLetter(code[1]);
+                requiredPrefix = "ít nhất 2 chữ cái";
+                suggestion = "VD: SAN-01";
+            }
+
+            if (!isValid)
+            {
+                ModelState.AddModelError(nameof(model.CourtCode), $"Mã sân của loại '{courtType.TypeName}' phải bắt đầu bằng '{requiredPrefix}' (Ví dụ: {suggestion}).");
+            }
         }
     }
 }

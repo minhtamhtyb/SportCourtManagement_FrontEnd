@@ -15,6 +15,9 @@ public class ApiServiceCatalogService(ApiClient api) : IServiceCatalogService
             parts.Add($"category={Uri.EscapeDataString(category)}");
         if (!string.IsNullOrWhiteSpace(search))
             parts.Add($"search={Uri.EscapeDataString(search)}");
+        
+        parts.Add("activeOnly=false");
+
         if (parts.Count > 0)
             query += "?" + string.Join("&", parts);
 

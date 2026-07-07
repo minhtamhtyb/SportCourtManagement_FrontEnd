@@ -146,10 +146,84 @@ else
     @if (Model.TotalPages > 1)
     {
         <div class="pagination-custom">
-            @for (var p = 1; p <= Model.TotalPages; p++)
+            @* Nút Trang trước *@
+            @if (Model.Page > 1)
             {
-                <a asp-action="Index" asp-route-page="@p" asp-route-search="@Model.Search" asp-route-courtTypeId="@Model.CourtTypeId"
-                   class="@(p == Model.Page ? "active" : "")">@p</a>
+                <a asp-action="Index" 
+                   asp-route-page="@(Model.Page - 1)" 
+                   asp-route-search="@Model.Search" 
+                   asp-route-courtTypeId="@Model.CourtTypeId"
+                   title="Trang trước">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+            }
+            else
+            {
+                <span class="disabled"><i class="fa-solid fa-chevron-left"></i></span>
+            }
+
+            @* Tính toán khoảng trang hiển thị *@
+            @{
+                int startPage = Math.Max(1, Model.Page - 2);
+                int endPage = Math.Min(Model.TotalPages, Model.Page + 2);
+
+                if (Model.Page <= 3)
+                {
+                    endPage = Math.Min(Model.TotalPages, 5);
+                }
+                if (Model.Page >= Model.TotalPages - 2)
+                {
+                    startPage = Math.Max(1, Model.TotalPages - 4);
+                }
+            }
+
+            @* Trang đầu và dấu ba chấm bên trái *@
+            @if (startPage > 1)
+            {
+                <a asp-action="Index" asp-route-page="1" asp-route-search="@Model.Search" asp-route-courtTypeId="@Model.CourtTypeId">1</a>
+                @if (startPage > 2)
+                {
+                    <span class="dots">...</span>
+                }
+            }
+
+            @* Các trang ở giữa *@
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                if (i == Model.Page)
+                {
+                    <span class="active">@i</span>
+                }
+                else
+                {
+                    <a asp-action="Index" asp-route-page="@i" asp-route-search="@Model.Search" asp-route-courtTypeId="@Model.CourtTypeId">@i</a>
+                }
+            }
+
+            @* Trang cuối và dấu ba chấm bên phải *@
+            @if (endPage < Model.TotalPages)
+            {
+                @if (endPage < Model.TotalPages - 1)
+                {
+                    <span class="dots">...</span>
+                }
+                <a asp-action="Index" asp-route-page="@Model.TotalPages" asp-route-search="@Model.Search" asp-route-courtTypeId="@Model.CourtTypeId">@Model.TotalPages</a>
+            }
+
+            @* Nút Trang sau *@
+            @if (Model.Page < Model.TotalPages)
+            {
+                <a asp-action="Index" 
+                   asp-route-page="@(Model.Page + 1)" 
+                   asp-route-search="@Model.Search" 
+                   asp-route-courtTypeId="@Model.CourtTypeId"
+                   title="Trang sau">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            }
+            else
+            {
+                <span class="disabled"><i class="fa-solid fa-chevron-right"></i></span>
             }
         </div>
     }

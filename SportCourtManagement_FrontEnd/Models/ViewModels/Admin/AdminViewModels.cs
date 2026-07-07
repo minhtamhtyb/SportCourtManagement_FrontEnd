@@ -165,6 +165,10 @@ public class ServiceListViewModel
     public List<ServiceDto> Services { get; set; } = [];
     public string? Category { get; set; }
     public string? Search { get; set; }
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+    public int TotalPages { get; set; } = 1;
+    public int TotalItems { get; set; } = 0;
 }
 
 public class ServiceFormViewModel
