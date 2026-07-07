@@ -1,96 +1,98 @@
 @model SportCourtManagement_FrontEnd.Models.Promotions.PromotionFormDto
 @{
-  ViewData["Title"] = "Chỉnh Sửa Khuyến Mãi";
+    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+    Layout = (userRole == "Manager" || userRole == "Owner") ? "_ManagerLayout" : "_AdminLayout";
+    ViewData["Title"] = "Chỉnh sửa Chương trình Khuyến mãi";
 }
 
-<div class="container py-4">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white text-dark" style="color: #1e293b !important;">
-        <div class="card-header bg-warning p-4">
-          <h4 class="mb-0 fw-bold text-dark" style="color: #1e293b !important;"><i class="bi bi-pencil-square me-2"></i>Cập Nhật Khuyến Mãi @Model.PromoCode</h4>
-        </div>
-        <div class="card-body p-4">
-          <form asp-action="Edit" method="post">
-            <input type="hidden" asp-for="PromotionId" />
-            <input type="hidden" asp-for="PromoCode" />
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-            <div class="row g-3 mb-3">
-              <div class="col-md-6">
-                <label class="form-label fw-semibold text-muted">Mã CODE (Không thể sửa)</label>
-                <input value="@Model.PromoCode" class="form-control bg-light rounded-3" readonly disabled />
-              </div>
-              <div class="col-md-6">
-                <label asp-for="PromoName" class="form-label fw-semibold">Tên chương trình <span class="text-danger">*</span></label>
-                <input asp-for="PromoName" class="form-control rounded-3" />
-                <span asp-validation-for="PromoName" class="text-danger small"></span>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label asp-for="Description" class="form-label fw-semibold">Mô tả chi tiết</label>
-              <textarea asp-for="Description" class="form-control rounded-3" rows="3"></textarea>
-              <span asp-validation-for="Description" class="text-danger small"></span>
-            </div>
-
-            <div class="row g-3 mb-3">
-              <div class="col-md-6">
-                <label asp-for="DiscountType" class="form-label fw-semibold">Loại giảm giá</label>
-                <select asp-for="DiscountType" class="form-select rounded-3">
-                  <option value="Percent">Theo phần trăm (%)</option>
-                  <option value="FixedAmount">Số tiền cố định (VNĐ)</option>
-                </select>
-                <span asp-validation-for="DiscountType" class="text-danger small"></span>
-              </div>
-              <div class="col-md-6">
-                <label asp-for="DiscountValue" class="form-label fw-semibold">Giá trị giảm</label>
-                <input asp-for="DiscountValue" type="number" step="0.01" class="form-control rounded-3" />
-                <span asp-validation-for="DiscountValue" class="text-danger small"></span>
-              </div>
-            </div>
-
-            <div class="row g-3 mb-3">
-              <div class="col-md-4">
-                <label asp-for="MinOrderAmount" class="form-label fw-semibold">Đơn tối thiểu (VNĐ)</label>
-                <input asp-for="MinOrderAmount" type="number" class="form-control rounded-3" />
-                <span asp-validation-for="MinOrderAmount" class="text-danger small"></span>
-              </div>
-              <div class="col-md-4">
-                <label asp-for="MaxDiscount" class="form-label fw-semibold">Giảm tối đa (VNĐ)</label>
-                <input asp-for="MaxDiscount" type="number" class="form-control rounded-3" />
-                <span asp-validation-for="MaxDiscount" class="text-danger small"></span>
-              </div>
-              <div class="col-md-4">
-                <label asp-for="UsageLimit" class="form-label fw-semibold">Giới hạn số lượt dùng</label>
-                <input asp-for="UsageLimit" type="number" class="form-control rounded-3" />
-                <span asp-validation-for="UsageLimit" class="text-danger small"></span>
-              </div>
-            </div>
-
-            <div class="row g-3 mb-4">
-              <div class="col-md-6">
-                <label asp-for="StartDate" class="form-label fw-semibold">Ngày bắt đầu</label>
-                <input asp-for="StartDate" type="date" class="form-control rounded-3" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
-              </div>
-              <div class="col-md-6">
-                <label asp-for="EndDate" class="form-label fw-semibold">Ngày kết thúc</label>
-                <input asp-for="EndDate" type="date" class="form-control rounded-3" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
-              </div>
-            </div>
-
-            <div class="form-check form-switch mb-4">
-              <input asp-for="IsActive" class="form-check-input" type="checkbox" id="flexSwitchCheckActive">
-              <label class="form-check-label fw-semibold" for="flexSwitchCheckActive">Trạng thái kích hoạt</label>
-            </div>
-
-            <div class="d-flex justify-content-end gap-2 border-top pt-3">
-              <a asp-action="Index" class="btn btn-outline-secondary px-4 rounded-pill">Quay lại</a>
-              <button type="submit" class="btn btn-warning px-5 rounded-pill shadow-sm fw-bold">Cập nhật</button>
-            </div>
-          </form>
-        </div>
-      </div>
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-pen-to-square text-warning me-2"></i>Cập Nhật Khuyến Mãi</h1>
+        <p class="page-subtitle">Chỉnh sửa thông tin, thời hạn và thể lệ mã giảm giá <strong class="text-white">#@Model.PromoCode</strong></p>
     </div>
-  </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="admin-card p-4">
+            <form asp-action="Edit" asp-route-id="@Model.PromotionId" method="post">
+                <input type="hidden" asp-for="PromotionId" />
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="PromoCode" class="form-label small text-secondary fw-semibold">Mã CODE <span class="text-danger">*</span></label>
+                        <input asp-for="PromoCode" class="form-control bg-dark text-white text-uppercase border-secondary" />
+                        <span asp-validation-for="PromoCode" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="PromoName" class="form-label small text-secondary fw-semibold">Tên chương trình <span class="text-danger">*</span></label>
+                        <input asp-for="PromoName" class="form-control bg-dark text-white border-secondary" />
+                        <span asp-validation-for="PromoName" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label small text-secondary fw-semibold">Mô tả chi tiết</label>
+                    <textarea asp-for="Description" class="form-control bg-dark text-white border-secondary" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="DiscountType" class="form-label small text-secondary fw-semibold">Loại giảm giá</label>
+                        <select asp-for="DiscountType" class="form-select bg-dark text-white border-secondary">
+                            <option value="Percent">Theo phần trăm (%)</option>
+                            <option value="FixedAmount">Số tiền cố định (VNĐ)</option>
+                        </select>
+                        <span asp-validation-for="DiscountType" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DiscountValue" class="form-label small text-secondary fw-semibold">Giá trị giảm</label>
+                        <input asp-for="DiscountValue" type="number" step="0.01" class="form-control bg-dark text-white border-secondary" />
+                        <span asp-validation-for="DiscountValue" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label asp-for="MinOrderAmount" class="form-label small text-secondary fw-semibold">Đơn tối thiểu (VNĐ)</label>
+                        <input asp-for="MinOrderAmount" type="number" class="form-control bg-dark text-white border-secondary" />
+                        <span asp-validation-for="MinOrderAmount" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="MaxDiscount" class="form-label small text-secondary fw-semibold">Giảm tối đa (VNĐ)</label>
+                        <input asp-for="MaxDiscount" type="number" class="form-control bg-dark text-white border-secondary" />
+                        <span asp-validation-for="MaxDiscount" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="UsageLimit" class="form-label small text-secondary fw-semibold">Giới hạn số lượt dùng</label>
+                        <input asp-for="UsageLimit" type="number" class="form-control bg-dark text-white border-secondary" />
+                        <span asp-validation-for="UsageLimit" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="StartDate" class="form-label small text-secondary fw-semibold">Ngày bắt đầu</label>
+                        <input asp-for="StartDate" type="date" class="form-control bg-dark text-white border-secondary" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="EndDate" class="form-label small text-secondary fw-semibold">Ngày kết thúc</label>
+                        <input asp-for="EndDate" type="date" class="form-control bg-dark text-white border-secondary" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
+                    </div>
+                </div>
+
+                <div class="form-check form-switch mb-4">
+                    <input asp-for="IsActive" class="form-check-input" type="checkbox" id="flexSwitchCheckActive">
+                    <label class="form-check-label text-white fw-semibold" for="flexSwitchCheckActive">Trạng thái kích hoạt</label>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top border-secondary pt-3">
+                    <a asp-action="Index" class="btn-ghost text-secondary text-decoration-none px-4 py-2">Quay lại</a>
+                    <button type="submit" class="btn btn-warning px-5 fw-semibold text-dark"><i class="fa-solid fa-save me-1"></i> Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
