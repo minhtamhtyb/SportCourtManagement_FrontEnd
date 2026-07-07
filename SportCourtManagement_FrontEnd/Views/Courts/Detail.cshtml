@@ -350,6 +350,11 @@
                         }
                     });
 
+                    const getImgUrl = (img) => {
+                        if (!img) return '';
+                        return img.startsWith('http') || img.startsWith('/') ? img : `/images/courts/${img}`;
+                    };
+
                     const imgCount = allImages.length;
                     const gallery = $('#gallery-container');
                     gallery.empty();
@@ -366,7 +371,7 @@
                         gallery.html(`
                             <div class="sc-gallery-grid mb-4" style="grid-template-columns: 1fr; height: 400px;">
                                 <div class="sc-gallery-main w-100 h-100">
-                                    <img src="/images/courts/${allImages[0]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="border-radius: 16px; object-fit: cover;" />
+                                    <img src="${getImgUrl(allImages[0])}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="border-radius: 16px; object-fit: cover;" />
                                 </div>
                             </div>
                         `);
@@ -374,10 +379,10 @@
                         gallery.html(`
                             <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; height: 400px;">
                                 <div class="position-relative overflow-hidden w-100 h-100">
-                                    <img src="/images/courts/${allImages[0]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    <img src="${getImgUrl(allImages[0])}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                 </div>
                                 <div class="position-relative overflow-hidden w-100 h-100">
-                                    <img src="/images/courts/${allImages[1]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    <img src="${getImgUrl(allImages[1])}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                 </div>
                             </div>
                         `);
@@ -385,13 +390,13 @@
                         gallery.html(`
                             <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; height: 400px;">
                                 <div class="position-relative overflow-hidden w-100 h-100" style="grid-row: span 2;">
-                                    <img src="/images/courts/${allImages[0]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    <img src="${getImgUrl(allImages[0])}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                 </div>
                                 <div class="position-relative overflow-hidden w-100 h-100">
-                                    <img src="/images/courts/${allImages[1]}" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    <img src="${getImgUrl(allImages[1])}" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                 </div>
                                 <div class="position-relative overflow-hidden w-100 h-100">
-                                    <img src="/images/courts/${allImages[2]}" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    <img src="${getImgUrl(allImages[2])}" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                 </div>
                             </div>
                         `);
@@ -399,16 +404,16 @@
                         gallery.html(`
                             <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr 1fr; gap: 4px; height: 400px;">
                                 <div class="position-relative overflow-hidden w-100 h-100" style="grid-row: span 3;">
-                                    <img src="/images/courts/${allImages[0]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    <img src="${getImgUrl(allImages[0])}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                 </div>
                                 <div class="position-relative overflow-hidden w-100 h-100">
-                                    <img src="/images/courts/${allImages[1]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    <img src="${getImgUrl(allImages[1])}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                 </div>
                                 <div class="position-relative overflow-hidden w-100 h-100">
-                                    <img src="/images/courts/${allImages[2]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    <img src="${getImgUrl(allImages[2])}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                 </div>
                                 <div class="position-relative overflow-hidden w-100 h-100">
-                                    <img src="/images/courts/${allImages[3]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    <img src="${getImgUrl(allImages[3])}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                 </div>
                             </div>
                         `);
@@ -420,26 +425,27 @@
                         gallery.html(`
                             <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 3fr 2fr; gap: 4px; height: 400px;">
                                 <div class="position-relative overflow-hidden w-100 h-100">
-                                    <img src="/images/courts/${allImages[0]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    <img src="${getImgUrl(allImages[0])}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                 </div>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; height: 100%;">
                                     <div class="position-relative overflow-hidden w-100 h-100">
-                                        <img src="/images/courts/${allImages[1]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                        <img src="${getImgUrl(allImages[1])}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                     </div>
                                     <div class="position-relative overflow-hidden w-100 h-100">
-                                        <img src="/images/courts/${allImages[2]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                        <img src="${getImgUrl(allImages[2])}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                     </div>
                                     <div class="position-relative overflow-hidden w-100 h-100">
-                                        <img src="/images/courts/${allImages[3]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                        <img src="${getImgUrl(allImages[3])}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                     </div>
                                     <div class="position-relative overflow-hidden w-100 h-100">
-                                        <img src="/images/courts/${allImages[4]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                        <img src="${getImgUrl(allImages[4])}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
                                         ${extraHtml}
                                     </div>
                                 </div>
                             </div>
                         `);
                     }
+
 
                     // 4. Render Pricing
                     const pricings = court.pricings || court.Pricings || [];
