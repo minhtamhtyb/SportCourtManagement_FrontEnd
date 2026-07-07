@@ -153,22 +153,55 @@ public class MockUserService(MockDataStore store) : IUserService
     public Task<UserDto?> GetUserByIdAsync(int id) =>
         Task.FromResult(store.Users.FirstOrDefault(u => u.UserId == id));
 
+    public Task UpdateUserAccessAsync(int id, string role, bool isActive)
+    {
+        var user = store.Users.FirstOrDefault(u => u.UserId == id)
+            ?? throw new InvalidOperationException("Không tìm thấy người dùng.");
+
+        ValidateAccessChange(user, role, isActive);
+        user.Role = role;
+        user.IsActive = isActive;
+        RecountRoles();
+        return Task.CompletedTask;
+    }
+
     public Task UpdateUserRoleAsync(int id, string role)
     {
         var user = store.Users.FirstOrDefault(u => u.UserId == id)
             ?? throw new InvalidOperationException("Không tìm thấy người dùng.");
-        user.Role = role;
-        foreach (var r in store.Roles)
-            r.UserCount = store.Users.Count(u => u.Role == r.RoleName);
-        return Task.CompletedTask;
+        return UpdateUserAccessAsync(id, role, user.IsActive);
     }
 
     public Task ToggleUserStatusAsync(int id, bool isActive)
     {
         var user = store.Users.FirstOrDefault(u => u.UserId == id)
             ?? throw new InvalidOperationException("Không tìm thấy người dùng.");
-        user.IsActive = isActive;
-        return Task.CompletedTask;
+        return UpdateUserAccessAsync(id, user.Role, isActive);
+    }
+
+    private void ValidateAccessChange(UserDto user, string role, bool isActive)
+    {
+        if (user.UserId == 1)
+        {
+            if (role != "Admin")
+                throw new InvalidOperationException("Bạn không thể tự hạ quyền Admin của chính mình.");
+            if (!isActive)
+                throw new InvalidOperationException("Bạn không thể tự vô hiệu hóa tài khoản của chính mình.");
+        }
+
+        if (user.Role == "Admin" && (role != "Admin" || !isActive))
+        {
+            var activeAdminCount = store.Users.Count(u => u.Role == "Admin" && u.IsActive);
+            var stillActiveAdmin = role == "Admin" && isActive;
+            if (!stillActiveAdmin && activeAdminCount <= 1)
+                throw new InvalidOperationException("Không thể thay đổi — hệ thống cần ít nhất một Admin đang hoạt động.");
+        }
+    }
+
+    private void RecountRoles()
+    {
+        foreach (var r in store.Roles)
+            r.UserCount = store.Users.Count(u => u.Role == r.RoleName);
     }
 }
 

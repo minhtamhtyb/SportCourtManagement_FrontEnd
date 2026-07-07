@@ -70,6 +70,7 @@ else
                     <th>Địa chỉ</th>
                     <th>Quản lý</th>
                     <th>Sân</th>
+                    <th>Loại sân</th>
                     <th>Trạng thái</th>
                     <th class="text-end">Thao tác</th>
                 </tr>
@@ -104,6 +105,22 @@ else
                             <span class="text-secondary small">(@c.ActiveCourts hoạt động)</span>
                         </td>
                         <td>
+                            <div class="d-flex flex-wrap gap-1" style="max-width: 180px;">
+                                @foreach (var id in c.CourtTypeIds)
+                                {
+                                    var typeName = Model.CourtTypes.FirstOrDefault(t => t.CourtTypeId == id)?.TypeName;
+                                    if (!string.IsNullOrEmpty(typeName))
+                                    {
+                                        <span class="badge bg-dark border border-secondary text-secondary small py-1 px-2" style="font-size: 0.7rem; font-weight: 500;">@typeName</span>
+                                    }
+                                }
+                                @if (!c.CourtTypeIds.Any())
+                                {
+                                    <span class="text-secondary small">—</span>
+                                }
+                            </div>
+                        </td>
+                        <td>
                             @if (c.MaintenanceCourts > 0)
                             { <span class="status-badge status-maintenance">@c.MaintenanceCourts bảo trì</span> }
                             else
@@ -129,10 +146,84 @@ else
     @if (Model.TotalPages > 1)
     {
         <div class="pagination-custom">
-            @for (var p = 1; p <= Model.TotalPages; p++)
+            @* Nút Trang trước *@
+            @if (Model.Page > 1)
             {
-                <a asp-action="Index" asp-route-page="@p" asp-route-search="@Model.Search" asp-route-courtTypeId="@Model.CourtTypeId"
-                   class="@(p == Model.Page ? "active" : "")">@p</a>
+                <a asp-action="Index" 
+                   asp-route-page="@(Model.Page - 1)" 
+                   asp-route-search="@Model.Search" 
+                   asp-route-courtTypeId="@Model.CourtTypeId"
+                   title="Trang trước">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+            }
+            else
+            {
+                <span class="disabled"><i class="fa-solid fa-chevron-left"></i></span>
+            }
+
+            @* Tính toán khoảng trang hiển thị *@
+            @{
+                int startPage = Math.Max(1, Model.Page - 2);
+                int endPage = Math.Min(Model.TotalPages, Model.Page + 2);
+
+                if (Model.Page <= 3)
+                {
+                    endPage = Math.Min(Model.TotalPages, 5);
+                }
+                if (Model.Page >= Model.TotalPages - 2)
+                {
+                    startPage = Math.Max(1, Model.TotalPages - 4);
+                }
+            }
+
+            @* Trang đầu và dấu ba chấm bên trái *@
+            @if (startPage > 1)
+            {
+                <a asp-action="Index" asp-route-page="1" asp-route-search="@Model.Search" asp-route-courtTypeId="@Model.CourtTypeId">1</a>
+                @if (startPage > 2)
+                {
+                    <span class="dots">...</span>
+                }
+            }
+
+            @* Các trang ở giữa *@
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                if (i == Model.Page)
+                {
+                    <span class="active">@i</span>
+                }
+                else
+                {
+                    <a asp-action="Index" asp-route-page="@i" asp-route-search="@Model.Search" asp-route-courtTypeId="@Model.CourtTypeId">@i</a>
+                }
+            }
+
+            @* Trang cuối và dấu ba chấm bên phải *@
+            @if (endPage < Model.TotalPages)
+            {
+                @if (endPage < Model.TotalPages - 1)
+                {
+                    <span class="dots">...</span>
+                }
+                <a asp-action="Index" asp-route-page="@Model.TotalPages" asp-route-search="@Model.Search" asp-route-courtTypeId="@Model.CourtTypeId">@Model.TotalPages</a>
+            }
+
+            @* Nút Trang sau *@
+            @if (Model.Page < Model.TotalPages)
+            {
+                <a asp-action="Index" 
+                   asp-route-page="@(Model.Page + 1)" 
+                   asp-route-search="@Model.Search" 
+                   asp-route-courtTypeId="@Model.CourtTypeId"
+                   title="Trang sau">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            }
+            else
+            {
+                <span class="disabled"><i class="fa-solid fa-chevron-right"></i></span>
             }
         </div>
     }

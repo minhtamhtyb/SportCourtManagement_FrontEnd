@@ -21,6 +21,11 @@ public class MockDataStore
         new() { UserId = 4, FullName = "Lê Minh Tuấn", Email = "coach@sportscourtms.vn", Phone = "0901000004", Role = "Coach", MembershipTier = "Bronze", IsActive = true, AvatarUrl = "https://api.dicebear.com/8.x/avataaars/svg?seed=tuan", CreatedAt = new DateTime(2026, 1, 20) },
         new() { UserId = 10, FullName = "Trần Văn Quản Lý", Email = "manager1@sportplex.vn", Phone = "0912111222", Role = "Staff", MembershipTier = "Bronze", IsActive = true, AvatarUrl = "https://api.dicebear.com/8.x/avataaars/svg?seed=quanly1", CreatedAt = new DateTime(2026, 1, 5) },
         new() { UserId = 11, FullName = "Nguyễn Thị Quản Lý", Email = "manager2@sportplex.vn", Phone = "0987333444", Role = "Staff", MembershipTier = "Bronze", IsActive = true, AvatarUrl = "https://api.dicebear.com/8.x/avataaars/svg?seed=quanly2", CreatedAt = new DateTime(2026, 1, 5) },
+        new() { UserId = 12, FullName = "Phạm Văn Admin", Email = "admin2@sportcourt.vn", Phone = "0902000001", Role = "Admin", MembershipTier = "Gold", IsActive = true, AvatarUrl = "https://api.dicebear.com/8.x/avataaars/svg?seed=admin2", CreatedAt = new DateTime(2026, 3, 1) },
+        new() { UserId = 13, FullName = "Hoàng Thị Nhân Viên", Email = "staff2@sportcourt.vn", Phone = "0902000002", Role = "Staff", MembershipTier = "Bronze", IsActive = true, AvatarUrl = "https://api.dicebear.com/8.x/avataaars/svg?seed=staff2", CreatedAt = new DateTime(2026, 3, 1) },
+        new() { UserId = 14, FullName = "Lê Thị Lan", Email = "customer2@sportcourt.vn", Phone = "0903000001", Role = "Customer", MembershipTier = "Silver", IsActive = true, AvatarUrl = "https://api.dicebear.com/8.x/avataaars/svg?seed=lan", CreatedAt = new DateTime(2026, 3, 5) },
+        new() { UserId = 15, FullName = "Phạm Minh Đức", Email = "customer3@sportcourt.vn", Phone = "0903000002", Role = "Customer", MembershipTier = "Bronze", IsActive = true, AvatarUrl = "https://api.dicebear.com/8.x/avataaars/svg?seed=duc", CreatedAt = new DateTime(2026, 3, 5) },
+        new() { UserId = 16, FullName = "Nguyễn Văn Khóa", Email = "customer.inactive@sportcourt.vn", Phone = "0903000003", Role = "Customer", MembershipTier = "Bronze", IsActive = false, AvatarUrl = "https://api.dicebear.com/8.x/avataaars/svg?seed=khoa", CreatedAt = new DateTime(2026, 3, 5) },
     ];
 
     public Dictionary<string, string> Passwords { get; } = new(StringComparer.OrdinalIgnoreCase)
@@ -79,10 +84,10 @@ public class MockDataStore
 
     public List<RoleDto> Roles { get; } =
     [
-        new() { RoleId = 1, RoleName = "Admin", Description = "Quản trị viên hệ thống — toàn quyền", UserCount = 1 },
-        new() { RoleId = 2, RoleName = "Staff", Description = "Nhân viên hỗ trợ đặt sân và khách hàng", UserCount = 2 },
+        new() { RoleId = 1, RoleName = "Admin", Description = "Quản trị viên hệ thống — toàn quyền", UserCount = 2 },
+        new() { RoleId = 2, RoleName = "Staff", Description = "Nhân viên hỗ trợ đặt sân và khách hàng", UserCount = 4 },
         new() { RoleId = 3, RoleName = "Coach", Description = "Huấn luyện viên — quản lý lịch dạy", UserCount = 1 },
-        new() { RoleId = 4, RoleName = "Customer", Description = "Khách hàng đặt sân", UserCount = 1 },
+        new() { RoleId = 4, RoleName = "Customer", Description = "Khách hàng đặt sân", UserCount = 4 },
     ];
 
     public List<PermissionMatrixRow> PermissionMatrix { get; } =

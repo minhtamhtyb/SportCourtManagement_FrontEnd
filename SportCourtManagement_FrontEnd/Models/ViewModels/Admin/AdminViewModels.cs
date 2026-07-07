@@ -137,6 +137,9 @@ public class CourtFormViewModel
     [Display(Name = "URL ảnh")]
     public string ImageUrl { get; set; } = "";
 
+    [Display(Name = "Ảnh sân")]
+    public IFormFile? ImageFile { get; set; }
+
     [Display(Name = "Trạng thái")]
     public string Status { get; set; } = "Available";
 
@@ -162,6 +165,10 @@ public class ServiceListViewModel
     public List<ServiceDto> Services { get; set; } = [];
     public string? Category { get; set; }
     public string? Search { get; set; }
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+    public int TotalPages { get; set; } = 1;
+    public int TotalItems { get; set; } = 0;
 }
 
 public class ServiceFormViewModel
@@ -232,7 +239,7 @@ public class UserEditRolesViewModel
     public string FullName { get; set; } = "";
     public string Email { get; set; } = "";
 
-    [Required]
+    [Required(ErrorMessage = "Vui lòng chọn vai trò")]
     [Display(Name = "Vai trò")]
     public string Role { get; set; } = "Customer";
 

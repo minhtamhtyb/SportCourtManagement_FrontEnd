@@ -73,8 +73,7 @@ public class UsersController(IUserService userService, IRoleService roleService)
             if (GetCurrentUserId() == id && !model.IsActive)
                 throw new InvalidOperationException("Bạn không thể tự vô hiệu hóa tài khoản của chính mình.");
 
-            await userService.UpdateUserRoleAsync(id, model.Role);
-            await userService.ToggleUserStatusAsync(id, model.IsActive);
+            await userService.UpdateUserAccessAsync(id, model.Role, model.IsActive);
 
             if (IsAjaxRequest())
                 return Json(new { success = true, message = "Cập nhật vai trò người dùng thành công!" });

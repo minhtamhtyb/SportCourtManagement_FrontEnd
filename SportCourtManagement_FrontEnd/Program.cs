@@ -43,7 +43,14 @@ else
     {
         client.BaseAddress = new Uri(apiBaseUrl.TrimEnd('/') + "/");
         client.Timeout = TimeSpan.FromSeconds(30);
-    }).AddHttpMessageHandler<JwtForwardingHandler>();
+    })
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        // Bỏ qua lỗi SSL certificate tự ký trong môi trường Development
+        ServerCertificateCustomValidationCallback =
+            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    })
+    .AddHttpMessageHandler<JwtForwardingHandler>();
 
     builder.Services.AddScoped<IAuthService, ApiAuthService>();
     builder.Services.AddScoped<ICourtService, ApiCourtService>();

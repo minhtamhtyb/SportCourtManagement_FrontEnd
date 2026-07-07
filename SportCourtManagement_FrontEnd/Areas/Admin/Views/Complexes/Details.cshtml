@@ -16,9 +16,9 @@
         <a asp-action="Services" asp-route-id="@Model.Complex.ComplexId" class="btn-secondary-custom">
             <i class="fa-solid fa-toolbox"></i> Quản lý dịch vụ
         </a>
-        <a asp-action="Create" asp-controller="Courts" asp-route-complexId="@Model.Complex.ComplexId" class="btn-primary-custom">
+        <button type="button" class="btn-primary-custom" data-court-modal="create" data-complex-id="@Model.Complex.ComplexId">
             <i class="fa-solid fa-plus"></i> Thêm sân
-        </a>
+        </button>
     </div>
 </div>
 
@@ -79,7 +79,7 @@
     <div class="empty-state">
         <i class="fa-solid fa-table-tennis-paddle-ball d-block"></i>
         <p class="text-secondary">Chưa có sân trong tổ hợp này</p>
-        <a asp-action="Create" asp-controller="Courts" asp-route-complexId="@Model.Complex.ComplexId" class="btn-primary-custom">Thêm sân đầu tiên</a>
+        <button type="button" class="btn-primary-custom" data-court-modal="create" data-complex-id="@Model.Complex.ComplexId">Thêm sân đầu tiên</button>
     </div>
 }
 else
@@ -102,25 +102,9 @@ else
                         · <i class="fa-solid fa-tag ms-1 me-1"></i>@DisplayHelpers.FormatCurrency(court.PricePerHour)/giờ
                     </div>
                     <div class="d-flex gap-1 flex-wrap align-items-center">
-                        <a asp-controller="Courts" asp-action="Edit" asp-route-id="@court.CourtId" class="btn-secondary-custom btn-sm py-1 px-2" style="font-size:.75rem"><i class="fa-solid fa-pen"></i></a>
-                        <form asp-controller="Courts" asp-action="UpdateStatus" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@court.CourtId" />
-                            <input type="hidden" name="complexId" value="@Model.Complex.ComplexId" />
-                            <select name="status" class="form-select form-select-sm" style="width:auto;font-size:.75rem" onchange="this.form.submit()">
-                                @foreach (var s in new[] { "Available", "Maintenance", "Inactive" })
-                                {
-                                    if (court.Status == s)
-                                    {
-                                        <option value="@s" selected>@DisplayHelpers.GetCourtStatus(s).Label</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@s">@DisplayHelpers.GetCourtStatus(s).Label</option>
-                                    }
-                                }
-                            </select>
-                        </form>
+                        <button type="button" class="btn-secondary-custom btn-sm py-1 px-2" style="font-size:.75rem" data-court-modal="edit" data-court-id="@court.CourtId">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
                         <form asp-controller="Courts" asp-action="Delete" method="post" class="d-inline ms-auto" onsubmit="return confirm('Xóa sân này?')">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@court.CourtId" />
@@ -151,6 +135,24 @@ else
     </div>
 </div>
 
+<div class="modal fade" id="courtModal" tabindex="-1" aria-labelledby="courtModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content admin-modal">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white" id="courtModalLabel">Sân thể thao</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body" id="courtModalBody">
+                <div class="text-center py-4 text-secondary">
+                    <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                    <span class="ms-2">Đang tải...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="~/js/complexes.js" asp-append-version="true"></script>
+    <script src="~/js/courts.js" asp-append-version="true"></script>
 }

@@ -87,7 +87,8 @@ public class ApiCourtService(ApiClient api) : ICourtService
 
     public async Task<List<UserDto>> GetManagersAsync()
     {
-        var users = await api.GetDataAsync<List<UserSummaryApi>>("api/users?role=Staff&isActive=true");
+        // Gọi endpoint mới /api/users/managers trả về List<UserSummaryApi> thẳng (không paged)
+        var users = await api.GetDataAsync<List<UserSummaryApi>>("api/users/managers");
         return users?.Select(MapUser).ToList() ?? [];
     }
 
@@ -198,6 +199,15 @@ public class ApiCourtService(ApiClient api) : ICourtService
         Role = u.Role,
         IsActive = u.IsActive
     };
+
+    private class PagedUsersApi
+    {
+        public List<UserSummaryApi> Items { get; set; } = [];
+        public int TotalCount { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+    }
 
     private class UserSummaryApi
     {

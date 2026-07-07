@@ -42,9 +42,12 @@
     </div>
 
     <div class="d-flex gap-2 justify-content-end mt-4 pt-3 border-top border-secondary">
-        <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Hủy</button>
-        <button type="submit" class="btn-primary-custom" id="userRolesFormSubmit">
-            <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
-        </button>
+        <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">@(Model.IsSelf ? "Đóng" : "Hủy")</button>
+        @if (!Model.IsSelf)
+        {
+            <button type="submit" class="btn-primary-custom" id="userRolesFormSubmit">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+            </button>
+        }
     </div>
 </form>

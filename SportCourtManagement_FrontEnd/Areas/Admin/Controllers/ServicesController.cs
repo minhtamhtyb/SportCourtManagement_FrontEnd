@@ -10,13 +10,32 @@ namespace SportCourtManagement_FrontEnd.Areas.Admin.Controllers;
 [Authorize(Policy = "AdminOrStaff")]
 public class ServicesController(IServiceCatalogService serviceCatalog) : Controller
 {
-    public async Task<IActionResult> Index(string? category, string? search)
+    public async Task<IActionResult> Index(string? category, string? search, int page = 1, int pageSize = 10)
     {
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+
+        var allServices = await serviceCatalog.GetServicesAsync(category, search);
+
+        int totalItems = allServices.Count;
+        int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+        if (totalPages < 1) totalPages = 1;
+        if (page > totalPages) page = totalPages;
+
+        var paginatedServices = allServices
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
         var vm = new ServiceListViewModel
         {
-            Services = await serviceCatalog.GetServicesAsync(category, search),
+            Services = paginatedServices,
             Category = category,
-            Search = search
+            Search = search,
+            PageNumber = page,
+            PageSize = pageSize,
+            TotalPages = totalPages,
+            TotalItems = totalItems
         };
         return View(vm);
     }

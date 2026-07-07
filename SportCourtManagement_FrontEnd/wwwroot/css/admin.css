@@ -348,7 +348,7 @@ body.auth-body {
 }
 .admin-modal .form-control.is-invalid { border-color: #f87171; }
 
-.pagination-custom { display: flex; gap: .5rem; justify-content: center; margin-top: 1.5rem; }
+.pagination-custom { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1.5rem; }
 .pagination-custom a, .pagination-custom span {
     padding: .375rem .75rem; border-radius: .375rem;
     font-size: .875rem; text-decoration: none;
@@ -356,6 +356,8 @@ body.auth-body {
 }
 .pagination-custom a:hover { background: #334155; color: #fff; }
 .pagination-custom .active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.pagination-custom .disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; border-color: rgba(51, 65, 85, 0.4); }
+.pagination-custom span.dots { border: none; padding: .375rem .25rem; color: var(--text-muted); cursor: default; }
 
 .complex-thumb { width: 48px; height: 48px; border-radius: .5rem; object-fit: cover; border: 1px solid var(--surface-border); }
 .court-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
