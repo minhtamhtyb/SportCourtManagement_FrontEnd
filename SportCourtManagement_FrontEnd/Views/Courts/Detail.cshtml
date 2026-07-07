@@ -157,54 +157,7 @@
                     </div>
                 </div>
 
-                <!-- Submit Review Form (Only show if logged in) -->
-                @{
-                    var hasJwtCookie = !string.IsNullOrEmpty(Context.Request.Cookies["jwt"]) 
-                                    || !string.IsNullOrEmpty(Context.Request.Cookies["AccessToken"]);
-                    var isLoggedIn = hasJwtCookie || (User.Identity?.IsAuthenticated ?? false);
-                }
 
-                @if (isLoggedIn)
-                {
-                    <div class="sc-card p-4 mb-4" style="background-color: #0D121F;">
-                        <h5 class="font-outfit text-white mb-3" style="font-weight: 700;"><i class="bi bi-pencil-square me-1"></i> Viết đánh giá của bạn</h5>
-                        <form asp-action="SubmitReview" asp-controller="Courts" asp-route-id="@ViewBag.CourtId" method="post">
-                            @Html.AntiForgeryToken()
-                            <div class="mb-3">
-                                <label class="form-label text-sc-muted" style="font-size: 12px; font-weight: 600;">MÃ ĐẶT SÂN (BOOKING ID)</label>
-                                <input type="number" name="bookingId" required placeholder="Nhập ID lịch đặt đã hoàn thành (VD: 12)" class="sc-input" />
-                                <div class="form-text text-sc-muted" style="font-size: 11px;">Bạn chỉ có thể đánh giá những buổi chơi đã hoàn thành của chính mình.</div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label text-sc-muted d-block" style="font-size: 12px; font-weight: 600;">ĐÁNH GIÁ SAO</label>
-                                <div class="d-flex gap-1">
-                                    <input type="hidden" name="rating" id="review-rating" value="5" />
-                                    @for (int i = 1; i <= 5; i++)
-                                    {
-                                        <span class="sc-star-interactive sc-star-filled" data-value="@i"><i class="bi bi-star-fill"></i></span>
-                                    }
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label text-sc-muted" style="font-size: 12px; font-weight: 600;">BÌNH LUẬN</label>
-                                <textarea name="comment" rows="3" placeholder="Chia sẻ trải nghiệm của bạn về chất lượng sân, ánh sáng, phục vụ..." class="sc-input"></textarea>
-                            </div>
-
-                            <button type="submit" class="sc-btn sc-btn-primary py-2 px-4">Gửi đánh giá</button>
-                        </form>
-                    </div>
-                }
-                else
-                {
-                    <div class="sc-card p-4 mb-4 text-center" style="background-color: #0D121F; border-style: dashed; border-color: rgba(255,255,255,0.15);">
-                        <span class="fs-4 mb-2 d-block"><i class="bi bi-lock-fill"></i></span>
-                        <h6 class="text-white mb-2 font-outfit" style="font-weight: 700;">Đăng nhập để đánh giá</h6>
-                        <p class="text-sc-muted small mb-3">Bạn cần đăng nhập để có thể đánh giá và chia sẻ trải nghiệm về sân đấu này.</p>
-                        <a asp-controller="Account" asp-action="Login" class="sc-btn sc-btn-primary py-2 px-4" style="font-size: 13px; border-radius: 8px;">Đăng nhập ngay</a>
-                    </div>
-                }
 
                 <!-- Reviews List Container (AJAX loaded) -->
                 <div id="reviews-list-container">
@@ -264,6 +217,11 @@
                         </div>
                     </div>
 
+                    @{
+                        var hasJwtCookie = !string.IsNullOrEmpty(Context.Request.Cookies["jwt"]) 
+                                        || !string.IsNullOrEmpty(Context.Request.Cookies["AccessToken"]);
+                        var isLoggedIn = hasJwtCookie || (User.Identity?.IsAuthenticated ?? false);
+                    }
                     <!-- Booking Action Button -->
                     <button id="btn-book-now" class="sc-btn sc-btn-gradient w-100 py-3 font-outfit" style="font-size: 15px; font-weight: 700;" data-logged-in="@isLoggedIn.ToString().ToLower()">
                         <i class="bi bi-lightning-fill me-1"></i> Đặt sân đấu ngay
