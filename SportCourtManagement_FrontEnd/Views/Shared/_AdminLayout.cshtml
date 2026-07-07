@@ -1,0 +1,124 @@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var userName = User.Identity?.Name ?? "Admin";
+    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Admin";
+    var isAdmin = userRole == "Admin";
+    var isStaff = userRole == "Staff";
+    var initial = string.IsNullOrEmpty(userName) ? "A" : userName[0].ToString().ToUpper();
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SportsPlex Admin</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="admin-sidebar-logo">
+            <div class="admin-logo-icon">S</div>
+            <div class="sidebar-text">
+                <div class="fw-bold text-white" style="font-size:.875rem">SportsPlex</div>
+                <div style="font-size:.625rem;color:#64748b;letter-spacing:.1em;text-transform:uppercase">Management</div>
+            </div>
+        </div>
+        <nav class="admin-nav">
+            <div class="admin-nav-section">
+                <div class="admin-nav-label sidebar-text">Tổng quan</div>
+                <a class="admin-nav-link @(controller=="Dashboard"?"active":"")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                    <i class="fa-solid fa-chart-pie"></i><span class="sidebar-text">Dashboard</span>
+                </a>
+                @if (isAdmin)
+                {
+                    <a class="admin-nav-link @(controller=="Complexes"?"active":"")" asp-area="Admin" asp-controller="Complexes" asp-action="Index">
+                        <i class="fa-solid fa-building"></i><span class="sidebar-text">Quản lý sân</span>
+                    </a>
+                }
+            </div>
+            @if (isAdmin || isStaff)
+            {
+            <div class="admin-nav-section">
+                <div class="admin-nav-label sidebar-text">Quản lý</div>
+                @if (isAdmin)
+                {
+                    <a class="admin-nav-link @(controller=="Users"?"active":"")" asp-area="Admin" asp-controller="Users" asp-action="Index">
+                        <i class="fa-solid fa-users"></i><span class="sidebar-text">Người dùng</span>
+                    </a>
+                }
+                @if (isAdmin || isStaff)
+                {
+                    <a class="admin-nav-link @(controller=="Services"?"active":"")" asp-area="Admin" asp-controller="Services" asp-action="Index">
+                        <i class="fa-solid fa-toolbox"></i><span class="sidebar-text">Dịch vụ & Kho</span>
+                    </a>
+                }
+            </div>
+            }
+            @if (isAdmin)
+            {
+            <div class="admin-nav-section">
+                <div class="admin-nav-label sidebar-text">Báo cáo</div>
+                <a class="admin-nav-link @(controller=="Reports" && action=="Revenue"?"active":"")" asp-area="Admin" asp-controller="Reports" asp-action="Revenue">
+                    <i class="fa-solid fa-chart-line"></i><span class="sidebar-text">Doanh thu</span>
+                </a>
+                <a class="admin-nav-link @(controller=="Reports" && action=="CourtUsage"?"active":"")" asp-area="Admin" asp-controller="Reports" asp-action="CourtUsage">
+                    <i class="fa-solid fa-clock"></i><span class="sidebar-text">Sử dụng sân</span>
+                </a>
+            </div>
+            <div class="admin-nav-section">
+                <div class="admin-nav-label sidebar-text">Hệ thống</div>
+                <a class="admin-nav-link @(controller=="Roles"?"active":"")" asp-area="Admin" asp-controller="Roles" asp-action="Index">
+                    <i class="fa-solid fa-shield-halved"></i><span class="sidebar-text">Phân quyền</span>
+                </a>
+            </div>
+            }
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-avatar">@initial</div>
+            <div class="flex-grow-1 min-w-0 sidebar-text">
+                <div class="text-white fw-semibold text-truncate" style="font-size:.75rem">@userName</div>
+                <div class="text-truncate" style="font-size:.625rem;color:#64748b">@userRole</div>
+            </div>
+            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="sidebar-text">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-ghost" title="Đăng xuất"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="admin-main">
+        <header class="admin-header">
+            <button class="btn-ghost" id="sidebarToggle" type="button"><i class="fa-solid fa-bars"></i></button>
+            <div class="admin-search d-none d-md-flex">
+                <i class="fa-solid fa-magnifying-glass text-secondary"></i>
+                <input type="text" placeholder="Tìm kiếm booking, sân, khách hàng..." />
+            </div>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <button class="btn-ghost position-relative" type="button">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-dark rounded-circle" style="width:8px;height:8px"></span>
+                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="admin-avatar">@initial</div>
+                    <span class="d-none d-sm-inline text-secondary" style="font-size:.875rem">@userName</span>
+                </div>
+            </div>
+        </header>
+        <main class="admin-content">
+            <div id="adminFlashData" class="d-none"
+                 data-success="@TempData["Success"]"
+                 data-error="@TempData["Error"]"></div>
+            @RenderBody()
+        </main>
+    </div>
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/admin.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

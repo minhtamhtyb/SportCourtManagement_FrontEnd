@@ -1,4 +1,4 @@
-@model SportCourtManagement_FrontEnd.Models.ViewModels.Auth.VerifyEmailViewModel
+@model VerifyEmailViewModel
 @{
     ViewData["Title"] = "Xác thực email";
     Layout = "_AuthLayout";
@@ -25,7 +25,14 @@
                 <label asp-for="Otp" class="form-label"></label>
                 <input asp-for="Otp" class="form-control text-center fs-4 letter-spacing" maxlength="6" placeholder="000000" style="letter-spacing:.5em" />
                 <span asp-validation-for="Otp" class="text-danger small"></span>
-                <p class="text-secondary small mt-2 mb-0">Mã OTP được in tại <strong class="text-success">console Backend</strong> hoặc kiểm tra email.</p>
+                @if (ViewBag.UseMockData == true)
+                {
+                    <p class="text-secondary small mt-2 mb-0">Demo mock: dùng mã <strong class="text-success">123456</strong></p>
+                }
+                else
+                {
+                    <p class="text-secondary small mt-2 mb-0">Mã OTP được in tại <strong class="text-success">console Backend</strong> (terminal chạy API port 5211).</p>
+                }
             </div>
 
             <button type="submit" class="btn btn-success w-100 py-2 fw-bold">Xác thực</button>

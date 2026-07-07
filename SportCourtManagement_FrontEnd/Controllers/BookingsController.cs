@@ -35,7 +35,7 @@ public class BookingsController : Controller
             return RedirectToAction("Index", "Courts");
         }
 
-        var availability = await _apiService.GetCourtAvailabilityAsync(courtId, parsedDate);
+        var availability = await _apiService.GetCourtAvailabilityAsync(courtId, parsedDate.ToDateTime(TimeOnly.MinValue));
         var slot = availability?.Slots?.FirstOrDefault(s => s.SlotId == slotId);
 
         // Fallback for mock if slot isn't found in API response
@@ -66,8 +66,8 @@ public class BookingsController : Controller
                 {
                     SlotId = slotId,
                     SlotName = "Khung giờ " + slotId,
-                    StartTime = new TimeOnly(8, 0),
-                    EndTime = new TimeOnly(9, 30),
+                    StartTime = new TimeSpan(8, 0, 0),
+                    EndTime = new TimeSpan(9, 30, 0),
                     Price = 120000,
                     Status = "Available"
                 };
@@ -90,99 +90,272 @@ public class BookingsController : Controller
     // POST: /Bookings/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(int courtId, string date, int slotId, string? note, string? promotionCode, int? racketQty, int? drinkQty)
+    public async Task<IActionResult> Create(
+        int courtId, 
+        string date, 
+        int slotId, 
+        string? note, 
+        string? promotionCode, 
+        int? racketQty, 
+        int? drinkQty,
+        bool isRecurring,
+        string? startDate,
+        string? endDate,
+        List<int>? daysOfWeek)
     {
-        if (!DateOnly.TryParse(date, out var parsedDate))
-        {
-            parsedDate = DateOnly.FromDateTime(DateTime.Today);
-        }
-
         var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
-        
-        // Prepare request DTO
-        var bookingRequest = new BookingRequestDto
+
+        if (isRecurring)
         {
-            CourtId = courtId,
-            BookingDate = parsedDate,
-            TimeSlotIds = new List<int> { slotId },
-            Note = note,
-            PromotionCode = promotionCode,
-            Services = new List<BookingServiceRequestDto>()
-        };
+            if (!DateOnly.TryParse(startDate, out var parsedStart)) parsedStart = DateOnly.FromDateTime(DateTime.Today);
+            if (!DateOnly.TryParse(endDate, out var parsedEnd)) parsedEnd = DateOnly.FromDateTime(DateTime.Today.AddMonths(1));
+            if (daysOfWeek == null || !daysOfWeek.Any()) daysOfWeek = new List<int> { 1, 3, 5 }; // default T2, T4, T6
 
-        if (racketQty.HasValue && racketQty.Value > 0)
-        {
-            bookingRequest.Services.Add(new BookingServiceRequestDto { ServiceId = 1, Quantity = racketQty.Value });
-        }
-        if (drinkQty.HasValue && drinkQty.Value > 0)
-        {
-            bookingRequest.Services.Add(new BookingServiceRequestDto { ServiceId = 4, Quantity = drinkQty.Value });
-        }
-
-        // Call API
-        var bookingResponse = await _apiService.CreateBookingAsync(bookingRequest, token);
-
-        // Fallback Mock booking if API is offline or returns error
-        if (bookingResponse == null)
-        {
-            var court = await _apiService.GetCourtDetailAsync(courtId);
-            var availability = await _apiService.GetCourtAvailabilityAsync(courtId, parsedDate);
-            var slot = availability?.Slots?.FirstOrDefault(s => s.SlotId == slotId);
-            
-            decimal slotPrice = 120000;
-            string slotName = "08:00 - 09:30";
-            if (slot != null)
+            var recurringRequest = new RecurringBookingRequestDto
             {
-                slotPrice = slot.Price;
-                slotName = $"{slot.StartTime:HH:mm} - {slot.EndTime:HH:mm}";
-            }
-            else if (court != null)
-            {
-                var pricing = court.Pricings?.FirstOrDefault(p => p.SlotId == slotId);
-                if (pricing != null)
-                {
-                    var isWeekend = parsedDate.DayOfWeek == DayOfWeek.Saturday || parsedDate.DayOfWeek == DayOfWeek.Sunday;
-                    slotPrice = isWeekend ? pricing.Price * pricing.PeakMultiplier : pricing.Price;
-                    slotName = $"{pricing.StartTime:HH:mm} - {pricing.EndTime:HH:mm}";
-                }
-            }
-
-            decimal servicesAmount = 0;
-            if (racketQty.HasValue) servicesAmount += racketQty.Value * 30000; // Mock: 30k per racket
-            if (drinkQty.HasValue) servicesAmount += drinkQty.Value * 15000;  // Mock: 15k per drink
-
-            decimal discountAmount = 0;
-            if (!string.IsNullOrEmpty(promotionCode))
-            {
-                discountAmount = (slotPrice + servicesAmount) * 0.1m; // Mock 10% discount
-            }
-
-            bookingResponse = new BookingResponseDto
-            {
-                BookingId = new Random().Next(20000, 99999),
-                CourtName = court?.CourtName ?? "Sân vận động",
-                BookingDate = parsedDate,
-                Slots = new List<BookingSlotResponseDto>
-                {
-                    new BookingSlotResponseDto
-                    {
-                        StartTime = slotName.Split(" - ")[0],
-                        EndTime = slotName.Split(" - ")[1]
-                    }
-                },
-                SubTotalAmount = slotPrice,
-                ServicesAmount = servicesAmount,
-                DiscountAmount = discountAmount,
-                TotalAmount = slotPrice + servicesAmount - discountAmount,
-                Status = "Pending",
-                CreatedAt = DateTime.Now
+                CourtId = courtId,
+                SlotId = slotId,
+                StartDate = parsedStart,
+                EndDate = parsedEnd,
+                DaysOfWeek = daysOfWeek,
+                PromotionCode = promotionCode,
+                Note = note
             };
 
-            // Save in TempData as a mock database simulation
-            TempData[$"MockBooking_{bookingResponse.BookingId}"] = System.Text.Json.JsonSerializer.Serialize(bookingResponse);
-        }
+            RecurringBookingResponseDto? recurringResponse = null;
+            try
+            {
+                recurringResponse = await _apiService.CreateRecurringBookingAsync(recurringRequest, token);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("Detail", "Courts", new { id = courtId });
+            }
 
-        return RedirectToAction("Payment", new { bookingId = bookingResponse.BookingId });
+            // Fallback Mock recurring booking if API is offline
+            if (recurringResponse == null)
+            {
+                var court = await _apiService.GetCourtDetailAsync(courtId);
+                var availability = await _apiService.GetCourtAvailabilityAsync(courtId, parsedStart.ToDateTime(TimeOnly.MinValue));
+                var slot = availability?.Slots?.FirstOrDefault(s => s.SlotId == slotId);
+                
+                decimal slotPrice = 120000;
+                string slotName = "08:00 - 09:30";
+                if (slot != null)
+                {
+                    slotPrice = slot.Price;
+                    slotName = $"{slot.StartTime.ToString(@"hh\:mm")} - {slot.EndTime.ToString(@"hh\:mm")}";
+                }
+                else if (court != null)
+                {
+                    var pricing = court.Pricings?.FirstOrDefault(p => p.SlotId == slotId);
+                    if (pricing != null)
+                    {
+                        slotPrice = pricing.Price;
+                        slotName = $"{pricing.StartTime.ToString(@"hh\:mm")} - {pricing.EndTime.ToString(@"hh\:mm")}";
+                    }
+                }
+
+                // Generate dates
+                var allDates = new List<DateOnly>();
+                for (var d = parsedStart; d <= parsedEnd; d = d.AddDays(1))
+                {
+                    if (daysOfWeek.Contains((int)d.DayOfWeek))
+                        allDates.Add(d);
+                }
+
+                // Simulate 1 conflict date if we have at least 3 dates
+                var conflictDates = new List<string>();
+                var validDates = new List<DateOnly>(allDates);
+                if (allDates.Count >= 3)
+                {
+                    var conflict = allDates[1];
+                    conflictDates.Add(conflict.ToString("dd/MM/yyyy"));
+                    validDates.Remove(conflict);
+                }
+
+                var createdBookings = new List<BookingResponseDto>();
+                foreach (var validDate in validDates)
+                {
+                    createdBookings.Add(new BookingResponseDto
+                    {
+                        BookingId = new Random().Next(20000, 99999),
+                        CourtName = court?.CourtName ?? "Sân vận động",
+                        BookingDate = validDate,
+                        Slots = new List<BookingSlotResponseDto>
+                        {
+                            new BookingSlotResponseDto { StartTime = slotName.Split(" - ")[0], EndTime = slotName.Split(" - ")[1] }
+                        },
+                        SubTotalAmount = slotPrice,
+                        ServicesAmount = 0,
+                        DiscountAmount = 0,
+                        TotalAmount = slotPrice,
+                        Status = "Pending",
+                        CreatedAt = DateTime.Now
+                    });
+                }
+
+                decimal totalEstimated = createdBookings.Sum(b => b.TotalAmount);
+                if (!string.IsNullOrEmpty(promotionCode))
+                {
+                    totalEstimated = totalEstimated * 0.9m; // 10% discount
+                }
+
+                string daysDisplay = string.Join(", ", daysOfWeek.OrderBy(d => d).Select(d => d switch
+                {
+                    0 => "CN",
+                    1 => "T2",
+                    2 => "T3",
+                    3 => "T4",
+                    4 => "T5",
+                    5 => "T6",
+                    6 => "T7",
+                    _ => d.ToString()
+                }));
+
+                recurringResponse = new RecurringBookingResponseDto
+                {
+                    RecurringId = new Random().Next(1000, 9999),
+                    CourtId = courtId,
+                    CourtName = court?.CourtName ?? "Sân vận động",
+                    SlotId = slotId,
+                    SlotName = slotName,
+                    StartDate = parsedStart,
+                    EndDate = parsedEnd,
+                    DaysOfWeek = daysDisplay,
+                    Status = "Active",
+                    CreatedBookings = createdBookings,
+                    ConflictDates = conflictDates,
+                    TotalRequestedSessions = allDates.Count,
+                    TotalBookedSessions = validDates.Count,
+                    TotalEstimatedAmount = totalEstimated
+                };
+            }
+
+            TempData["RecurringBookingResult"] = System.Text.Json.JsonSerializer.Serialize(recurringResponse);
+            return RedirectToAction("RecurringSuccess");
+        }
+        else
+        {
+            if (!DateOnly.TryParse(date, out var parsedDate))
+            {
+                parsedDate = DateOnly.FromDateTime(DateTime.Today);
+            }
+
+            // Prepare request DTO
+            var bookingRequest = new BookingRequestDto
+            {
+                CourtId = courtId,
+                BookingDate = parsedDate,
+                TimeSlotIds = new List<int> { slotId },
+                Note = note,
+                PromotionCode = promotionCode,
+                Services = new List<BookingServiceRequestDto>()
+            };
+
+            if (racketQty.HasValue && racketQty.Value > 0)
+            {
+                bookingRequest.Services.Add(new BookingServiceRequestDto { ServiceId = 1, Quantity = racketQty.Value });
+            }
+            if (drinkQty.HasValue && drinkQty.Value > 0)
+            {
+                bookingRequest.Services.Add(new BookingServiceRequestDto { ServiceId = 4, Quantity = drinkQty.Value });
+            }
+
+            // Call API
+            BookingResponseDto? bookingResponse = null;
+            try
+            {
+                bookingResponse = await _apiService.CreateBookingAsync(bookingRequest, token);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("Detail", "Courts", new { id = courtId });
+            }
+
+            // Fallback Mock booking if API is offline or returns error
+            if (bookingResponse == null)
+            {
+                var court = await _apiService.GetCourtDetailAsync(courtId);
+                var availability = await _apiService.GetCourtAvailabilityAsync(courtId, parsedDate.ToDateTime(TimeOnly.MinValue));
+                var slot = availability?.Slots?.FirstOrDefault(s => s.SlotId == slotId);
+                
+                decimal slotPrice = 120000;
+                string slotName = "08:00 - 09:30";
+                if (slot != null)
+                {
+                    slotPrice = slot.Price;
+                    slotName = $"{slot.StartTime.ToString(@"hh\:mm")} - {slot.EndTime.ToString(@"hh\:mm")}";
+                }
+                else if (court != null)
+                {
+                    var pricing = court.Pricings?.FirstOrDefault(p => p.SlotId == slotId);
+                    if (pricing != null)
+                    {
+                        var isWeekend = parsedDate.DayOfWeek == DayOfWeek.Saturday || parsedDate.DayOfWeek == DayOfWeek.Sunday;
+                        var basePrice = pricing.Price;
+                        slotPrice = isWeekend ? basePrice * pricing.PeakMultiplier : basePrice;
+                        slotName = $"{pricing.StartTime.ToString(@"hh\:mm")} - {pricing.EndTime.ToString(@"hh\:mm")}";
+                    }
+                }
+
+                decimal servicesAmount = 0;
+                if (racketQty.HasValue) servicesAmount += racketQty.Value * 30000; // Mock: 30k per racket
+                if (drinkQty.HasValue) servicesAmount += drinkQty.Value * 15000;  // Mock: 15k per drink
+
+                decimal discountAmount = 0;
+                if (!string.IsNullOrEmpty(promotionCode))
+                {
+                    discountAmount = (slotPrice + servicesAmount) * 0.1m; // Mock 10% discount
+                }
+
+                bookingResponse = new BookingResponseDto
+                {
+                    BookingId = new Random().Next(20000, 99999),
+                    CourtName = court?.CourtName ?? "Sân vận động",
+                    BookingDate = parsedDate,
+                    Slots = new List<BookingSlotResponseDto>
+                    {
+                        new BookingSlotResponseDto
+                        {
+                            StartTime = slotName.Split(" - ")[0],
+                            EndTime = slotName.Split(" - ")[1]
+                        }
+                    },
+                    SubTotalAmount = slotPrice,
+                    ServicesAmount = servicesAmount,
+                    DiscountAmount = discountAmount,
+                    TotalAmount = slotPrice + servicesAmount - discountAmount,
+                    Status = "Pending",
+                    CreatedAt = DateTime.Now
+                };
+
+                // Save in TempData as a mock database simulation
+                TempData[$"MockBooking_{bookingResponse.BookingId}"] = System.Text.Json.JsonSerializer.Serialize(bookingResponse);
+            }
+
+            return RedirectToAction("Payment", new { bookingId = bookingResponse.BookingId });
+        }
+    }
+
+    // GET: /Bookings/RecurringSuccess
+    [HttpGet]
+    public IActionResult RecurringSuccess()
+    {
+        if (TempData.TryGetValue("RecurringBookingResult", out var resultObj))
+        {
+            var json = resultObj as string;
+            if (!string.IsNullOrEmpty(json))
+            {
+                var result = System.Text.Json.JsonSerializer.Deserialize<RecurringBookingResponseDto>(json);
+                return View(result);
+            }
+        }
+        
+        TempData["ErrorMessage"] = "Không tìm thấy kết quả đặt sân định kỳ.";
+        return RedirectToAction("Index", "Courts");
     }
 
     // GET: /Bookings/Payment?bookingId={bookingId}
@@ -220,25 +393,9 @@ public class BookingsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Payment(int bookingId, string paymentMethod)
     {
-        var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
-
-        var paymentRequest = new PaymentRequestDto
-        {
-            BookingId = bookingId,
-            PaymentMethod = paymentMethod
-        };
-
-        // Call API
-        var paymentResponse = await _apiService.CreatePaymentLinkAsync(paymentRequest, token);
-
-        if (paymentResponse != null && !string.IsNullOrEmpty(paymentResponse.PaymentUrl))
-        {
-            return Redirect(paymentResponse.PaymentUrl);
-        }
-
-        // Mock payment flow fallback
-        TempData["SuccessMessage"] = $"Thanh toán thành công qua {paymentMethod}!";
-        return RedirectToAction("PaymentSuccess", new { bookingId = bookingId, paymentMethod = paymentMethod });
+        // Bypass third-party payment gateways since online payment is under maintenance
+        TempData["SuccessMessage"] = "Đã xác nhận hình thức thanh toán tại quầy!";
+        return RedirectToAction("PaymentSuccess", new { bookingId = bookingId, paymentMethod = "Thanh toán tại quầy" });
     }
 
     // GET: /Bookings/PaymentSuccess?bookingId={bookingId}&paymentMethod={paymentMethod}

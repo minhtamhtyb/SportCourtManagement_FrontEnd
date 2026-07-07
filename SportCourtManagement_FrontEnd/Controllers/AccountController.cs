@@ -1,24 +1,20 @@
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SportCourtManagement_FrontEnd.Models.Auth;
+using Microsoft.Extensions.Options;
+using SportCourtManagement_FrontEnd.Models.Configuration;
+
+using SportCourtManagement_FrontEnd.Models.DTOs;
 using SportCourtManagement_FrontEnd.Models.ViewModels.Auth;
-using SportCourtManagement_FrontEnd.Services;
+using SportCourtManagement_FrontEnd.Services.Interfaces;
 
 namespace SportCourtManagement_FrontEnd.Controllers;
 
-public class AccountController : Controller
+public class AccountController(IAuthService authService, IOptions<ApiSettings> apiSettings) : Controller
 {
-    private readonly ICourtApiService _apiService;
-
-    public AccountController(ICourtApiService apiService)
-    {
-        _apiService = apiService;
-    }
+    private readonly bool _useMockData = apiSettings.Value.UseMockData;
 
     [HttpGet]
     [AllowAnonymous]
@@ -38,7 +34,7 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var result = await _apiService.LoginAsync(new LoginRequest
+        var result = await authService.LoginAsync(new LoginRequest
         {
             Email = model.Email,
             Password = model.Password
@@ -58,8 +54,8 @@ public class AccountController : Controller
             return View(model);
         }
 
-        await SignInUserAsync(result.Response!.User, result.Response.AccessToken);
-        TempData["SuccessMessage"] = $"Chào mừng {result.Response.User.FullName} quay trở lại!";
+        await SignInUserAsync(result.Response!.User, result.Response.AccessToken, result.Response.RefreshToken);
+        TempData["Success"] = $"Chào mừng {result.Response.User.FullName} quay trở lại!";
 
         if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
             return Redirect(model.ReturnUrl);
@@ -79,29 +75,45 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var (success, error) = await _apiService.RegisterAsync(new RegisterRequest
+        try
         {
-            FullName = model.FullName,
-            Email = model.Email,
-            Phone = model.Phone,
-            Password = model.Password,
-            ConfirmPassword = model.ConfirmPassword
-        });
+            await authService.RegisterAsync(new RegisterRequest
+            {
+                FullName = model.FullName,
+                Email = model.Email,
+                Phone = model.Phone,
+                Password = model.Password,
+                ConfirmPassword = model.ConfirmPassword
+            });
 
-        if (success)
-        {
-            TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng kiểm tra email hoặc console Backend để lấy mã OTP.";
-            return RedirectToAction(nameof(VerifyEmail), new { email = model.Email });
+            if (_useMockData)
+            {
+                TempData["Success"] = "Đăng ký thành công! Demo OTP: 123456";
+                return RedirectToAction(nameof(VerifyEmail), new { email = model.Email });
+            }
+            else
+            {
+                TempData["Success"] = "Đăng ký tài khoản thành công! Vui lòng đăng nhập.";
+                return RedirectToAction(nameof(Login));
+            }
         }
-
-        ModelState.AddModelError(string.Empty, error ?? "Đăng ký thất bại.");
-        return View(model);
+        catch (InvalidOperationException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            return View(model);
+        }
+        catch (HttpRequestException)
+        {
+            ModelState.AddModelError(string.Empty, "Không kết nối được API Backend. Hãy chạy Backend trước (port 5211).");
+            return View(model);
+        }
     }
 
     [HttpGet]
     [AllowAnonymous]
     public IActionResult VerifyEmail(string? email)
     {
+        ViewBag.UseMockData = _useMockData;
         return View(new VerifyEmailViewModel { Email = email ?? TempData["VerifyEmail"]?.ToString() ?? "" });
     }
 
@@ -110,73 +122,137 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
     {
+        ViewBag.UseMockData = _useMockData;
+
         if (!ModelState.IsValid)
             return View(model);
 
-        var (success, error) = await _apiService.VerifyEmailAsync(new VerifyEmailRequest
+        try
         {
-            Email = model.Email,
-            Otp = model.Otp
-        });
-
-        if (success)
-        {
-            TempData["SuccessMessage"] = "Xác thực email thành công! Vui lòng đăng nhập.";
+            await authService.VerifyEmailAsync(new VerifyEmailRequest
+            {
+                Email = model.Email,
+                Otp = model.Otp
+            });
+            TempData["Success"] = "Xác thực email thành công! Vui lòng đăng nhập.";
             return RedirectToAction(nameof(Login));
         }
-
-        ModelState.AddModelError(string.Empty, error ?? "Mã OTP không đúng hoặc đã hết hạn.");
-        return View(model);
+        catch (InvalidOperationException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            return View(model);
+        }
+        catch (HttpRequestException)
+        {
+            ModelState.AddModelError(string.Empty, "Không kết nối được API Backend. Hãy chạy Backend trước (port 5211).");
+            return View(model);
+        }
     }
 
     [HttpPost]
+    [Authorize]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
-        Response.Cookies.Delete("jwt");
-        Response.Cookies.Delete("AccessToken");
+        await authService.LogoutAsync();
+        ClearAuthSession();
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        TempData["SuccessMessage"] = "Đăng xuất thành công!";
-        return RedirectToAction("Index", "Courts");
+        TempData["Success"] = "Đăng xuất thành công!";
+        return RedirectToAction(nameof(Login));
     }
 
-    private async Task SignInUserAsync(UserDto user, string accessToken)
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult AccessDenied() => View();
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DevLoginAdmin()
     {
-        // Ghi cookie jwt cho các chức năng hiện tại trong hệ thống
-        Response.Cookies.Append("jwt", accessToken, new CookieOptions
+        if (_useMockData)
         {
-            HttpOnly = true,
-            Expires = DateTimeOffset.UtcNow.AddHours(12),
-            Path = "/"
+            var user = new UserDto
+            {
+                UserId = 1,
+                FullName = "Super Admin",
+                Email = "admin@sportscourtms.vn",
+                Role = "Admin",
+                MembershipTier = "Platinum"
+            };
+            await SignInUserAsync(user, "dev-token", "dev-refresh");
+            TempData["Success"] = "Dev mode — Đăng nhập Admin thành công!";
+            return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+        }
+
+        var result = await authService.LoginAsync(new LoginRequest
+        {
+            Email = "admin@sportscourtms.vn",
+            Password = "Admin@123"
         });
 
+        if (!result.Succeeded)
+        {
+            TempData["Error"] = result.ErrorMessage ?? "Không thể đăng nhập Admin. Kiểm tra Backend và DB seed.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        await SignInUserAsync(result.Response!.User, result.Response.AccessToken, result.Response.RefreshToken);
+        TempData["Success"] = "Đăng nhập Admin thành công!";
+        return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+    }
+
+    private async Task SignInUserAsync(UserDto user, string accessToken, string? refreshToken = null)
+    {
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new(ClaimTypes.Name, user.FullName),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Role, user.Role),
-            new("jwt_access_token", accessToken)
+            new(Services.Api.JwtForwardingHandler.AccessTokenClaimType, accessToken),
         };
+
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = true,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8),
+            AllowRefresh = true
+        };
+
+        var tokens = new List<AuthenticationToken>
+        {
+            new() { Name = "access_token", Value = accessToken }
+        };
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+            tokens.Add(new AuthenticationToken { Name = "refresh_token", Value = refreshToken });
+
+        authProperties.StoreTokens(tokens);
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(identity),
-            new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(12)
-            });
+            authProperties);
+
+        await HttpContext.Session.LoadAsync();
+        HttpContext.Session.SetString(Services.Api.JwtForwardingHandler.SessionTokenKey, accessToken);
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+            HttpContext.Session.SetString("refresh_token", refreshToken);
+        await HttpContext.Session.CommitAsync();
+    }
+
+    private void ClearAuthSession()
+    {
+        HttpContext.Session.Remove(Services.Api.JwtForwardingHandler.SessionTokenKey);
+        HttpContext.Session.Remove("refresh_token");
     }
 
     private IActionResult RedirectToRoleHome(string? role = null)
     {
         role ??= User.FindFirst(ClaimTypes.Role)?.Value;
-        if (role == "Admin" || role == "Staff")
-        {
-            return RedirectToAction("AdminIndex", "Bookings");
-        }
-        return RedirectToAction("Index", "Courts");
+        return role is "Admin" or "Staff" or "Coach"
+            ? RedirectToAction("Index", "Dashboard", new { area = "Admin" })
+            : RedirectToAction("Index", "Home");
     }
 }

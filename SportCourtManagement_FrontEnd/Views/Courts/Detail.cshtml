@@ -1,7 +1,5 @@
-@model SportCourtManagement_FrontEnd.Models.ViewModels.CourtDetailViewModel
-
 @{
-    ViewData["Title"] = Model.Court.CourtName;
+    ViewData["Title"] = "Chi tiết sân đấu";
 }
 
 <main class="sc-container py-4">
@@ -11,7 +9,7 @@
         <span>›</span>
         <a asp-controller="Courts" asp-action="Index">Tìm sân</a>
         <span>›</span>
-        <span class="text-white fw-medium">@Model.Court.CourtName</span>
+        <span class="text-white fw-medium" id="breadcrumb-court-name">Đang tải...</span>
     </nav>
 
     <!-- TempData Toast Notifications -->
@@ -28,57 +26,12 @@
         </div>
     }
 
-    <!-- Gallery Grid -->
-    <div class="sc-gallery-grid mb-4">
-        <!-- Main Image -->
-        <div class="sc-gallery-main">
-            @if (!string.IsNullOrEmpty(Model.Court.ImageUrl))
-            {
-                <img src="~/images/courts/@Model.Court.ImageUrl" alt="@Model.Court.CourtName" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
-            }
-            else
-            {
-                <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: var(--sc-text-secondary);">
-                    <h3><i class="bi bi-dribbble me-1"></i> @Model.Court.CourtName</h3>
-                </div>
-            }
-            <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(0deg, rgba(15,17,23,0.6) 0%, rgba(15,17,23,0) 100%); pointer-events: none;"></div>
-        </div>
-        <!-- Thumbnail -->
-        <div class="sc-gallery-thumb d-flex flex-column gap-1" style="height: 100%;">
-            @if (Model.Court.Images != null && Model.Court.Images.Count > 1)
-            {
-                var secondaryImages = Model.Court.Images.Where(img => img.ImageUrl != Model.Court.ImageUrl).Take(2).ToList();
-                if (secondaryImages.Count == 0)
-                {
-                    secondaryImages = Model.Court.Images.Where(img => !img.IsPrimary).Take(2).ToList();
-                }
-                if (secondaryImages.Count == 0)
-                {
-                    secondaryImages = Model.Court.Images.Take(2).ToList();
-                }
-
-                foreach (var img in secondaryImages)
-                {
-                    <div class="position-relative overflow-hidden flex-grow-1" style="height: calc(50% - 2px);">
-                        <img src="~/images/courts/@img.ImageUrl" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
-                        <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(79, 110, 247, 0.05); pointer-events: none;"></div>
-                    </div>
-                }
-            }
-            else if (Model.Court.Images != null && Model.Court.Images.Count == 1)
-            {
-                <div class="position-relative overflow-hidden h-100">
-                    <img src="~/images/courts/@Model.Court.Images[0].ImageUrl" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
-                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(79, 110, 247, 0.15); border: 2px solid var(--sc-blue); pointer-events: none;"></div>
-                </div>
-            }
-            else
-            {
-                <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background-color: #0D121F; border: 1px solid var(--sc-border);">
-                    <span class="text-sc-muted">No Image</span>
-                </div>
-            }
+    <!-- Gallery Grid Container -->
+    <div id="gallery-container">
+        <div class="sc-gallery-grid mb-4" style="grid-template-columns: 1fr; height: 400px;">
+            <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: var(--sc-text-secondary); border-radius: 16px;">
+                <div class="spinner-border text-light"></div>
+            </div>
         </div>
     </div>
 
@@ -87,39 +40,30 @@
         <!-- LEFT COLUMN: Court Info -->
         <div class="sc-main-col">
             <!-- Header Title & Badges -->
-            <h1 class="font-outfit text-white mb-2" style="font-weight: 800; font-size: 28px; letter-spacing: -0.5px;">
-                @Model.Court.CourtName
+            <h1 class="font-outfit text-white mb-2" style="font-weight: 800; font-size: 28px; letter-spacing: -0.5px;" id="court-title-name">
+                Đang tải...
             </h1>
 
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                <span class="sc-badge sc-badge-blue"><i class="bi bi-dribbble me-1"></i> @Model.Court.CourtType.TypeName</span>
-                @if (Model.Court.Status.Equals("Available", StringComparison.OrdinalIgnoreCase))
-                {
-                    <span class="sc-badge sc-badge-green">Còn trống</span>
-                }
-                else
-                {
-                    <span class="sc-badge sc-badge-red">@Model.Court.Status</span>
-                }
-                <span class="sc-badge sc-badge-muted"><i class="bi bi-clipboard me-1"></i> Mã: @Model.Court.CourtCode</span>
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3" id="court-badges-container">
+                <!-- Badges load here -->
             </div>
 
             <!-- Rating & Details -->
             <div class="d-flex flex-wrap align-items-center gap-x-4 gap-y-2 mb-4" style="font-size: 13.5px; color: var(--sc-text-secondary);">
                 <div class="d-flex align-items-center gap-1">
                     <span class="text-sc-amber"><i class="bi bi-star-fill"></i></span>
-                    <span class="text-white fw-bold">@Model.Court.ReviewSummary.AverageRating.ToString("0.0")</span>
-                    <span>(@Model.Court.ReviewSummary.TotalReviews đánh giá)</span>
+                    <span class="text-white fw-bold" id="avg-rating-val">0.0</span>
+                    <span>(<span id="total-reviews-val">0</span> đánh giá)</span>
                 </div>
                 <span>•</span>
                 <div class="d-flex align-items-center gap-1">
                     <span><i class="bi bi-geo-alt-fill"></i></span>
-                    <span>Vị trí: @Model.Court.Location</span>
+                    <span id="court-location-val">...</span>
                 </div>
                 <span>•</span>
                 <div class="d-flex align-items-center gap-1">
                     <span><i class="bi bi-clock"></i></span>
-                    <span>Giờ mở cửa: @Model.Court.OpenTime.ToString("HH:mm") – @Model.Court.CloseTime.ToString("HH:mm")</span>
+                    <span>Giờ mở cửa: <span id="court-hours-val">...</span></span>
                 </div>
             </div>
 
@@ -128,38 +72,30 @@
                 <button class="sc-tab-btn active" data-tab="info"><i class="bi bi-info-circle me-1"></i> Thông tin sân</button>
                 <button class="sc-tab-btn" data-tab="amenities"><i class="bi bi-stars me-1"></i> Tiện ích</button>
                 <button class="sc-tab-btn" data-tab="pricing"><i class="bi bi-tag me-1"></i> Bảng giá</button>
-                <button class="sc-tab-btn" data-tab="reviews"><i class="bi bi-star me-1"></i> Đánh giá (@Model.Court.ReviewSummary.TotalReviews)</button>
+                <button class="sc-tab-btn" data-tab="reviews"><i class="bi bi-star me-1"></i> Đánh giá (<span id="total-reviews-count-tab">0</span>)</button>
             </div>
 
             <!-- TAB CONTENTS -->
             <!-- Tab 1: Info -->
             <div id="tab-info" class="sc-tab-content">
-                <p class="text-sc-muted mb-4" style="font-size: 14.5px; line-height: 1.7;">
-                    @Model.Court.Description
+                <p class="text-sc-muted mb-4" style="font-size: 14.5px; line-height: 1.7;" id="court-description-val">
+                    Đang tải thông tin...
                 </p>
                 <div class="sc-info-grid">
                     <div class="sc-info-card">
                         <div class="text-sc-muted font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Địa chỉ sân đấu</div>
-                        <div class="text-white fw-bold" style="font-size: 14px;"><i class="bi bi-geo-alt-fill me-1"></i> @Model.Court.Location</div>
+                        <div class="text-white fw-bold" style="font-size: 14px;"><i class="bi bi-geo-alt-fill me-1"></i> <span id="info-location-val">...</span></div>
                     </div>
                     <div class="sc-info-card">
                         <div class="text-sc-muted font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Khung giờ hoạt động</div>
-                        <div class="text-white fw-bold" style="font-size: 14px;"><i class="bi bi-clock me-1"></i> @Model.Court.OpenTime.ToString("HH:mm") – @Model.Court.CloseTime.ToString("HH:mm")</div>
-                    </div>
-                    <div class="sc-info-card">
-                        <div class="text-sc-muted font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Mặt sân & Sức chứa</div>
-                        <div class="text-sc-green fw-bold" style="font-size: 14px;"><i class="bi bi-lightning-fill me-1"></i> Mặt @(Model.Court.Surface ?? "PVC") (Tối đa @(Model.Court.Capacity ?? 4) người)</div>
-                    </div>
-                    <div class="sc-info-card">
-                        <div class="text-sc-muted font-inter mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Phụ thu cuối tuần</div>
-                        <div class="text-sc-amber fw-bold" style="font-size: 14px;"><i class="bi bi-fire me-1"></i> +30% (T7 & CN)</div>
+                        <div class="text-white fw-bold" style="font-size: 14px;"><i class="bi bi-clock me-1"></i> <span id="info-hours-val">...</span></div>
                     </div>
                 </div>
             </div>
 
             <!-- Tab 2: Amenities -->
             <div id="tab-amenities" class="sc-tab-content" style="display: none;">
-                <p class="text-sc-muted mb-3" style="font-size: 14px;">Các tiện ích đi kèm tại sân @Model.Court.CourtName:</p>
+                <p class="text-sc-muted mb-3" style="font-size: 14px;">Các tiện ích đi kèm tại sân:</p>
                 <div class="row g-3">
                     <div class="col-sm-4">
                         <div class="p-3 sc-card text-center text-sc-muted" style="font-size: 13.5px; background-color: rgba(255,255,255,0.02);"><i class="bi bi-wind me-1"></i> Điều hòa toàn diện</div>
@@ -194,25 +130,8 @@
                                 <th>Cuối tuần (Weekend)</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @if (Model.Court.Pricings != null && Model.Court.Pricings.Count > 0)
-                            {
-                                foreach (var price in Model.Court.Pricings)
-                                {
-                                    var weekendPrice = price.Price * price.PeakMultiplier;
-                                    <tr>
-                                        <td>@price.SlotName (@price.StartTime.ToString("HH:mm") - @price.EndTime.ToString("HH:mm"))</td>
-                                        <td class="text-sc-green fw-bold">@price.Price.ToString("N0")đ</td>
-                                        <td class="text-sc-amber fw-bold">@weekendPrice.ToString("N0")đ</td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="3" class="text-center text-sc-muted">Bảng giá đang được cập nhật.</td>
-                                </tr>
-                            }
+                        <tbody id="pricing-table-body">
+                            <!-- Pricing rows go here -->
                         </tbody>
                     </table>
                 </div>
@@ -224,31 +143,16 @@
                 <div class="sc-card p-4 mb-4" style="background-color: rgba(255,255,255,0.01);">
                     <div class="row align-items-center g-4">
                         <div class="col-sm-4 text-center">
-                            <h1 class="text-white mb-1 font-outfit" style="font-weight: 800; font-size: 48px;">
-                                @Model.Court.ReviewSummary.AverageRating.ToString("0.0")
+                            <h1 class="text-white mb-1 font-outfit" style="font-weight: 800; font-size: 48px;" id="stat-avg-rating">
+                                0.0
                             </h1>
-                            <div class="d-flex justify-content-center gap-0.5 mb-2">
-                                @for (int i = 1; i <= 5; i++)
-                                {
-                                    var filled = i <= Math.Round(Model.Court.ReviewSummary.AverageRating);
-                                    <span class="sc-star @(filled ? "sc-star-filled" : "")" style="font-size: 18px;"><i class="bi bi-star-fill"></i></span>
-                                }
+                            <div class="d-flex justify-content-center gap-0.5 mb-2" id="stat-stars-container">
+                                <!-- Stars -->
                             </div>
-                            <span class="text-sc-muted text-sm">@Model.Court.ReviewSummary.TotalReviews đánh giá công khai</span>
+                            <span class="text-sc-muted text-sm"><span id="stat-total-reviews">0</span> đánh giá công khai</span>
                         </div>
-                        <div class="col-sm-8 border-start border-secondary" style="border-start-color: rgba(255,255,255,0.05) !important;">
-                            @foreach (var star in new[] { 5, 4, 3, 2, 1 })
-                            {
-                                Model.Court.ReviewSummary.RatingDistribution.TryGetValue(star, out var count);
-                                var percent = Model.Court.ReviewSummary.TotalReviews > 0 ? (count * 100 / Model.Court.ReviewSummary.TotalReviews) : 0;
-                                <div class="d-flex align-items-center gap-3 mb-2" style="font-size: 13px;">
-                                    <span class="text-sc-muted" style="width: 20px;">@star<i class="bi bi-star-fill" style="font-size: 10px;"></i></span>
-                                    <div class="progress flex-grow-1" style="height: 6px; background-color: #141B2D; border-radius: 3px;">
-                                        <div class="progress-bar" role="progressbar" style="width: @percent%; background-color: var(--sc-amber-light); border-radius: 3px;" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <span class="text-sc-muted" style="width: 30px; text-align: right;">@count</span>
-                                </div>
-                            }
+                        <div class="col-sm-8 border-start border-secondary" style="border-start-color: rgba(255,255,255,0.05) !important;" id="rating-distribution-container">
+                            <!-- Progress distribution -->
                         </div>
                     </div>
                 </div>
@@ -264,7 +168,7 @@
                 {
                     <div class="sc-card p-4 mb-4" style="background-color: #0D121F;">
                         <h5 class="font-outfit text-white mb-3" style="font-weight: 700;"><i class="bi bi-pencil-square me-1"></i> Viết đánh giá của bạn</h5>
-                        <form asp-action="SubmitReview" asp-controller="Courts" asp-route-id="@Model.Court.CourtId" method="post">
+                        <form asp-action="SubmitReview" asp-controller="Courts" asp-route-id="@ViewBag.CourtId" method="post">
                             @Html.AntiForgeryToken()
                             <div class="mb-3">
                                 <label class="form-label text-sc-muted" style="font-size: 12px; font-weight: 600;">MÃ ĐẶT SÂN (BOOKING ID)</label>
@@ -298,13 +202,13 @@
                         <span class="fs-4 mb-2 d-block"><i class="bi bi-lock-fill"></i></span>
                         <h6 class="text-white mb-2 font-outfit" style="font-weight: 700;">Đăng nhập để đánh giá</h6>
                         <p class="text-sc-muted small mb-3">Bạn cần đăng nhập để có thể đánh giá và chia sẻ trải nghiệm về sân đấu này.</p>
-                        <a href="#" class="sc-btn sc-btn-primary py-2 px-4" style="font-size: 13px; border-radius: 8px;">Đăng nhập ngay</a>
+                        <a asp-controller="Account" asp-action="Login" class="sc-btn sc-btn-primary py-2 px-4" style="font-size: 13px; border-radius: 8px;">Đăng nhập ngay</a>
                     </div>
                 }
 
-                <!-- Reviews List Container (AJAX loaded / initial render) -->
+                <!-- Reviews List Container (AJAX loaded) -->
                 <div id="reviews-list-container">
-                    @await Html.PartialAsync("_ReviewList", Model.ReviewsResult)
+                    <div class="text-center py-4 text-sc-muted">Đang tải đánh giá...</div>
                 </div>
             </div>
         </div>
@@ -317,7 +221,7 @@
                     <div class="pb-3 mb-4 border-bottom" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
                         <div class="d-flex align-items-baseline gap-1 mb-2">
                             <span id="booking-price" class="font-outfit text-sc-green" style="font-weight: 900; font-size: 26px; line-height: 1;">
-                                @(Model.Court.Pricings?.FirstOrDefault()?.Price.ToString("N0") ?? "---")đ
+                                0đ
                             </span>
                             <span class="text-sc-muted" style="font-size: 13px;">/giờ</span>
                         </div>
@@ -332,7 +236,7 @@
                         <label for="booking-date" class="form-label text-sc-muted font-inter mb-2" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
                             <i class="bi bi-calendar3 me-1"></i> Ngày chơi
                         </label>
-                        <input type="date" id="booking-date" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="sc-input" style="color-scheme: dark;" />
+                        <input type="date" id="booking-date" value="@ViewBag.SelectedDate.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="sc-input" style="color-scheme: dark;" />
                     </div>
 
                     <!-- Grid of Available Slots -->
@@ -340,11 +244,11 @@
                         <label class="form-label text-sc-muted font-inter mb-2" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
                             <i class="bi bi-clock me-1"></i> Khung giờ đặt
                         </label>
-                        <input type="hidden" id="court-id" value="@Model.Court.CourtId" />
+                        <input type="hidden" id="court-id" value="@ViewBag.CourtId" />
                         <input type="hidden" id="selected-slot-id" name="SlotId" value="" />
 
                         <div id="slots-container" class="sc-slot-grid">
-                            @await Html.PartialAsync("_AvailabilitySlots", Model.Availability)
+                            <div class="text-center py-4 text-sc-muted">Đang tải lịch trống...</div>
                         </div>
                     </div>
 
@@ -361,7 +265,7 @@
                     </div>
 
                     <!-- Booking Action Button -->
-                    <button id="btn-book-now" class="sc-btn sc-btn-gradient w-100 py-3 font-outfit" style="font-size: 15px; font-weight: 700;">
+                    <button id="btn-book-now" class="sc-btn sc-btn-gradient w-100 py-3 font-outfit" style="font-size: 15px; font-weight: 700;" data-logged-in="@isLoggedIn.ToString().ToLower()">
                         <i class="bi bi-lightning-fill me-1"></i> Đặt sân đấu ngay
                     </button>
 
@@ -395,19 +299,413 @@
     <!-- Similar Courts Section -->
     <section class="mt-5 pt-4">
         <h3 class="font-outfit text-white mb-4 pl-3" style="font-weight: 800; font-size: 20px; border-left: 3px solid var(--sc-blue);">
-            Sân đấu tương tự — @Model.Court.CourtType.TypeName
+            Sân đấu tương tự — <span id="similar-courts-type-name">...</span>
         </h3>
-        <div class="row g-4">
-            @foreach (var court in Model.SimilarCourts)
-            {
-                <div class="col-md-6 col-lg-4 d-flex align-items-stretch">
-                    @await Html.PartialAsync("_CourtCard", court)
-                </div>
-            }
+        <div class="row g-4" id="similar-courts-container">
+            <div class="col-12 text-center py-4">
+                <div class="spinner-border spinner-border-sm text-primary"></div>
+            </div>
         </div>
     </section>
 </main>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
     <script src="~/js/courts.js" asp-append-version="true"></script>
+    <script src="~/js/signalr-slot.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function() {
+            const courtId = @ViewBag.CourtId;
+
+            // Load Court Detail via AJAX
+            $.ajax({
+                url: `/Courts/GetCourtDetailJson/${courtId}`,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    let court = response.data || response.Data || response;
+                    if (!court) {
+                        alert("Không tìm thấy thông tin chi tiết sân.");
+                        return;
+                    }
+
+                    // Extract court details
+                    const courtName = court.courtName !== undefined ? court.courtName : court.CourtName;
+                    const courtCode = court.courtCode !== undefined ? court.courtCode : court.CourtCode;
+                    const location = court.location !== undefined ? court.location : court.Location;
+                    const description = court.description !== undefined ? court.description : court.Description;
+                    const openTime = court.openTime !== undefined ? court.openTime : court.OpenTime;
+                    const closeTime = court.closeTime !== undefined ? court.closeTime : court.CloseTime;
+                    const status = court.status !== undefined ? court.status : court.Status;
+                    const pricePerHour = court.pricePerHour !== undefined ? court.pricePerHour : court.PricePerHour;
+                    
+                    const courtType = court.courtType || court.CourtType;
+                    const typeName = courtType ? (courtType.typeName || courtType.TypeName) : '';
+                    const typeId = courtType ? (courtType.courtTypeId || courtType.CourtTypeId) : 0;
+                    
+                    const reviewSummary = court.reviewSummary || court.ReviewSummary;
+                    const averageRating = reviewSummary ? (reviewSummary.averageRating !== undefined ? reviewSummary.averageRating : reviewSummary.AverageRating) : 0.0;
+                    const totalReviews = reviewSummary ? (reviewSummary.totalReviews !== undefined ? reviewSummary.totalReviews : reviewSummary.TotalReviews) : 0;
+                    const ratingDistribution = reviewSummary ? (reviewSummary.ratingDistribution || reviewSummary.RatingDistribution) : {};
+
+                    // 1. Populate metadata
+                    document.title = courtName + " - SportsCourt";
+                    $('#breadcrumb-court-name').text(courtName);
+                    $('#court-title-name').text(courtName);
+                    $('#avg-rating-val').text(averageRating.toFixed(1));
+                    $('#total-reviews-val').text(totalReviews);
+                    $('#total-reviews-count-tab').text(totalReviews);
+                    $('#court-location-val').text(location);
+                    
+                    const formatTime = (t) => {
+                        if (!t) return '00:00';
+                        return t.substring(0, 5);
+                    };
+                    const formattedHours = formatTime(openTime) + " – " + formatTime(closeTime);
+                    $('#court-hours-val').text(formattedHours);
+                    $('#info-location-val').text(location);
+                    $('#info-hours-val').text(formattedHours);
+                    $('#court-description-val').text(description || "Không có mô tả cho sân này.");
+
+                    // 2. Render Badges
+                    const badgesContainer = $('#court-badges-container');
+                    badgesContainer.empty();
+                    badgesContainer.append(`<span class="sc-badge sc-badge-blue"><i class="bi bi-dribbble me-1"></i> ${typeName}</span>`);
+                    if (status && status.toLowerCase() === 'available') {
+                        badgesContainer.append('<span class="sc-badge sc-badge-green">Còn trống</span>');
+                    } else {
+                        badgesContainer.append(`<span class="sc-badge sc-badge-red">${status}</span>`);
+                    }
+                    badgesContainer.append(`<span class="sc-badge sc-badge-muted"><i class="bi bi-clipboard me-1"></i> Mã: ${courtCode}</span>`);
+
+                    // 3. Render Gallery
+                    const images = court.images || court.Images || [];
+                    const imageUrl = court.imageUrl || court.ImageUrl;
+                    let allImages = [];
+                    if (imageUrl) {
+                        allImages.push(imageUrl);
+                    }
+                    images.forEach(img => {
+                        const imgUrl = img.imageUrl || img.ImageUrl;
+                        if (imgUrl && imgUrl !== imageUrl) {
+                            allImages.push(imgUrl);
+                        }
+                    });
+
+                    const imgCount = allImages.length;
+                    const gallery = $('#gallery-container');
+                    gallery.empty();
+
+                    if (imgCount === 0) {
+                        gallery.html(`
+                            <div class="sc-gallery-grid mb-4" style="grid-template-columns: 1fr; height: 400px;">
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: var(--sc-text-secondary); border-radius: 16px;">
+                                    <h3><i class="bi bi-dribbble me-2"></i> ${courtName}</h3>
+                                </div>
+                            </div>
+                        `);
+                    } else if (imgCount === 1) {
+                        gallery.html(`
+                            <div class="sc-gallery-grid mb-4" style="grid-template-columns: 1fr; height: 400px;">
+                                <div class="sc-gallery-main w-100 h-100">
+                                    <img src="/images/courts/${allImages[0]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="border-radius: 16px; object-fit: cover;" />
+                                </div>
+                            </div>
+                        `);
+                    } else if (imgCount === 2) {
+                        gallery.html(`
+                            <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; height: 400px;">
+                                <div class="position-relative overflow-hidden w-100 h-100">
+                                    <img src="/images/courts/${allImages[0]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                </div>
+                                <div class="position-relative overflow-hidden w-100 h-100">
+                                    <img src="/images/courts/${allImages[1]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                </div>
+                            </div>
+                        `);
+                    } else if (imgCount === 3) {
+                        gallery.html(`
+                            <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; height: 400px;">
+                                <div class="position-relative overflow-hidden w-100 h-100" style="grid-row: span 2;">
+                                    <img src="/images/courts/${allImages[0]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                </div>
+                                <div class="position-relative overflow-hidden w-100 h-100">
+                                    <img src="/images/courts/${allImages[1]}" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                </div>
+                                <div class="position-relative overflow-hidden w-100 h-100">
+                                    <img src="/images/courts/${allImages[2]}" alt="Gallery Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                </div>
+                            </div>
+                        `);
+                    } else if (imgCount === 4) {
+                        gallery.html(`
+                            <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr 1fr; gap: 4px; height: 400px;">
+                                <div class="position-relative overflow-hidden w-100 h-100" style="grid-row: span 3;">
+                                    <img src="/images/courts/${allImages[0]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                </div>
+                                <div class="position-relative overflow-hidden w-100 h-100">
+                                    <img src="/images/courts/${allImages[1]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                </div>
+                                <div class="position-relative overflow-hidden w-100 h-100">
+                                    <img src="/images/courts/${allImages[2]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                </div>
+                                <div class="position-relative overflow-hidden w-100 h-100">
+                                    <img src="/images/courts/${allImages[3]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                </div>
+                            </div>
+                        `);
+                    } else {
+                        let extraHtml = '';
+                        if (imgCount > 5) {
+                            extraHtml = `<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.6); color: white; font-weight: 800; font-size: 20px; pointer-events: none;">+${imgCount - 5}</div>`;
+                        }
+                        gallery.html(`
+                            <div class="sc-gallery-grid mb-4" style="display: grid; grid-template-columns: 3fr 2fr; gap: 4px; height: 400px;">
+                                <div class="position-relative overflow-hidden w-100 h-100">
+                                    <img src="/images/courts/${allImages[0]}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; height: 100%;">
+                                    <div class="position-relative overflow-hidden w-100 h-100">
+                                        <img src="/images/courts/${allImages[1]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    </div>
+                                    <div class="position-relative overflow-hidden w-100 h-100">
+                                        <img src="/images/courts/${allImages[2]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    </div>
+                                    <div class="position-relative overflow-hidden w-100 h-100">
+                                        <img src="/images/courts/${allImages[3]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                    </div>
+                                    <div class="position-relative overflow-hidden w-100 h-100">
+                                        <img src="/images/courts/${allImages[4]}" alt="Thumbnail" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />
+                                        ${extraHtml}
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    }
+
+                    // 4. Render Pricing
+                    const pricings = court.pricings || court.Pricings || [];
+                    const pricingTable = $('#pricing-table-body');
+                    pricingTable.empty();
+                    if (pricings.length > 0) {
+                        pricings.forEach(price => {
+                            const peakMultiplier = price.peakMultiplier !== undefined ? price.peakMultiplier : (price.PeakMultiplier || 1.0);
+                            const basePrice = price.price !== undefined ? price.price : price.Price;
+                            const weekendPrice = basePrice * peakMultiplier;
+                            const slotName = price.slotName !== undefined ? price.slotName : price.SlotName;
+                            
+                            pricingTable.append(`
+                                <tr>
+                                    <td>${slotName} (${formatTime(price.startTime || price.StartTime)} - ${formatTime(price.endTime || price.EndTime)})</td>
+                                    <td class="text-sc-green fw-bold">${basePrice.toLocaleString('vi-VN')}đ</td>
+                                    <td class="text-sc-amber fw-bold">${weekendPrice.toLocaleString('vi-VN')}đ</td>
+                                </tr>
+                            `);
+                        });
+                        
+                        const firstPrice = pricings[0].price !== undefined ? pricings[0].price : pricings[0].Price;
+                        $('#booking-price').text(firstPrice.toLocaleString('vi-VN') + "đ");
+                    } else {
+                        pricingTable.html('<tr><td colspan="3" class="text-center text-sc-muted">Bảng giá đang được cập nhật.</td></tr>');
+                        $('#booking-price').text(pricePerHour.toLocaleString('vi-VN') + "đ");
+                    }
+
+                    // 5. Render Review Stat Distribution
+                    $('#stat-avg-rating').text(averageRating.toFixed(1));
+                    $('#stat-total-reviews').text(totalReviews);
+                    
+                    const statStars = $('#stat-stars-container');
+                    statStars.empty();
+                    const roundRating = Math.round(averageRating);
+                    for (let i = 1; i <= 5; i++) {
+                        statStars.append(`<span class="sc-star ${i <= roundRating ? 'sc-star-filled' : ''}" style="font-size: 18px;"><i class="bi bi-star-fill"></i></span>`);
+                    }
+
+                    const distContainer = $('#rating-distribution-container');
+                    distContainer.empty();
+                    [5, 4, 3, 2, 1].forEach(star => {
+                        const count = ratingDistribution[star] || ratingDistribution[star.toString()] || 0;
+                        const percent = totalReviews > 0 ? (count * 100 / totalReviews) : 0;
+                        distContainer.append(`
+                            <div class="d-flex align-items-center gap-3 mb-2" style="font-size: 13px;">
+                                <span class="text-sc-muted" style="width: 20px;">${star}<i class="bi bi-star-fill" style="font-size: 10px;"></i></span>
+                                <div class="progress flex-grow-1" style="height: 6px; background-color: #141B2D; border-radius: 3px;">
+                                    <div class="progress-bar" role="progressbar" style="width: ${percent}%; background-color: var(--sc-amber-light); border-radius: 3px;" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <span class="text-sc-muted" style="width: 30px; text-align: right;">${count}</span>
+                            </div>
+                        `);
+                    });
+
+                    // 6. Fetch Similar Courts via OData
+                    $('#similar-courts-type-name').text(typeName);
+                    loadSimilarCourts(typeId, courtId);
+
+                    // 7. Trigger load of Availability Slots
+                    $('#booking-date').trigger('change');
+
+                    // 8. Trigger load of Reviews page 1
+                    window.loadReviewsPage(courtId, 1);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading court detail:", error);
+                    alert("Không thể tải thông tin chi tiết sân đấu.");
+                }
+            });
+
+            // Fetch Similar Courts via REST API Proxy
+            function loadSimilarCourts(typeId, currentId) {
+                const query = `?CourtTypeId=${typeId}&PageSize=4`;
+                $.getJSON('/Courts/GetCourtsJson' + query, function(data) {
+                    let courts = [];
+                    if (data && data.data) {
+                        courts = data.data.items || data.data.Items || [];
+                    } else if (data) {
+                        courts = data.items || data.Items || [];
+                    }
+
+                    // Filter out current court
+                    courts = courts.filter(c => {
+                        const cid = c.courtId !== undefined ? c.courtId : c.CourtId;
+                        return cid != currentId;
+                    }).slice(0, 3);
+
+                    const similarContainer = $('#similar-courts-container');
+                    similarContainer.empty();
+
+                    if (!courts || courts.length === 0) {
+                        similarContainer.html('<div class="col-12 text-center"><p class="text-sc-muted">Không tìm thấy sân tương tự.</p></div>');
+                        return;
+                    }
+
+                    courts.forEach(court => {
+                        similarContainer.append(renderCourtCard(court));
+                    });
+                }).fail(function() {
+                    $('#similar-courts-container').html('<div class="col-12 text-center"><p class="text-danger">Không thể tải sân tương tự.</p></div>');
+                });
+            }
+
+            // Shared Helper to render court card (similar courts)
+            function renderCourtCard(court) {
+                const courtId = court.courtId !== undefined ? court.courtId : court.CourtId;
+                const courtName = court.courtName !== undefined ? court.courtName : court.CourtName;
+                const courtCode = court.courtCode !== undefined ? court.courtCode : court.CourtCode;
+                const courtTypeName = court.courtTypeName !== undefined ? court.courtTypeName : (court.CourtTypeName || (court.courtType && court.courtType.typeName) || (court.CourtType && court.CourtType.TypeName) || '');
+                const imageUrl = court.imageUrl !== undefined ? court.imageUrl : court.ImageUrl;
+                const status = court.status !== undefined ? court.status : court.Status;
+                const location = court.location !== undefined ? court.location : court.Location;
+                const openTime = court.openTime !== undefined ? court.openTime : court.OpenTime;
+                const closeTime = court.closeTime !== undefined ? court.closeTime : court.CloseTime;
+                
+                let averageRating = court.averageRating !== undefined ? court.averageRating : court.AverageRating;
+                if (averageRating === undefined || averageRating === null) {
+                    averageRating = 0.0;
+                }
+                const reviewCount = court.reviewCount !== undefined && court.reviewCount !== null ? court.reviewCount : (court.ReviewCount || 0);
+                
+                let minPrice = court.minPrice !== undefined ? court.minPrice : (court.MinPrice || court.pricePerHour || court.PricePerHour);
+                if (minPrice === undefined || minPrice === null) {
+                    minPrice = 0;
+                }
+
+                const detailUrl = `/Courts/Detail/${courtId}`;
+                const cardFeaturedClass = averageRating >= 4.8 ? 'sc-card-featured' : '';
+                
+                let imageHtml = '';
+                if (imageUrl) {
+                    const imgUrl = imageUrl.startsWith('http') || imageUrl.startsWith('/') ? imageUrl : `/images/courts/${imageUrl}`;
+                    imageHtml = `<img src="${imgUrl}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />`;
+                } else {
+                    imageHtml = `
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: var(--sc-text-secondary);">
+                            <span><i class="bi bi-dribbble me-1"></i> Sân thể thao</span>
+                        </div>`;
+                }
+                
+                let badgesHtml = '';
+                if (averageRating >= 4.9) {
+                    badgesHtml += `<span class="sc-badge sc-badge-amber"><i class="bi bi-trophy-fill me-1"></i> VIP</span>`;
+                } else if (reviewCount > 200) {
+                    badgesHtml += `<span class="sc-badge sc-badge-amber"><i class="bi bi-fire me-1"></i> Hot</span>`;
+                }
+                badgesHtml += `<span class="sc-badge sc-badge-blue">${courtTypeName}</span>`;
+                
+                let statusBadgeHtml = '';
+                if (status && status.toLowerCase() === 'available') {
+                    statusBadgeHtml = `<span class="sc-badge sc-badge-green">Còn trống</span>`;
+                } else if (status && status.toLowerCase() === 'maintenance') {
+                    statusBadgeHtml = `<span class="sc-badge sc-badge-red">Bảo trì</span>`;
+                } else {
+                    statusBadgeHtml = `<span class="sc-badge sc-badge-muted">${status || ''}</span>`;
+                }
+                
+                let starsHtml = '';
+                const floorStars = Math.round(averageRating);
+                for (let i = 1; i <= 5; i++) {
+                    const filled = i <= floorStars ? 'sc-star-filled' : '';
+                    starsHtml += `<span class="sc-star ${filled}" style="font-size: 12px;"><i class="bi bi-star-fill"></i></span>`;
+                }
+                
+                const formatTime = (t) => {
+                    if (!t) return '00:00';
+                    return t.substring(0, 5);
+                };
+
+                return `
+                    <div class="col-md-6 col-lg-4 d-flex align-items-stretch">
+                        <article class="sc-card ${cardFeaturedClass} w-100" style="cursor: pointer;" onclick="location.href='${detailUrl}'">
+                            <div class="position-relative w-full overflow-hidden" style="aspect-ratio: 8/5;">
+                                ${imageHtml}
+                                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(0deg, rgba(15,17,23,0.7) 0%, rgba(15,17,23,0) 60%); pointer-events: none;"></div>
+                                <div class="position-absolute top-0 start-0 p-3 d-flex gap-2">
+                                    ${badgesHtml}
+                                </div>
+                                <div class="position-absolute top-0 end-0 p-3">
+                                    ${statusBadgeHtml}
+                                </div>
+                            </div>
+                            <div class="sc-card-body d-flex flex-column justify-content-between h-100">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                        <h4 class="font-outfit text-white mb-0" style="font-weight: 700; font-size: 15px; line-height: 1.3;">
+                                            ${courtName}
+                                        </h4>
+                                        <span class="px-2 py-1 rounded text-sc-muted font-inter" style="font-size: 11px; font-weight: 600; background-color: rgba(255,255,255,0.04); white-space: nowrap;">
+                                            <i class="bi bi-clipboard me-1"></i> ${courtCode}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mb-1" style="font-size: 13px; color: var(--sc-text-secondary);">
+                                        <span><i class="bi bi-geo-alt-fill"></i></span>
+                                        <span>${location || ''}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mb-3" style="font-size: 13px; color: var(--sc-text-secondary);">
+                                        <span><i class="bi bi-clock"></i></span>
+                                        <span>${formatTime(openTime)} - ${formatTime(closeTime)}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="height: 1px; background-color: rgba(255,255,255,0.05); margin-bottom: 14px;"></div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <div class="d-flex gap-0.5">
+                                                ${starsHtml}
+                                            </div>
+                                            <span class="text-white font-inter" style="font-weight: 700; font-size: 13px;">${averageRating.toFixed(1)}</span>
+                                            <span class="text-sc-muted font-inter" style="font-size: 12px;">(${reviewCount})</span>
+                                        </div>
+                                        <div class="d-flex align-items-baseline gap-0.5">
+                                            <span class="font-inter text-sc-green" style="font-weight: 800; font-size: 16px;">
+                                                ${minPrice.toLocaleString('vi-VN')}đ
+                                            </span>
+                                            <span class="text-sc-muted" style="font-size: 11px;">/giờ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>`;
+            }
+        });
+    </script>
 }

@@ -15,13 +15,14 @@ public interface ICourtApiService
 {
     Task<PagedResult<CourtListDto>> SearchCourtsAsync(CourtSearchParams searchParams);
     Task<CourtDetailDto?> GetCourtDetailAsync(int id);
-    Task<CourtAvailabilityDto?> GetCourtAvailabilityAsync(int id, DateOnly date);
+    Task<CourtAvailabilityDto?> GetCourtAvailabilityAsync(int id, DateTime date);
     Task<PagedResult<ReviewDto>> GetCourtReviewsAsync(int courtId, int pageNumber, int pageSize);
     Task<List<CourtTypeDto>> GetCourtTypesAsync();
     Task<List<ServiceDto>> GetServicesAsync();
     Task<List<TimeSlotDto>> GetTimeSlotsAsync();
-    Task<bool> SubmitReviewAsync(int courtId, int bookingId, byte rating, string? comment, string? token);
+    Task<(bool success, string message)> SubmitReviewAsync(int courtId, int bookingId, byte rating, string? comment, string? token);
     Task<BookingResponseDto?> CreateBookingAsync(BookingRequestDto request, string? token);
+    Task<RecurringBookingResponseDto?> CreateRecurringBookingAsync(RecurringBookingRequestDto request, string? token);
     Task<PaymentResponseDto?> CreatePaymentLinkAsync(PaymentRequestDto request, string? token);
     Task<BookingResponseDto?> GetBookingDetailAsync(int id, string? token);
 
@@ -30,6 +31,7 @@ public interface ICourtApiService
     Task<PromotionDto?> CreatePromotionAsync(PromotionFormDto form, string? token);
     Task<PromotionDto?> UpdatePromotionAsync(int id, PromotionFormDto form, string? token);
     Task<bool> DeletePromotionAsync(int id, string? token);
+    Task<List<PromotionDto>> GetActivePromotionsAsync();
 
     // Bookings (Admin & Customer)
     Task<PagedResult<BookingDetailDto>> GetPagedMyBookingsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize, string? token);
@@ -50,6 +52,9 @@ public interface ICourtApiService
     Task<Models.Auth.AuthLoginResult> LoginAsync(Models.Auth.LoginRequest request);
     Task<(bool Success, string? ErrorMessage)> RegisterAsync(Models.Auth.RegisterRequest request);
     Task<(bool Success, string? ErrorMessage)> VerifyEmailAsync(Models.Auth.VerifyEmailRequest request);
+
+    // Raw JSON utility
+    Task<string> GetRawJsonAsync(string relativeUrl);
 }
 
 

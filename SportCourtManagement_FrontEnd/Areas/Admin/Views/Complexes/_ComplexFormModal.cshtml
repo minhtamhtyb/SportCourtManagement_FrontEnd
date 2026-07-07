@@ -1,0 +1,76 @@
+@model ComplexFormViewModel
+@{
+    var isEdit = Model.ComplexId.HasValue;
+    var formAction = isEdit ? "Edit" : "Create";
+}
+
+<form asp-action="@formAction" asp-route-id="@Model.ComplexId" method="post" enctype="multipart/form-data" class="form-dark" id="complexForm">
+    @Html.AntiForgeryToken()
+    @if (isEdit)
+    {
+        <input type="hidden" asp-for="ComplexId" />
+    }
+    <input type="hidden" asp-for="ImageUrl" id="complexImageUrl" />
+
+    <div class="mb-3">
+        <label asp-for="ComplexName" class="form-label"></label>
+        <input asp-for="ComplexName" class="form-control" placeholder="VD: SportZone Cầu Giấy" />
+        <span asp-validation-for="ComplexName" class="text-danger small field-error"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Address" class="form-label"></label>
+        <input asp-for="Address" class="form-control" placeholder="VD: 123 Nguyễn Trãi, Hà Nội" />
+        <span asp-validation-for="Address" class="text-danger small field-error"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Phone" class="form-label"></label>
+        <input asp-for="Phone" class="form-control" placeholder="024 xxxx xxxx" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="ManagerId" class="form-label">Quản lý phụ trách</label>
+        <select asp-for="ManagerId" class="form-select">
+            <option value="">-- Chọn quản lý --</option>
+            @foreach (var m in Model.Managers)
+            {
+                <option value="@m.UserId">@m.FullName — @m.Email (@m.Role)</option>
+            }
+        </select>
+        <span asp-validation-for="ManagerId" class="text-danger small field-error"></span>
+        @if (!Model.Managers.Any())
+        {
+            <div class="form-text text-warning small">Chưa có tài khoản Staff (quản lý) trong hệ thống.</div>
+        }
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Loại sân cung cấp</label>
+        <div class="d-flex flex-wrap gap-2">
+            @foreach (var t in Model.CourtTypeOptions)
+            {
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="CourtTypeIds" value="@t.CourtTypeId"
+                           id="modal_type_@t.CourtTypeId" @(Model.CourtTypeIds.Contains(t.CourtTypeId) ? "checked" : "") />
+                    <label class="form-check-label text-secondary small" for="modal_type_@t.CourtTypeId">@t.TypeName</label>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Mô tả ngắn..."></textarea>
+    </div>
+    <div class="mb-0">
+        <label asp-for="ImageFile" class="form-label">Ảnh tổ hợp</label>
+        <input asp-for="ImageFile" type="file" class="form-control" accept="image/jpeg,image/png,image/webp,image/gif" id="complexImageFile" />
+        <div class="form-text text-secondary small">Chọn ảnh từ máy (JPG, PNG, WEBP — tối đa 5MB). Ảnh sẽ được lưu lên Cloudinary.</div>
+        <img id="complexImagePreview" src="@Model.ImageUrl" alt="preview"
+             class="mt-2 rounded complex-image-preview @(string.IsNullOrEmpty(Model.ImageUrl) ? "d-none" : "")"
+             style="max-height:140px;width:100%;object-fit:cover" />
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end mt-4 pt-3 border-top border-secondary">
+        <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn-primary-custom" id="complexFormSubmit">
+            <i class="fa-solid fa-floppy-disk"></i> @(isEdit ? "Lưu thay đổi" : "Thêm mới")
+        </button>
+    </div>
+</form>

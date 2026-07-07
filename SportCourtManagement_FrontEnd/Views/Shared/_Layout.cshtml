@@ -16,70 +16,47 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #0D121F; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 16px 0;">
             <div class="container px-4 px-lg-5">
-                <a class="navbar-brand d-flex align-items-center gap-2 font-outfit" asp-controller="Courts" asp-action="Index" style="font-weight: 800; font-size: 22px; color: #ffffff; letter-spacing: -0.5px;">
+                @{
+                    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                    var isHome = string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase);
+                    var isCourts = string.Equals(currentController, "Courts", StringComparison.OrdinalIgnoreCase);
+                }
+                <a class="navbar-brand d-flex align-items-center gap-2 font-outfit" asp-controller="Home" asp-action="Index" style="font-weight: 800; font-size: 22px; color: #ffffff; letter-spacing: -0.5px;">
                     <span style="background: linear-gradient(135deg, #4F6EF7 0%, #6B85F8 100%); width: 28px; height: 28px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;"><i class="bi bi-trophy-fill text-white"></i></span>
                     Sports<span style="color: #4F6EF7;">Court</span>
                 </a>
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                @{
-                    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-                    var isAdminOrStaff = userRole == "Admin" || userRole == "Staff";
-                }
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-1">
-                        @if (isAdminOrStaff)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-warning fw-bold py-2 px-3 rounded" asp-controller="Bookings" asp-action="AdminIndex" style="font-size: 14px;"><i class="bi bi-shield-check me-1"></i>Duyệt Booking</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white hover-white py-2 px-3 rounded" asp-controller="Tournaments" asp-action="AdminIndex" style="font-size: 14px;"><i class="bi bi-trophy me-1"></i>Quản lý Giải đấu</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white hover-white py-2 px-3 rounded" asp-controller="Promotions" asp-action="Index" style="font-size: 14px;"><i class="bi bi-gift me-1"></i>Quản lý Khuyến mãi</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white-50 hover-white py-2 px-3 rounded" asp-controller="Courts" asp-action="Index" style="font-size: 14px;"><i class="bi bi-grid me-1"></i>Xem Danh Sách Sân</a>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-white py-2 px-3 rounded" asp-controller="Courts" asp-action="Index" style="font-size: 14px; font-weight: 600;"><i class="bi bi-calendar-check me-1"></i>Đặt sân</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white-50 hover-white py-2 px-3 rounded" asp-controller="Tournaments" asp-action="PublicIndex" style="font-size: 14px; font-weight: 500;"><i class="bi bi-trophy me-1"></i>Giải đấu</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-success fw-bold py-2 px-3 rounded" asp-controller="Tournaments" asp-action="Create" style="font-size: 14px;"><i class="bi bi-plus-circle-fill me-1"></i>Tổ chức giải đấu</a>
-                            </li>
-                            @if (User.Identity?.IsAuthenticated == true)
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-white-50 hover-white py-2 px-3 rounded" asp-controller="Bookings" asp-action="MyBookings" style="font-size: 14px; font-weight: 500;"><i class="bi bi-clock-history me-1"></i>Lịch sử đặt sân</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white-50 hover-white py-2 px-3 rounded" asp-controller="Tournaments" asp-action="MyTournaments" style="font-size: 14px; font-weight: 500;"><i class="bi bi-award me-1"></i>Giải đấu của tôi</a>
-                                </li>
-                            }
-                        }
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-2">
+                        <li class="nav-item">
+                            <a class="nav-link @(isHome ? "text-white active" : "text-white-50 hover-white") py-2 px-3 rounded" asp-controller="Home" asp-action="Index" style='font-size: 14px; font-weight: @(isHome ? "600" : "500"); @(isHome ? "background-color: rgba(255,255,255,0.03);" : "")'>Trang chủ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(isCourts ? "text-white active" : "text-white-50 hover-white") py-2 px-3 rounded" asp-controller="Courts" asp-action="Index" style='font-size: 14px; font-weight: @(isCourts ? "600" : "500"); @(isCourts ? "background-color: rgba(255,255,255,0.03);" : "")'>Danh sách sân</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 hover-white py-2 px-3 rounded" href="#" style="font-size: 14px; font-weight: 500;">Khuyến mãi</a>
+                        </li>
                     </ul>
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-3">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <span class="badge bg-primary px-2 py-1 text-uppercase" style="font-size: 11px;">@userRole</span>
-                            <span class="text-white-50 small me-2"><i class="bi bi-person-circle me-1"></i>@User.Identity.Name</span>
-                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            <span class="text-white-50" style="font-size: 14px;">Xin chào, <strong>@User.Identity.Name</strong></span>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Staff") || User.IsInRole("Coach"))
+                            {
+                                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="text-white-50 text-decoration-none hover-white" style="font-size: 14px; font-weight: 600;">Quản trị</a>
+                            }
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline m-0">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Đăng xuất"><i class="bi bi-box-arrow-right"></i></button>
+                                <button type="submit" class="btn btn-link text-white-50 text-decoration-none hover-white p-0 align-baseline" style="font-size: 14px; font-weight: 600; border: none; background: none; text-decoration: none;">Đăng xuất</button>
                             </form>
                         }
                         else
                         {
-                            <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-primary fw-bold px-3" style="border-radius: 6px;">Đăng nhập</a>
-                            <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-outline-light fw-bold px-3" style="border-radius: 6px;">Đăng ký</a>
+                            <a asp-controller="Account" asp-action="Login" class="text-white-50 text-decoration-none hover-white" style="font-size: 14px; font-weight: 600;">Đăng nhập</a>
+                            <a asp-controller="Account" asp-action="Register" class="sc-btn sc-btn-primary" style="padding: 8px 18px; font-size: 14px; border-radius: 8px; text-decoration: none;">Đăng ký</a>
                         }
                     </div>
                 </div>

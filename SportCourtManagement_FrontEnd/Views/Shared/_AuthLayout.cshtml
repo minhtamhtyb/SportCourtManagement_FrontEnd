@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
 </head>
 <body class="auth-body">
-    @if (TempData["SuccessMessage"] is string successMsg)
+    @if (TempData["Success"] is string successMsg)
     {
         <div class="container pt-3">
             <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">
@@ -21,7 +21,7 @@
             </div>
         </div>
     }
-    @if (TempData["ErrorMessage"] is string errorMsg)
+    @if (TempData["Error"] is string errorMsg)
     {
         <div class="container pt-3">
             <div class="alert alert-danger alert-dismissible fade show mb-0" role="alert">

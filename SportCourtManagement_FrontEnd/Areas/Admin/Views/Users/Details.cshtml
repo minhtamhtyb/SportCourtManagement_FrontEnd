@@ -1,0 +1,38 @@
+@model UserDto
+@{
+    ViewData["Title"] = Model.FullName;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">@Model.FullName</h1>
+        <p class="page-subtitle">@Model.Email</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="EditRoles" asp-route-id="@Model.UserId" class="btn-primary-custom"><i class="fa-solid fa-user-gear"></i> Gán vai trò</a>
+        <a asp-action="Index" class="btn-secondary-custom"><i class="fa-solid fa-arrow-left"></i> Quay lại</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="admin-card p-4 text-center">
+            <img src="@(Model.AvatarUrl ?? $"https://api.dicebear.com/8.x/avataaars/svg?seed={Model.UserId}")" class="rounded-circle mb-3" width="80" height="80" alt="" />
+            <h2 class="h6 text-white">@Model.FullName</h2>
+            <span class="type-badge type-default">@Model.Role</span>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="admin-card p-4">
+            <dl class="row mb-0 small">
+                <dt class="col-4 text-secondary">User ID</dt><dd class="col-8 text-white">#@Model.UserId</dd>
+                <dt class="col-4 text-secondary">Email</dt><dd class="col-8">@Model.Email</dd>
+                <dt class="col-4 text-secondary">Số điện thoại</dt><dd class="col-8">@(Model.Phone ?? "—")</dd>
+                <dt class="col-4 text-secondary">Hạng thành viên</dt><dd class="col-8">@(Model.MembershipTier ?? "—")</dd>
+                <dt class="col-4 text-secondary">Trạng thái</dt>
+                <dd class="col-8">@(Model.IsActive ? "Đang hoạt động" : "Đã vô hiệu hóa")</dd>
+                <dt class="col-4 text-secondary">Ngày tạo</dt><dd class="col-8">@DisplayHelpers.FormatDate(Model.CreatedAt)</dd>
+            </dl>
+        </div>
+    </div>
+</div>

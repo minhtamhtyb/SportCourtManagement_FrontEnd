@@ -1,5 +1,3 @@
-@model SportCourtManagement_FrontEnd.Models.ViewModels.CourtSearchViewModel
-
 @{
     ViewData["Title"] = "Tìm kiếm sân đấu";
 }
@@ -17,7 +15,7 @@
                 </p>
             </div>
             <span class="sc-badge sc-badge-green" style="padding: 6px 14px;">
-                <i class="bi bi-circle-fill me-1" style="font-size: 8px; color: var(--sc-green);"></i> @Model.CourtsResult.TotalCount+ Sân đấu sẵn sàng
+                <i class="bi bi-circle-fill me-1" style="font-size: 8px; color: var(--sc-green);"></i> <span id="total-courts-badge">0+</span> Sân đấu sẵn sàng
             </span>
         </div>
     </div>
@@ -25,14 +23,14 @@
 
 <!-- Main Search Layout -->
 <div class="sc-container py-5">
-    <form id="search-form" method="get" action="@Url.Action("Index", "Courts")">
+    <form id="search-form" onsubmit="return false;">
         <div class="row g-4">
             <!-- Left Sidebar (Filters) -->
             <aside class="col-lg-3">
                 <div class="sc-card p-4" style="background-color: #0D121F;">
                     <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
                         <span class="font-outfit text-white" style="font-weight: 700; font-size: 14px;"><i class="bi bi-sliders me-1"></i> Bộ lọc</span>
-                        <a href="@Url.Action("Index", "Courts")" class="sc-btn sc-btn-secondary py-1 px-3" style="font-size: 12px; border-radius: 999px;">Xóa tất cả</a>
+                        <button type="button" id="btn-clear-filters" class="sc-btn sc-btn-secondary py-1 px-3" style="font-size: 12px; border-radius: 999px;">Xóa tất cả</button>
                     </div>
 
                     <!-- Filter by Sport Type -->
@@ -40,20 +38,10 @@
                         <p class="text-sc-muted font-inter uppercase tracking-wide mb-3" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
                             Loại sân
                         </p>
-                        <div class="d-flex flex-column gap-2">
-                            @foreach (var type in Model.CourtTypes)
-                            {
-                                var isChecked = Model.SearchParams.CourtTypeId == type.CourtTypeId;
-                                <label class="d-flex justify-content-between align-items-center px-2 py-2 rounded style-label-hover" style="cursor: pointer; transition: background-color 0.2s;">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <input type="radio" name="CourtTypeId" value="@type.CourtTypeId" @(isChecked ? "checked" : "") style="accent-color: var(--sc-blue); cursor: pointer;" />
-                                        <span class="text-sc-primary font-inter" style="font-size: 13px;">@type.TypeName</span>
-                                    </div>
-                                    <span class="px-2 py-0.5 rounded-pill text-sc-muted font-inter" style="font-size: 11px; background-color: #141B2D;">
-                                        @type.CourtCount
-                                    </span>
-                                </label>
-                            }
+                        <div class="d-flex flex-column gap-2" id="court-types-list">
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-primary"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -65,11 +53,11 @@
                         <div class="row g-2">
                             <div class="col-6">
                                 <label class="text-sc-muted font-inter uppercase mb-2 d-block" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Từ (đ)</label>
-                                <input type="number" name="MinPrice" value="@Model.SearchParams.MinPrice" placeholder="0" class="sc-input" />
+                                <input type="number" name="MinPrice" placeholder="0" class="sc-input" />
                             </div>
                             <div class="col-6">
                                 <label class="text-sc-muted font-inter uppercase mb-2 d-block" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Đến (đ)</label>
-                                <input type="number" name="MaxPrice" value="@Model.SearchParams.MaxPrice" placeholder="500000" class="sc-input" />
+                                <input type="number" name="MaxPrice" placeholder="500000" class="sc-input" />
                             </div>
                         </div>
                     </div>
@@ -81,18 +69,40 @@
                         </p>
                         <div class="d-flex flex-column gap-2">
                             <label class="d-flex align-items-center gap-2 px-2 py-2 rounded" style="cursor: pointer;">
-                                <input type="radio" name="Status" value="" @(string.IsNullOrEmpty(Model.SearchParams.Status) ? "checked" : "") style="accent-color: var(--sc-blue);" />
+                                <input type="radio" name="Status" value="" checked style="accent-color: var(--sc-blue);" />
                                 <span class="text-sc-primary font-inter" style="font-size: 13px;">Tất cả</span>
                             </label>
                             <label class="d-flex align-items-center gap-2 px-2 py-2 rounded" style="cursor: pointer;">
-                                <input type="radio" name="Status" value="Available" @(Model.SearchParams.Status == "Available" ? "checked" : "") style="accent-color: var(--sc-blue);" />
+                                <input type="radio" name="Status" value="Available" style="accent-color: var(--sc-blue);" />
                                 <span class="text-sc-primary font-inter" style="font-size: 13px;">Sân còn trống</span>
                             </label>
                         </div>
                     </div>
 
+                    <!-- Filter by Date & Time Slot -->
+                    <div class="mb-4 pb-4 border-bottom" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
+                        <p class="text-sc-muted font-inter uppercase tracking-wide mb-3" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                            Lịch chơi trống
+                        </p>
+                        <div class="mb-3">
+                            <label class="text-sc-muted font-inter uppercase mb-2 d-block" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Ngày chơi</label>
+                            <input type="date" name="Date" class="sc-input py-2" style="color-scheme: dark;" />
+                        </div>
+                        <div>
+                            <label class="text-sc-muted font-inter uppercase mb-2 d-block" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Khung giờ</label>
+                            <select name="TimeSlotId" class="sc-input py-2">
+                                <option value="">Tất cả khung giờ</option>
+                                <option value="1">Ca 1 (07:00 - 09:00)</option>
+                                <option value="2">Ca 2 (09:00 - 11:00)</option>
+                                <option value="3">Ca 3 (14:00 - 16:00)</option>
+                                <option value="4">Ca 4 (16:00 - 18:00)</option>
+                                <option value="5">Ca Vàng (18:00 - 20:00)</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <!-- Apply Filters Button -->
-                    <button type="submit" class="sc-btn sc-btn-primary w-100 py-3">
+                    <button type="button" id="btn-apply-filters" class="sc-btn sc-btn-primary w-100 py-3">
                         <i class="bi bi-check-circle me-1"></i> Áp dụng bộ lọc
                     </button>
                 </div>
@@ -103,65 +113,36 @@
                 <!-- Search Bar -->
                 <div class="position-relative mb-4">
                     <span class="position-absolute top-50 translate-middle-y start-0 ps-3 text-sc-muted" style="font-size: 15px;"><i class="bi bi-search"></i></span>
-                    <input type="text" name="SearchTerm" value="@Model.SearchParams.SearchTerm" placeholder="Tìm theo tên sân, địa điểm, mã sân..." class="sc-input w-100 py-3" style="padding-left: 45px !important;" />
+                    <input type="text" name="SearchTerm" placeholder="Tìm theo tên sân, địa điểm, mã sân..." class="sc-input w-100 py-3" style="padding-left: 45px !important;" />
                 </div>
 
                 <!-- Sort & Toolbar -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <p class="text-sc-muted mb-0" style="font-size: 13px;">
-                        Tìm thấy <span class="text-sc-green font-bold">@Model.CourtsResult.TotalCount</span> sân đấu
+                        Tìm thấy <span id="search-count" class="text-sc-green font-bold">0</span> sân đấu
                     </p>
                     
                     <div class="d-flex align-items-center gap-2">
                         <span class="text-sc-muted" style="font-size: 13px; white-space: nowrap;">Sắp xếp:</span>
-                        <select name="SortBy" class="sc-input py-2" style="width: auto; cursor: pointer;" onchange="this.form.submit()">
-                            <!option value="" @(string.IsNullOrEmpty(Model.SearchParams.SortBy) ? "selected" : null)>Mặc định</!option>
-                            <!option value="rating" @(Model.SearchParams.SortBy == "rating" ? "selected" : null)><i class="bi bi-star-fill"></i> Đánh giá cao nhất</!option>
-                            <!option value="price" @(Model.SearchParams.SortBy == "price" ? "selected" : null)><i class="bi bi-tag"></i> Giá thấp nhất</!option>
+                        <select name="SortBy" class="sc-input py-2" style="width: auto; cursor: pointer;">
+                            <option value="">Mặc định</option>
+                            <option value="rating">Đánh giá cao nhất</option>
+                            <option value="price">Giá thấp nhất</option>
                         </select>
-                        <!-- Hidden input to maintain page numbers -->
-                        <input type="hidden" name="PageNumber" value="1" />
                     </div>
                 </div>
 
                 <!-- Court Cards Grid -->
-                @if (Model.CourtsResult.Items.Count == 0)
-                {
-                    <div class="text-center py-5 sc-card d-flex flex-column align-items-center justify-content-center" style="background-color: #0D121F;">
-                        <span class="fs-1 mb-3"><i class="bi bi-search"></i></span>
-                        <h4 class="font-outfit text-white mb-2" style="font-weight: 700;">Không tìm thấy sân</h4>
-                        <p class="text-sc-muted" style="font-size: 13px;">Hãy thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm khác</p>
+                <div class="row g-4" id="courts-grid">
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
                     </div>
-                }
-                else
-                {
-                    <div class="row g-4">
-                        @foreach (var court in Model.CourtsResult.Items)
-                        {
-                            <div class="col-md-6 col-xl-4 d-flex align-items-stretch">
-                                @await Html.PartialAsync("_CourtCard", court)
-                            </div>
-                        }
-                    </div>
+                </div>
 
-                    <!-- Pagination -->
-                    @if (Model.CourtsResult.TotalPages > 1)
-                    {
-                        <nav class="d-flex justify-content-center mt-5">
-                            <ul class="pagination gap-2">
-                                @for (int i = 1; i <= Model.CourtsResult.TotalPages; i++)
-                                {
-                                    var isActive = Model.CourtsResult.PageNumber == i;
-                                    <li class="page-item @(isActive ? "active" : "")">
-                                        <button type="button" class="sc-btn @(isActive ? "sc-btn-primary" : "sc-btn-secondary") px-3 py-2" style="border-radius: 8px;" onclick="changePage(@i)">
-                                            @i
-                                        </button>
-                                    </li>
-                                }
-                            </ul>
-                        </nav>
-                    }
-                }
+                <!-- Pagination Container -->
+                <div id="pagination-container"></div>
             </div>
         </div>
     </form>
@@ -175,10 +156,390 @@
 
 @section Scripts {
     <script>
-        function changePage(pageNumber) {
-            const form = document.getElementById("search-form");
-            form.querySelector("input[name='PageNumber']").value = pageNumber;
-            form.submit();
+        // Helper to render court card
+        function renderCourtCard(court) {
+            const courtId = court.courtId !== undefined ? court.courtId : court.CourtId;
+            const courtName = court.courtName !== undefined ? court.courtName : court.CourtName;
+            const courtCode = court.courtCode !== undefined ? court.courtCode : court.CourtCode;
+            const courtTypeName = court.courtTypeName !== undefined ? court.courtTypeName : (court.CourtTypeName || (court.courtType && court.courtType.typeName) || (court.CourtType && court.CourtType.TypeName) || '');
+            const imageUrl = court.imageUrl !== undefined ? court.imageUrl : court.ImageUrl;
+            const status = court.status !== undefined ? court.status : court.Status;
+            const location = court.location !== undefined ? court.location : court.Location;
+            const openTime = court.openTime !== undefined ? court.openTime : court.OpenTime;
+            const closeTime = court.closeTime !== undefined ? court.closeTime : court.CloseTime;
+            
+            let averageRating = court.averageRating !== undefined ? court.averageRating : court.AverageRating;
+            if (averageRating === undefined || averageRating === null) {
+                averageRating = 0.0;
+            }
+            const reviewCount = court.reviewCount !== undefined && court.reviewCount !== null ? court.reviewCount : (court.ReviewCount || 0);
+            
+            let minPrice = court.minPrice !== undefined ? court.minPrice : (court.MinPrice || court.pricePerHour || court.PricePerHour);
+            if (minPrice === undefined || minPrice === null) {
+                minPrice = 0;
+            }
+
+            const detailUrl = `/Courts/Detail/${courtId}`;
+            const cardFeaturedClass = averageRating >= 4.8 ? 'sc-card-featured' : '';
+            
+            let imageHtml = '';
+            if (imageUrl) {
+                const imgUrl = imageUrl.startsWith('http') || imageUrl.startsWith('/') ? imageUrl : `/images/courts/${imageUrl}`;
+                imageHtml = `<img src="${imgUrl}" alt="${courtName}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" />`;
+            } else {
+                imageHtml = `
+                    <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: var(--sc-text-secondary);">
+                        <span><i class="bi bi-dribbble me-1"></i> Sân thể thao</span>
+                    </div>`;
+            }
+            
+            let badgesHtml = '';
+            if (averageRating >= 4.9) {
+                badgesHtml += `<span class="sc-badge sc-badge-amber"><i class="bi bi-trophy-fill me-1"></i> VIP</span>`;
+            } else if (reviewCount > 200) {
+                badgesHtml += `<span class="sc-badge sc-badge-amber"><i class="bi bi-fire me-1"></i> Hot</span>`;
+            }
+            badgesHtml += `<span class="sc-badge sc-badge-blue">${courtTypeName}</span>`;
+            
+            let statusBadgeHtml = '';
+            if (status && status.toLowerCase() === 'available') {
+                statusBadgeHtml = `<span class="sc-badge sc-badge-green">Còn trống</span>`;
+            } else if (status && status.toLowerCase() === 'maintenance') {
+                statusBadgeHtml = `<span class="sc-badge sc-badge-red">Bảo trì</span>`;
+            } else {
+                statusBadgeHtml = `<span class="sc-badge sc-badge-muted">${status || ''}</span>`;
+            }
+            
+            let starsHtml = '';
+            const floorStars = Math.round(averageRating);
+            for (let i = 1; i <= 5; i++) {
+                const filled = i <= floorStars ? 'sc-star-filled' : '';
+                starsHtml += `<span class="sc-star ${filled}" style="font-size: 12px;"><i class="bi bi-star-fill"></i></span>`;
+            }
+            
+            const formatTime = (t) => {
+                if (!t) return '00:00';
+                return t.substring(0, 5);
+            };
+
+            return `
+                <div class="col-md-6 col-xl-4 d-flex align-items-stretch">
+                    <article class="sc-card ${cardFeaturedClass} w-100" style="cursor: pointer;" onclick="location.href='${detailUrl}'">
+                        <div class="position-relative w-full overflow-hidden" style="aspect-ratio: 8/5;">
+                            ${imageHtml}
+                            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(0deg, rgba(15,17,23,0.7) 0%, rgba(15,17,23,0) 60%); pointer-events: none;"></div>
+                            <div class="position-absolute top-0 start-0 p-3 d-flex gap-2">
+                                ${badgesHtml}
+                            </div>
+                            <div class="position-absolute top-0 end-0 p-3">
+                                ${statusBadgeHtml}
+                            </div>
+                        </div>
+                        <div class="sc-card-body d-flex flex-column justify-content-between h-100">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                    <h4 class="font-outfit text-white mb-0" style="font-weight: 700; font-size: 15px; line-height: 1.3;">
+                                        ${courtName}
+                                    </h4>
+                                    <span class="px-2 py-1 rounded text-sc-muted font-inter" style="font-size: 11px; font-weight: 600; background-color: rgba(255,255,255,0.04); white-space: nowrap;">
+                                        <i class="bi bi-clipboard me-1"></i> ${courtCode}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mb-1" style="font-size: 13px; color: var(--sc-text-secondary);">
+                                    <span><i class="bi bi-geo-alt-fill"></i></span>
+                                    <span>${location || ''}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mb-3" style="font-size: 13px; color: var(--sc-text-secondary);">
+                                    <span><i class="bi bi-clock"></i></span>
+                                    <span>${formatTime(openTime)} - ${formatTime(closeTime)}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="height: 1px; background-color: rgba(255,255,255,0.05); margin-bottom: 14px;"></div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <div class="d-flex gap-0.5">
+                                            ${starsHtml}
+                                        </div>
+                                        <span class="text-white font-inter" style="font-weight: 700; font-size: 13px;">${averageRating.toFixed(1)}</span>
+                                        <span class="text-sc-muted font-inter" style="font-size: 12px;">(${reviewCount})</span>
+                                    </div>
+                                    <div class="d-flex align-items-baseline gap-0.5">
+                                        <span class="font-inter text-sc-green" style="font-weight: 800; font-size: 16px;">
+                                            ${minPrice.toLocaleString('vi-VN')}đ
+                                        </span>
+                                        <span class="text-sc-muted" style="font-size: 11px;">/giờ</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>`;
         }
+
+        $(document).ready(function() {
+            let currentPage = 1;
+            const pageSize = 6;
+
+            // Parse URL parameters for initial filters from Homepage
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialTypeId = urlParams.get('CourtTypeId');
+            const initialSearchTerm = urlParams.get('SearchTerm');
+            const initialMinPrice = urlParams.get('MinPrice');
+            const initialMaxPrice = urlParams.get('MaxPrice');
+            const initialStatus = urlParams.get('Status');
+            const initialDate = urlParams.get('Date');
+            const initialTimeSlotId = urlParams.get('TimeSlotId');
+
+            // Populate initial values in DOM
+            if (initialSearchTerm) {
+                $('input[name="SearchTerm"]').val(initialSearchTerm);
+            }
+            if (initialMinPrice) {
+                $('input[name="MinPrice"]').val(initialMinPrice);
+            }
+            if (initialMaxPrice) {
+                $('input[name="MaxPrice"]').val(initialMaxPrice);
+            }
+            if (initialStatus) {
+                $('input[name="Status"]').prop('checked', false);
+                $(`input[name="Status"][value="${initialStatus}"]`).prop('checked', true);
+            }
+            if (initialDate) {
+                $('input[name="Date"]').val(initialDate);
+            }
+            if (initialTimeSlotId) {
+                $('select[name="TimeSlotId"]').val(initialTimeSlotId);
+            }
+
+            // Load Court Types from FE Controller
+            function loadCourtTypes() {
+                $.getJSON('/Courts/GetCourtTypesJson', function(types) {
+                    const listContainer = $('#court-types-list');
+                    listContainer.empty();
+                    
+                    // Add "All" option
+                    const isAllChecked = !initialTypeId ? 'checked' : '';
+                    listContainer.append(`
+                        <label class="d-flex justify-content-between align-items-center px-2 py-2 rounded style-label-hover" style="cursor: pointer; transition: background-color 0.2s;">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="radio" name="CourtTypeId" value="" ${isAllChecked} style="accent-color: var(--sc-blue); cursor: pointer;" />
+                                <span class="text-sc-primary font-inter" style="font-size: 13px;">Tất cả</span>
+                            </div>
+                        </label>
+                    `);
+
+                    types.forEach(function(type) {
+                        const typeId = type.courtTypeId !== undefined ? type.courtTypeId : type.CourtTypeId;
+                        const typeName = type.typeName !== undefined ? type.typeName : type.TypeName;
+                        const courtCount = type.courtCount !== undefined ? type.courtCount : type.CourtCount;
+                        const isChecked = (initialTypeId && initialTypeId == typeId) ? 'checked' : '';
+                        listContainer.append(`
+                            <label class="d-flex justify-content-between align-items-center px-2 py-2 rounded style-label-hover" style="cursor: pointer; transition: background-color 0.2s;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="radio" name="CourtTypeId" value="${typeId}" ${isChecked} style="accent-color: var(--sc-blue); cursor: pointer;" />
+                                    <span class="text-sc-primary font-inter" style="font-size: 13px;">${typeName}</span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-pill text-sc-muted font-inter" style="font-size: 11px; background-color: #141B2D;">
+                                    ${courtCount}
+                                </span>
+                            </label>
+                        `);
+                    });
+                    // Call fetchCourts after the types are fully loaded and rendered
+                    fetchCourts();
+                }).fail(function() {
+                    $('#court-types-list').html('<p class="text-danger small">Không thể tải loại sân</p>');
+                    // Call fetchCourts anyway so the list still loads if types fail
+                    fetchCourts();
+                });
+            }
+
+            // Query Builder and AJAX Fetch via REST API Proxy
+            function fetchCourts() {
+                let queryParams = [];
+                
+                // Court Type ID
+                const typeVal = $('input[name="CourtTypeId"]:checked').val();
+                if (typeVal) {
+                    queryParams.push(`CourtTypeId=${typeVal}`);
+                }
+
+                // Search Term
+                const searchVal = $('input[name="SearchTerm"]').val();
+                if (searchVal && searchVal.trim()) {
+                    queryParams.push(`SearchTerm=${encodeURIComponent(searchVal.trim())}`);
+                }
+
+                // Min Price
+                const minPrice = $('input[name="MinPrice"]').val();
+                if (minPrice) {
+                    queryParams.push(`MinPrice=${minPrice}`);
+                }
+
+                // Max Price
+                const maxPrice = $('input[name="MaxPrice"]').val();
+                if (maxPrice) {
+                    queryParams.push(`MaxPrice=${maxPrice}`);
+                }
+
+                // Status
+                const statusVal = $('input[name="Status"]:checked').val();
+                if (statusVal) {
+                    queryParams.push(`Status=${statusVal}`);
+                }
+
+                // Date
+                const dateVal = $('input[name="Date"]').val();
+                if (dateVal) {
+                    queryParams.push(`Date=${dateVal}`);
+                }
+
+                // Time Slot
+                const timeSlotVal = $('select[name="TimeSlotId"]').val();
+                if (timeSlotVal) {
+                    queryParams.push(`TimeSlotId=${timeSlotVal}`);
+                }
+
+                // Order by
+                const sortByVal = $('select[name="SortBy"]').val();
+                if (sortByVal) {
+                    queryParams.push(`SortBy=${sortByVal}`);
+                    if (sortByVal === 'rating') {
+                        queryParams.push('SortDescending=true');
+                    }
+                }
+
+                // Pagination
+                queryParams.push(`PageSize=${pageSize}`);
+                queryParams.push(`PageNumber=${currentPage}`);
+
+                const queryString = queryParams.length > 0 ? '?' + queryParams.join('&') : '';
+
+                // Show spinner
+                $('#courts-grid').html(`
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                    </div>
+                `);
+
+                $.ajax({
+                    url: '/Courts/GetCourtsJson' + queryString,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        let courts = [];
+                        let totalCount = 0;
+
+                        // Unwrap standard REST format { success, data: { items, totalCount } }
+                        if (data && data.data) {
+                            courts = data.data.items || data.data.Items || [];
+                            totalCount = data.data.totalCount || data.data.TotalCount || 0;
+                        } else if (data) {
+                            courts = data.items || data.Items || [];
+                            totalCount = data.totalCount || data.TotalCount || (Array.isArray(courts) ? courts.length : 0);
+                        }
+
+                        $('#search-count').text(totalCount);
+                        $('#total-courts-badge').text(totalCount);
+
+                        const grid = $('#courts-grid');
+                        grid.empty();
+
+                        if (!courts || courts.length === 0) {
+                            grid.html(`
+                                <div class="col-12 text-center py-5 sc-card d-flex flex-column align-items-center justify-content-center" style="background-color: #0D121F;">
+                                    <span class="fs-1 mb-3"><i class="bi bi-search"></i></span>
+                                    <h4 class="font-outfit text-white mb-2" style="font-weight: 700;">Không tìm thấy sân</h4>
+                                    <p class="text-sc-muted" style="font-size: 13px;">Hãy thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm khác</p>
+                                </div>
+                            `);
+                            $('#pagination-container').empty();
+                            return;
+                        }
+
+                        courts.forEach(function(court) {
+                            grid.append(renderCourtCard(court));
+                        });
+
+                        const totalPages = Math.ceil(totalCount / pageSize);
+                        renderPagination(totalPages);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error fetching REST courts:", error);
+                        $('#courts-grid').html('<div class="col-12 text-center py-5"><p class="text-danger">Không thể tải dữ liệu sân đấu.</p></div>');
+                    }
+                });
+            }
+
+            // Render dynamic pagination UI
+            function renderPagination(totalPages) {
+                const container = $('#pagination-container');
+                container.empty();
+
+                if (totalPages <= 1) return;
+
+                let paginationHtml = '<nav class="d-flex justify-content-center mt-5"><ul class="pagination gap-2">';
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const isActive = currentPage === i;
+                    paginationHtml += `
+                        <li class="page-item ${isActive ? 'active' : ''}">
+                            <button type="button" class="sc-btn ${isActive ? 'sc-btn-primary' : 'sc-btn-secondary'} px-3 py-2" style="border-radius: 8px;" data-page="${i}">
+                                ${i}
+                            </button>
+                        </li>
+                    `;
+                }
+
+                paginationHtml += '</ul></nav>';
+                container.html(paginationHtml);
+
+                // Bind page change events
+                container.find('button[data-page]').on('click', function() {
+                    currentPage = parseInt($(this).attr('data-page'));
+                    fetchCourts();
+                    $('html, body').animate({ scrollTop: 0 }, 'fast');
+                });
+            }
+
+            // Event bindings
+            $('#btn-apply-filters').on('click', function() {
+                currentPage = 1;
+                fetchCourts();
+            });
+
+            // Sorting triggers fetch immediately
+            $('select[name="SortBy"]').on('change', function() {
+                currentPage = 1;
+                fetchCourts();
+            });
+
+            $('input[name="SearchTerm"]').on('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    currentPage = 1;
+                    fetchCourts();
+                }
+            });
+
+            $('#btn-clear-filters').on('click', function() {
+                // Reset form values
+                $('input[name="CourtTypeId"][value=""]').prop('checked', true);
+                $('input[name="MinPrice"]').val('');
+                $('input[name="MaxPrice"]').val('');
+                $('input[name="Status"][value=""]').prop('checked', true);
+                $('input[name="Date"]').val('');
+                $('select[name="TimeSlotId"]').val('');
+                $('input[name="SearchTerm"]').val('');
+                $('select[name="SortBy"]').val('');
+                currentPage = 1;
+                fetchCourts();
+            });
+
+            // Initial Execution
+            loadCourtTypes();
+        });
     </script>
 }
