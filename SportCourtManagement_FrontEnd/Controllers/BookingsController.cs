@@ -277,4 +277,63 @@ public class BookingsController : Controller
         ViewBag.PaymentMethod = paymentMethod ?? "Cổng thanh toán";
         return View(booking);
     }
+
+    private string? GetToken() => Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
+
+    // GET: /Bookings/MyBookings
+    [HttpGet]
+    public async Task<IActionResult> MyBookings(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int page = 1)
+    {
+        var token = GetToken();
+        var pagedData = await _apiService.GetPagedMyBookingsAsync(keyword, fromDate, toDate, status, page, 10, token);
+        var vm = new BookingListViewModel
+        {
+            PagedData = pagedData,
+            Keyword = keyword,
+            FromDate = fromDate,
+            ToDate = toDate,
+            Status = status
+        };
+        return View(vm);
+    }
+
+    // GET: /Bookings/AdminIndex
+    [HttpGet]
+    public async Task<IActionResult> AdminIndex(string? keyword, DateTime? fromDate, DateTime? toDate, int? courtTypeId, string? status, int page = 1)
+    {
+        var token = GetToken();
+        var pagedData = await _apiService.GetPagedAdminBookingsAsync(keyword, fromDate, toDate, courtTypeId, status, page, 15, token);
+        var courtTypes = await _apiService.GetCourtTypesAsync();
+        ViewBag.CourtTypes = courtTypes;
+
+        var vm = new BookingListViewModel
+        {
+            PagedData = pagedData,
+            Keyword = keyword,
+            FromDate = fromDate,
+            ToDate = toDate,
+            CourtTypeId = courtTypeId,
+            Status = status
+        };
+        return View(vm);
+    }
+
+    // POST: /Bookings/UpdateStatus
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateStatus(int id, string status, string? cancelReason, string returnUrl)
+    {
+        var token = GetToken();
+        var success = await _apiService.UpdateBookingStatusAsync(id, status, cancelReason, token);
+        if (success) TempData["SuccessMessage"] = $"Cập nhật trạng thái đơn đặt sân #{id} thành công!";
+        else TempData["ErrorMessage"] = $"Lỗi khi cập nhật trạng thái đơn #{id}.";
+
+        if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+        var referer = Request.Headers["Referer"].ToString();
+        if (!string.IsNullOrEmpty(referer) && referer.Contains("AdminIndex", StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction(nameof(AdminIndex));
+        }
+        return RedirectToAction(nameof(MyBookings));
+    }
 }

@@ -1,0 +1,220 @@
+@model SportCourtManagement_FrontEnd.Models.Tournaments.TournamentDto
+@using SportCourtManagement_FrontEnd.Models.Bookings
+
+@{
+    ViewData["Title"] = "Thanh toán giải đấu #" + Model.TournamentId;
+    var qrCode = ViewBag.QrCode as SePayQrCodeDto;
+}
+
+<main class="sc-container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Glassmorphism Card -->
+            <div class="sc-card p-4 p-md-5" style="background: linear-gradient(145deg, #0D121F, #141B2D); border: 1px solid rgba(79, 110, 247, 0.3); border-radius: 20px; box-shadow: 0 16px 48px rgba(0,0,0,0.5);">
+                
+                <!-- Header Icon & Title -->
+                <div class="text-center pb-4 mb-4 border-bottom" style="border-bottom-color: rgba(255,255,255,0.08) !important;">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3 p-3" style="width: 72px; height: 72px; font-size: 32px; box-shadow: 0 0 24px rgba(79, 110, 247, 0.3);">
+                        <i class="bi bi-qr-code-scan"></i>
+                    </div>
+                    <h2 class="text-white font-outfit fw-bold mb-1">Thanh Toán Giải Đấu <span class="text-primary">@Model.TournamentName</span></h2>
+                    <p class="text-sc-muted mb-0">Quét mã VietQR bên dưới bằng ứng dụng ngân hàng để tự động xác nhận đặt giải đấu</p>
+                </div>
+
+                <!-- TTL Countdown Banner -->
+                <div id="ttlCountdownContainer" class="alert p-3 rounded-4 mb-4 d-flex align-items-center justify-content-between shadow-sm" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-clock-history fs-3 me-3 text-warning"></i>
+                        <div>
+                            <div class="fw-bold fs-6 text-white">Thời gian giữ chỗ thanh toán: <span id="countdownTimer" class="font-monospace text-warning fw-black fs-5 ms-1">10:00</span></div>
+                            <small class="text-white-50">Vui lòng hoàn tất chuyển khoản trước khi đơn bị hết hạn giữ chỗ (TTL 10 phút).</small>
+                        </div>
+                    </div>
+                    <div class="spinner-grow text-warning spinner-grow-sm" role="status"></div>
+                </div>
+
+                <div class="row g-4 align-items-center">
+                    <!-- Left: QR Code Display -->
+                    <div class="col-md-6 text-center">
+                        <div class="p-4 rounded-4" style="background-color: #ffffff; display: inline-block; box-shadow: 0 8px 24px rgba(0,0,0,0.3); position: relative;">
+                            @if (qrCode != null && !string.IsNullOrEmpty(qrCode.QrCodeUrl))
+                            {
+                                <img src="@qrCode.QrCodeUrl" alt="VietQR Payment Code" class="img-fluid rounded" style="max-width: 250px; width: 100%;" />
+                                <div class="mt-2 text-dark font-outfit fw-bold small">Quét mã qua App Ngân hàng</div>
+                            }
+                            else
+                            {
+                                <div class="py-5 px-3 text-center text-dark">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-1 d-block mb-2"></i>
+                                    <span class="fw-bold">Đang cập nhật cổng QR</span>
+                                    <p class="small text-muted mb-0 mt-1">Vui lòng chuyển khoản theo thông tin bên phải.</p>
+                                </div>
+                            }
+                        </div>
+                        <div class="mt-3">
+                            <span class="badge px-3 py-2 rounded-pill font-outfit" style="background-color: rgba(16, 185, 129, 0.2) !important; color: #34d399 !important; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 13px;">
+                                <i class="bi bi-shield-check me-1"></i> Tự động kiểm tra sau 5-10 giây
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Transfer Information Summary -->
+                    <div class="col-md-6">
+                        <div class="p-4 rounded-4" style="background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);">
+                            <h5 class="text-white font-outfit fw-bold mb-3 border-bottom pb-2" style="border-bottom-color: rgba(255,255,255,0.08) !important;">
+                                Thông Tin Chuyển Khoản
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <div class="text-sc-muted small mb-1">Ngân hàng thụ hưởng</div>
+                                <div class="text-white fw-bold fs-6">MB BANK (Ngân hàng Quân Đội)</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="text-sc-muted small mb-1">Số tài khoản</div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="text-sc-green font-monospace fw-bold fs-5">@(qrCode?.AccountNumber ?? "101830532104")</span>
+                                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-2 py-0" onclick="navigator.clipboard.writeText('@(qrCode?.AccountNumber ?? "101830532104")'); alert('Đã sao chép số tài khoản!');">
+                                        <i class="bi bi-clipboard small"></i> Sao chép
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="text-sc-muted small mb-1">Tên người thụ hưởng</div>
+                                <div class="text-white fw-bold">@(qrCode?.AccountName ?? "NGUYEN VU KIM PHUOC")</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="text-sc-muted small mb-1">Số tiền thanh toán</div>
+                                <div class="text-sc-amber font-outfit fw-black fs-4">@Model.TotalAmount.ToString("N0")đ</div>
+                            </div>
+
+                            <div class="mb-0">
+                                <div class="text-sc-muted small mb-1">Nội dung chuyển khoản (Bắt buộc)</div>
+                                <div class="p-2 rounded bg-dark border border-warning d-flex justify-content-between align-items-center">
+                                    <span class="text-warning font-monospace fw-bold fs-5 mb-0">TM-@Model.TournamentId</span>
+                                    <button type="button" class="btn btn-sm btn-warning fw-bold px-2 py-0" onclick="navigator.clipboard.writeText('TM-@Model.TournamentId'); alert('Đã sao chép nội dung chuyển khoản!');">
+                                        Copy
+                                    </button>
+                                </div>
+                                <small class="text-danger mt-1 d-block" style="font-size: 11px;">* Vui lòng nhập chính xác nội dung chuyển khoản để tự động xác nhận.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booked Courts Table inside Tournament -->
+                <div class="mt-5 pt-4 border-top" style="border-top-color: rgba(255,255,255,0.08) !important;">
+                    <h5 class="text-white font-outfit fw-bold mb-3">Danh sách lịch thi đấu trong giải (@Model.Bookings.Count lịch)</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid rgba(255,255,255,0.1);">
+                                    <th>Mã Booking</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var b in Model.Bookings)
+                                {
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                        <td><span class="font-monospace text-primary fw-bold">#@b.BookingId</span> (@b.BookingCode)</td>
+                                        <td>
+                                            @if (b.Status?.ToString() == "Confirmed" || b.Status?.ToString() == "Paid")
+                                            {
+                                                <span class="badge px-3 py-1 rounded-pill" style="background-color: rgba(16, 185, 129, 0.2) !important; color: #34d399 !important; border: 1px solid rgba(16, 185, 129, 0.4);">
+                                                    <i class="bi bi-check-circle me-1"></i> @b.Status
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge px-3 py-1 rounded-pill" style="background-color: rgba(245, 158, 11, 0.2) !important; color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.4);">
+                                                    <i class="bi bi-clock me-1"></i> @b.Status
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-sc-green fw-bold">@b.TotalAmount.ToString("N0")đ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Footer Action Buttons -->
+                <div class="d-flex justify-content-between align-items-center mt-5 pt-3 border-top" style="border-top-color: rgba(255,255,255,0.08) !important;">
+                    <a asp-action="MyTournaments" class="sc-btn sc-btn-outline font-outfit px-4 py-2">
+                        <i class="bi bi-arrow-left me-1"></i> Trở về Quản lý Giải đấu
+                    </a>
+                    <a asp-action="MyTournaments" class="sc-btn sc-btn-gradient font-outfit px-4 py-2">
+                        <i class="bi bi-check2-circle me-1"></i> Tôi đã thanh toán xong
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', initPaymentCountdown);
+
+        /**
+         * Initializes the 10-minute TTL countdown timer.
+         */
+        function initPaymentCountdown() {
+            const createdAtStr = '@Model.CreatedAt.ToString("o")';
+            const createdAt = new Date(createdAtStr).getTime();
+            const expiredAt = createdAt + (10 * 60 * 1000); // 10 minutes TTL
+
+            const timerEl = document.getElementById('countdownTimer');
+            const containerEl = document.getElementById('ttlCountdownContainer');
+
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const distance = expiredAt - now;
+
+                if (distance < 0) {
+                    clearInterval(interval);
+                    handleExpiredTtl(timerEl, containerEl);
+                    return;
+                }
+
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                if (timerEl) {
+                    timerEl.textContent = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                }
+            }
+
+            updateCountdown();
+            const interval = setInterval(updateCountdown, 1000);
+        }
+
+        /**
+         * Updates UI when TTL expires.
+         * @@param {HTMLElement} timerEl The timer span element.
+         * @@param {HTMLElement} containerEl The container alert element.
+         */
+        function handleExpiredTtl(timerEl, containerEl) {
+            if (timerEl) timerEl.textContent = '00:00 (Đã hết hạn)';
+            if (containerEl) {
+                containerEl.style.background = 'rgba(239, 68, 68, 0.2)';
+                containerEl.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+                containerEl.style.color = '#f87171';
+                containerEl.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-danger"></i>
+                        <div>
+                            <div class="fw-bold fs-6 text-danger">Đơn đặt giải đấu đã hết hạn giữ chỗ (TTL 10 phút)!</div>
+                            <small class="text-white-50">Các khung giờ này hiện đã được mở lại cho khách khác đặt đè. Nếu bạn chưa chuyển khoản, vui lòng đặt lại giải đấu mới.</small>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+}

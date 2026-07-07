@@ -1,0 +1,38 @@
+@model SportCourtManagement_FrontEnd.Models.ViewModels.Auth.VerifyEmailViewModel
+@{
+    ViewData["Title"] = "Xác thực email";
+    Layout = "_AuthLayout";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-blob-1"></div>
+    <div class="auth-card">
+        <div class="text-center mb-4">
+            <div class="auth-logo"><i class="fa-solid fa-envelope-circle-check"></i></div>
+            <h1 class="h4 fw-bold text-white mb-1">Xác thực email</h1>
+            <p class="text-secondary small mb-0">Nhập mã OTP 6 chữ số đã gửi đến email của bạn</p>
+        </div>
+
+        <form asp-action="VerifyEmail" method="post" class="form-dark">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" readonly />
+            </div>
+            <div class="mb-4">
+                <label asp-for="Otp" class="form-label"></label>
+                <input asp-for="Otp" class="form-control text-center fs-4 letter-spacing" maxlength="6" placeholder="000000" style="letter-spacing:.5em" />
+                <span asp-validation-for="Otp" class="text-danger small"></span>
+                <p class="text-secondary small mt-2 mb-0">Mã OTP được in tại <strong class="text-success">console Backend</strong> hoặc kiểm tra email.</p>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 py-2 fw-bold">Xác thực</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
