@@ -60,10 +60,14 @@
                 </ul>
             </nav>
             <div class="p-3 border-top" style="border-top-color: var(--outline-variant) !important;">
-                <a class="sidebar-link logout-link text-danger" href="/logout">
-                    <span class="material-symbols-outlined">logout</span>
-                    Đăng xuất
-                </a>
+                <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="sidebar-link logout-link text-danger w-100"
+                            style="background:none; border:none; cursor:pointer; text-align:left;">
+                        <span class="material-symbols-outlined">logout</span>
+                        Đăng xuất
+                    </button>
+                </form>
             </div>
         </aside>
 
@@ -79,10 +83,11 @@
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <div class="text-end d-none d-sm-block">
-                        <p class="m-0 fw-semibold" style="font-size: 14px; color: var(--on-surface);">Alex Thompson</p>
-                        <p class="m-0 text-uppercase tracking-wider text-muted" style="font-size: 10px; letter-spacing: 0.05em;">Facility Manager</p>
+                        <p class="m-0 fw-semibold" style="font-size: 14px; color: var(--on-surface);">@User.Identity?.Name</p>
+                        <p class="m-0 text-uppercase tracking-wider text-muted" style="font-size: 10px; letter-spacing: 0.05em;">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</p>
                     </div>
-                    <img alt="Manager Profile Picture" class="user-avatar rounded-circle object-fit-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2F8HPt7wWLUahORbOOsCiz40UDrnOOYBu__26_jVUEjwrjrAgGUyitMx1ElfkLnFw7H_X_C1H5paESWMxHEGj6ERwpj7sd0n1sQ_vCRplNAd5jI_axazv2IdmbHMZikI331-NPoXgcYUOxYbPGzahf0yMXscMGz5i-i5vo2JA-N4UBWneywYeEoeX3_MdHjEla0B6q0OPUkCLvneGc2q3hESdPF-e5C_Qvn9QQV-vmpinkZMntFn9wGtgSBx9Q8TEWRRfuxhjCkA">
+                    <img alt="Manager Profile Picture" class="user-avatar rounded-circle object-fit-cover"
+                         src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2F8HPt7wWLUahORbOOsCiz40UDrnOOYBu__26_jVUEjwrjrAgGUyitMx1ElfkLnFw7H_X_C1H5paESWMxHEGj6ERwpj7sd0n1sQ_vCRplNAd5jI_axazv2IdmbHMZikI331-NPoXgcYUOxYbPGzahf0yMXscMGz5i-i5vo2JA-N4UBWneywYeEoeX3_MdHjEla0B6q0OPUkCLvneGc2q3hESdPF-e5C_Qvn9QQV-vmpinkZMntFn9wGtgSBx9Q8TEWRRfuxhjCkA">
                 </div>
             </header>
  
