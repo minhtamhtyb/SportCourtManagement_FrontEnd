@@ -1,3 +1,10 @@
+@{
+    var complexes = ViewBag.Complexes as List<SportCourtManagement_FrontEnd.Models.DTOs.CourtComplexDto>
+        ?? new List<SportCourtManagement_FrontEnd.Models.DTOs.CourtComplexDto>();
+    var sessionComplexId = ViewBag.CurrentComplexId as int? ?? 1;
+    var currentComplex = complexes.FirstOrDefault(c => c.ComplexId == sessionComplexId) ?? complexes.FirstOrDefault();
+    var currentComplexName = currentComplex?.ComplexName ?? "Sân Quận 1";
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,12 +28,12 @@
             </div>
             <nav class="flex-grow-1 py-3">
                 <ul class="nav flex-column px-2 gap-1">
-                    <li class="nav-item">
+                    @* <li class="nav-item">
                         <a class="sidebar-link active" href="/manager/dashboard">
                             <span class="material-symbols-outlined">dashboard</span>
                             Dashboard
                         </a>
-                    </li>
+                    </li> *@
                     <li class="nav-item">
                         <a class="sidebar-link" href="/manager/staff/shifts">
                             <span class="material-symbols-outlined">groups</span>
@@ -75,11 +82,29 @@
         <div class="d-flex flex-column flex-grow-1 min-vw-0">
             <!-- Right Side Header (64px height) -->
             <header class="header px-4 d-flex align-items-center justify-content-between flex-shrink-0">
-                <div class="d-flex align-items-center">
-                    <div class="branch-selector d-flex align-items-center gap-2 px-3 py-2 rounded">
-                        <span class="fs-7 fw-medium" style="color: var(--on-surface);">Chi nhánh đang chọn: <span class="fw-bold text-primary" style="color: var(--primary) !important;">Sân Quận 1</span></span>
+                <div class="d-flex align-items-center dropdown">
+                    <div class="branch-selector d-flex align-items-center gap-2 px-3 py-2 rounded" style="cursor: pointer;" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="fs-7 fw-medium" style="color: var(--on-surface);">Chi nhánh đang chọn: <span class="fw-bold text-primary" style="color: var(--primary) !important;">@currentComplexName</span></span>
                         <span class="material-symbols-outlined text-muted text-lg">expand_more</span>
                     </div>
+                    <ul class="dropdown-menu shadow border-0" style="border-radius: 12px; padding: 8px;">
+                        @if (complexes.Any())
+                        {
+                            foreach (var c in complexes)
+                            {
+                                <li>
+                                    <a class="dropdown-item rounded py-2 px-3 @(c.ComplexId == sessionComplexId ? "active text-white bg-primary" : "")" 
+                                       href="javascript:void(0)" onclick="changeComplex(@c.ComplexId)">
+                                        @c.ComplexName
+                                    </a>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li><span class="dropdown-item-text text-muted">Không có chi nhánh</span></li>
+                        }
+                    </ul>
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <div class="text-end d-none d-sm-block">
@@ -112,6 +137,12 @@
                 link.classList.add('active');
             }
         });
+
+        function changeComplex(id) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('complexId', id);
+            window.location.href = url.href;
+        }
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -12,7 +12,26 @@ namespace SportCourtManagement_FrontEnd.Controllers
     public class TaskController : Controller
     {
         private readonly HttpClient _client;
-        private readonly string _apiBase = "https://localhost:7075/api/manager/complexes/1";
+        private string _apiBase
+        {
+            get
+            {
+                int complexId = 1;
+                if (int.TryParse(Request.Query["complexId"], out var qId) && qId > 0)
+                {
+                    complexId = qId;
+                    HttpContext.Session.LoadAsync().GetAwaiter().GetResult();
+                    HttpContext.Session.SetInt32("selected_complex_id", qId);
+                    HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
+                }
+                else
+                {
+                    HttpContext.Session.LoadAsync().GetAwaiter().GetResult();
+                    complexId = HttpContext.Session.GetInt32("selected_complex_id") ?? 1;
+                }
+                return $"https://localhost:7075/api/manager/complexes/{complexId}";
+            }
+        }
         private readonly JsonSerializerOptions _jsonOpts;
 
         public TaskController()
