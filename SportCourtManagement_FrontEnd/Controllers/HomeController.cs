@@ -24,6 +24,8 @@ public class HomeController : Controller
             var role = User.FindFirst(ClaimTypes.Role)?.Value;
             if (role is "Admin" or "Staff" or "Coach")
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+            if (role is "Manager")
+                return RedirectToAction("Shifts", "Manager");
         }
 
         var activePromotions = await _apiService.GetActivePromotionsAsync();

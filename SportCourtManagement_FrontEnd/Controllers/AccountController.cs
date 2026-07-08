@@ -251,8 +251,11 @@ public class AccountController(IAuthService authService, IOptions<ApiSettings> a
     private IActionResult RedirectToRoleHome(string? role = null)
     {
         role ??= User.FindFirst(ClaimTypes.Role)?.Value;
-        return role is "Admin" or "Staff" or "Coach"
-            ? RedirectToAction("Index", "Dashboard", new { area = "Admin" })
-            : RedirectToAction("Index", "Home");
+        return role switch
+        {
+            "Admin" or "Staff" or "Coach" => RedirectToAction("Index", "Dashboard", new { area = "Admin" }),
+            "Manager" => RedirectToAction("Shifts", "Manager"),
+            _ => RedirectToAction("Index", "Home")
+        };
     }
 }

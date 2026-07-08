@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SportCourtManagement_FrontEnd.Models.Manager;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace SportCourtManagement_FrontEnd.Controllers
 {
+    [Authorize(Roles = "Manager")]
     [Route("manager/tasks")]
     public class TaskController : Controller
     {
@@ -228,12 +230,16 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
         private void AttachAuthToken()
         {
-            var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
+            HttpContext.Session.LoadAsync().GetAwaiter().GetResult();
+            var token = HttpContext.Session.GetString(Services.Api.JwtForwardingHandler.SessionTokenKey);
+
+            if (string.IsNullOrEmpty(token))
+                token = User.FindFirst(Services.Api.JwtForwardingHandler.AccessTokenClaimType)?.Value;
+
             _client.DefaultRequestHeaders.Authorization = null;
             if (!string.IsNullOrEmpty(token))
-            {
-                _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            }
+                _client.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         }
     }
 }

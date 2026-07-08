@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SportCourtManagement_FrontEnd.Models.Manager;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace SportCourtManagement_FrontEnd.Controllers
 {
+    [Authorize(Roles = "Manager")]
     [Route("manager")]
     public class ManagerController : Controller
     {
@@ -13,7 +15,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         private readonly string _apiBase = "https://localhost:7075/api/manager/complexes/1";
         private readonly JsonSerializerOptions _jsonOpts;
 
-        public ManagerController()
+        public ManagerController(IHttpContextAccessor httpContextAccessor)
         {
             _client = new HttpClient();
             _jsonOpts = new JsonSerializerOptions
@@ -22,6 +24,10 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
         }
+
+        // ── GET: /manager ─────────────────────────────────────────────────────
+        [HttpGet("")]
+        public IActionResult Index() => RedirectToAction(nameof(Shifts));
 
         // ── GET: /manager/staff/shifts ────────────────────────────────────────
         [HttpGet("staff/shifts")]
@@ -365,12 +371,18 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
         private void AttachAuthToken()
         {
-            var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
+            // AccountController lưu JWT vào Session với key "access_token" (JwtForwardingHandler.SessionTokenKey)
+            HttpContext.Session.LoadAsync().GetAwaiter().GetResult();
+            var token = HttpContext.Session.GetString(Services.Api.JwtForwardingHandler.SessionTokenKey);
+
+            // Fallback: lấy từ Claims nếu Session chưa có
+            if (string.IsNullOrEmpty(token))
+                token = User.FindFirst(Services.Api.JwtForwardingHandler.AccessTokenClaimType)?.Value;
+
             _client.DefaultRequestHeaders.Authorization = null;
             if (!string.IsNullOrEmpty(token))
-            {
-                _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            }
+                _client.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         }
     }
 }
