@@ -11,7 +11,7 @@
     --slate-400: #94a3b8;
     --slate-500: #64748b;
     --gold-400: #facc15;
-    
+
     --emerald-bg: rgba(16, 185, 129, 0.1);
     --rose-bg: rgba(244, 63, 94, 0.1);
     --orange-bg: rgba(249, 115, 22, 0.1);
@@ -761,6 +761,7 @@
 .toast-notification.success {
     border-left-color: var(--emerald-400);
 }
+
 .toast-notification.success span {
     color: var(--emerald-400);
 }
@@ -768,6 +769,7 @@
 .toast-notification.error {
     border-left-color: var(--rose-400);
 }
+
 .toast-notification.error span {
     color: var(--rose-400);
 }
@@ -777,6 +779,7 @@
         transform: translateY(100px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -787,6 +790,7 @@
     from {
         opacity: 1;
     }
+
     to {
         opacity: 0;
     }

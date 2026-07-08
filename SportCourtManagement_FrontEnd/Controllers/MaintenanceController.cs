@@ -53,7 +53,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [HttpGet]
         public async Task<IActionResult> Maintenance()
         {
-            AttachAuthToken();
+            await LoadLayoutDataAsync();
             var model = new MaintenanceViewModel();
 
             var scheduleResponse = await _client.GetAsync(_apiBase + "/maintenance?pageSize=100");
@@ -251,6 +251,54 @@ namespace SportCourtManagement_FrontEnd.Controllers
             if (!string.IsNullOrEmpty(token))
                 _client.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        private async Task LoadLayoutDataAsync()
+        {
+            AttachAuthToken();
+
+            int complexId = 1;
+            if (int.TryParse(Request.Query["complexId"], out var qId) && qId > 0)
+            {
+                complexId = qId;
+                await HttpContext.Session.LoadAsync();
+                HttpContext.Session.SetInt32("selected_complex_id", qId);
+                await HttpContext.Session.CommitAsync();
+            }
+            else
+            {
+                await HttpContext.Session.LoadAsync();
+                complexId = HttpContext.Session.GetInt32("selected_complex_id") ?? 1;
+            }
+
+            ViewBag.CurrentComplexId = complexId;
+
+            try
+            {
+                var response = await _client.GetAsync("https://localhost:7075/api/complexes?pageSize=100");
+                if (response.IsSuccessStatusCode)
+                {
+                    var raw = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(raw);
+                    if (doc.RootElement.TryGetProperty("data", out var dataProp))
+                    {
+                        if (dataProp.TryGetProperty("items", out var itemsProp))
+                        {
+                            var complexes = JsonSerializer.Deserialize<List<SportCourtManagement_FrontEnd.Models.DTOs.CourtComplexDto>>(itemsProp.GetRawText(), _jsonOpts);
+                            ViewBag.Complexes = complexes;
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+
+            if (ViewBag.Complexes == null)
+            {
+                ViewBag.Complexes = new List<SportCourtManagement_FrontEnd.Models.DTOs.CourtComplexDto>();
+            }
         }
     }
 }

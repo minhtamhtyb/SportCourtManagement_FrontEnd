@@ -199,17 +199,17 @@
                             </td>
                             <td>
                                 <div class="actions-cell">
-                                    @if (task.Status == "Completed")
+                                    <button class="action-icon-btn view-detail" title="Xem chi tiết">
+                                        <span class="material-symbols-outlined">visibility</span>
+                                    </button>
+                                    @if (task.Status != "Approved")
                                     {
                                         <button class="action-icon-btn verify" title="Duyệt / Từ chối">
                                             <span class="material-symbols-outlined">how_to_reg</span>
                                         </button>
-                                    }
-                                    <button class="action-icon-btn edit" title="Chỉnh sửa">
-                                        <span class="material-symbols-outlined">edit</span>
-                                    </button>
-                                    @if (task.Status != "Approved")
-                                    {
+                                        <button class="action-icon-btn edit" title="Chỉnh sửa">
+                                            <span class="material-symbols-outlined">edit</span>
+                                        </button>
                                         <button class="action-icon-btn delete" title="Xóa">
                                             <span class="material-symbols-outlined">delete</span>
                                         </button>
@@ -402,7 +402,7 @@
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; color: var(--on-surface);">
                                     <input type="radio" name="IsApproved" value="false" style="accent-color: var(--primary);" />
                                     <span class="material-symbols-outlined" style="color: var(--rose-400); font-size: 18px;">cancel</span>
-                                    Từ chối (Cần sửa lại)
+                                    Từ chối (Cần chỉnh sửa)
                                 </label>
                             </div>
                         </div>
@@ -448,6 +448,56 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Task Detail Modal -->
+<div class="modal fade" id="viewTaskDetailModal" tabindex="-1" aria-labelledby="viewTaskDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content tasks-modal-content">
+            <div class="modal-header tasks-modal-header">
+                <h5 class="modal-title" id="viewTaskDetailLabel">
+                    <span class="material-symbols-outlined">visibility</span>
+                    Chi tiết công việc
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-form-grid">
+                    <div class="form-group form-group-full">
+                        <label class="form-label-custom">Tiêu đề công việc</label>
+                        <input type="text" class="form-input-custom" id="viewTitle" readonly style="opacity: 0.8; background-color: var(--surface-container-low);" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-custom">Danh mục</label>
+                        <input type="text" class="form-input-custom" id="viewCategory" readonly style="opacity: 0.8; background-color: var(--surface-container-low);" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-custom">Độ ưu tiên</label>
+                        <input type="text" class="form-input-custom" id="viewPriority" readonly style="opacity: 0.8; background-color: var(--surface-container-low);" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-custom">Nhân viên thực hiện</label>
+                        <input type="text" class="form-input-custom" id="viewStaffName" readonly style="opacity: 0.8; background-color: var(--surface-container-low);" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-custom">Hạn hoàn thành</label>
+                        <input type="text" class="form-input-custom" id="viewDueDate" readonly style="opacity: 0.8; background-color: var(--surface-container-low);" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-custom">Trạng thái</label>
+                        <input type="text" class="form-input-custom" id="viewStatus" readonly style="opacity: 0.8; background-color: var(--surface-container-low);" />
+                    </div>
+                    <div class="form-group form-group-full">
+                        <label class="form-label-custom">Mô tả công việc</label>
+                        <textarea class="form-input-custom" id="viewDescription" rows="3" readonly style="opacity: 0.8; background-color: var(--surface-container-low);"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer tasks-modal-footer">
+                <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Đóng</button>
+            </div>
         </div>
     </div>
 </div>
@@ -533,9 +583,29 @@
             const btnEdit = e.target.closest('.action-icon-btn.edit');
             const btnVerify = e.target.closest('.action-icon-btn.verify');
             const btnDelete = e.target.closest('.action-icon-btn.delete');
+            const btnViewDetail = e.target.closest('.action-icon-btn.view-detail');
             const row = e.target.closest('tr');
 
             if (!row || (row.cells.length === 1 && row.cells[0].colSpan > 1)) return;
+
+            if (btnViewDetail) {
+                document.getElementById('viewTitle').value = row.dataset.title;
+                document.getElementById('viewCategory').value = row.dataset.category;
+                document.getElementById('viewPriority').value = row.dataset.priority;
+                
+                let dateStr = row.dataset.duedate;
+                if (dateStr) {
+                    const date = new Date(dateStr);
+                    dateStr = date.toLocaleString('vi-VN');
+                }
+                document.getElementById('viewDueDate').value = dateStr || '';
+                document.getElementById('viewStaffName').value = row.dataset.staffName || 'Chưa phân công';
+                document.getElementById('viewStatus').value = row.dataset.status;
+                document.getElementById('viewDescription').value = row.dataset.description;
+
+                const viewModal = new bootstrap.Modal(document.getElementById('viewTaskDetailModal'));
+                viewModal.show();
+            }
 
             if (btnEdit) {
                 document.getElementById('editTaskId').value = row.dataset.id;
