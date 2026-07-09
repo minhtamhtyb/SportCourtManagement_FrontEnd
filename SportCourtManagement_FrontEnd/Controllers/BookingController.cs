@@ -61,7 +61,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             int courtId,
-            int slotId,
+            List<int> slotIds,
             string bookingDate,
             string? promoCode,
             Dictionary<int, int>? serviceQuantities)
@@ -72,23 +72,21 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 return RedirectToAction("Index");
             }
 
-            var request = new CreateBookingRequestDto
+            if (slotIds == null || slotIds.Count == 0)
             {
-                CourtId = courtId,
-                SlotId = slotId,
-                BookingDate = parsedDate,
-                PromoCode = promoCode,
-                BookingServices = new List<CreateBookingServiceItemDto>()
-            };
+                TempData["ErrorMessage"] = "Vui lòng chọn ít nhất một khung giờ.";
+                return RedirectToAction("Index", new { courtId, date = bookingDate });
+            }
 
-            // Add selected services
+            // Build service items list once (shared across all slot bookings)
+            var serviceItems = new List<CreateBookingServiceItemDto>();
             if (serviceQuantities != null)
             {
                 foreach (var kvp in serviceQuantities)
                 {
                     if (kvp.Value > 0)
                     {
-                        request.BookingServices.Add(new CreateBookingServiceItemDto
+                        serviceItems.Add(new CreateBookingServiceItemDto
                         {
                             ServiceId = kvp.Key,
                             Quantity = kvp.Value
@@ -97,84 +95,137 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 }
             }
 
-            try
+            var successfulBookings = new List<SingularBookingResponseDto>();
+            var errors = new List<string>();
+
+            // Create one booking per selected slot
+            foreach (var slotId in slotIds)
             {
-                var result = await _apiService.CreateSingularBookingAsync(request);
-                if (result != null)
+                var request = new CreateBookingRequestDto
                 {
-                    // Store in TempData for the payment page
-                    TempData["BookingResponse"] = JsonSerializer.Serialize(result);
-                    return RedirectToAction("Payment", new { bookingCode = result.BookingCode });
+                    CourtId = courtId,
+                    SlotId = slotId,
+                    BookingDate = parsedDate,
+                    PromoCode = promoCode,
+                    BookingServices = serviceItems
+                };
+
+                try
+                {
+                    var result = await _apiService.CreateSingularBookingAsync(request);
+                    if (result != null)
+                    {
+                        successfulBookings.Add(result);
+                    }
+                    else
+                    {
+                        errors.Add($"Slot {slotId}: Không thể tạo đặt sân.");
+                    }
                 }
-                else
+                catch (InvalidOperationException ex)
                 {
-                    TempData["ErrorMessage"] = "Không thể tạo đặt sân. Vui lòng thử lại.";
-                    return RedirectToAction("Index", new { courtId, date = bookingDate, slotId });
+                    errors.Add($"Slot {slotId}: {ex.Message}");
                 }
             }
-            catch (InvalidOperationException ex)
+
+            if (successfulBookings.Count == 0)
             {
-                TempData["ErrorMessage"] = ex.Message;
-                return RedirectToAction("Index", new { courtId, date = bookingDate, slotId });
+                TempData["ErrorMessage"] = "Không thể tạo đặt sân. " + string.Join(" | ", errors);
+                return RedirectToAction("Index", new { courtId, date = bookingDate });
             }
+
+            if (errors.Count > 0)
+            {
+                TempData["WarningMessage"] = $"Đã tạo {successfulBookings.Count}/{slotIds.Count} đơn. Lỗi: {string.Join(" | ", errors)}";
+            }
+
+            // Store all bookings in TempData for the payment page
+            TempData["BookingResponses"] = JsonSerializer.Serialize(successfulBookings);
+            var bookingCodes = string.Join(",", successfulBookings.Select(b => b.BookingCode));
+            return RedirectToAction("Payment", new { bookingCodes });
         }
 
-        // GET: /Booking/Payment?bookingCode=BK-XXXXXXXX
+        // GET: /Booking/Payment?bookingCodes=BK-001,BK-002
         [HttpGet]
-        public async Task<IActionResult> Payment(string bookingCode)
+        public async Task<IActionResult> Payment(string bookingCodes)
         {
-            SingularBookingResponseDto? booking = null;
+            var bookings = new List<SingularBookingResponseDto>();
 
             // Try to get from TempData first (just created)
-            if (TempData.TryGetValue("BookingResponse", out var bookingJson))
+            if (TempData.TryGetValue("BookingResponses", out var bookingJson))
             {
                 var json = bookingJson as string;
                 if (!string.IsNullOrEmpty(json))
                 {
-                    booking = JsonSerializer.Deserialize<SingularBookingResponseDto>(json, new JsonSerializerOptions
+                    bookings = JsonSerializer.Deserialize<List<SingularBookingResponseDto>>(json, new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
-                    });
+                    }) ?? new();
                 }
             }
 
-            if (booking == null || booking.BookingCode != bookingCode)
+            if (bookings.Count == 0)
             {
                 TempData["ErrorMessage"] = "Không tìm thấy thông tin đặt sân. Phiên có thể đã hết hạn.";
                 return RedirectToAction("Index");
             }
 
-            // Get QR code from SePay API
-            var qrCode = await _apiService.GetSePayQrCodeAsync(bookingCode);
+            // Calculate total amount across all bookings
+            var totalAmount = bookings.Sum(b => b.TotalAmount);
+            ViewBag.TotalAmount = totalAmount;
+            ViewBag.BookingCodes = bookingCodes;
 
+            // Get QR code for the first booking (as reference)
+            var qrCode = await _apiService.GetSePayQrCodeAsync(bookings.First().BookingCode);
             ViewBag.QrCode = qrCode;
-            return View(booking);
+
+            return View(bookings);
         }
 
         // POST: /Booking/SimulatePayment
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SimulatePayment(string bookingCode, decimal amount)
+        public async Task<IActionResult> SimulatePayment(string bookingCodes)
         {
-            var (success, message, _) = await _apiService.SimulateSePayWebhookAsync(bookingCode, amount);
-
-            if (success)
+            if (string.IsNullOrEmpty(bookingCodes))
             {
-                TempData["SuccessMessage"] = message;
-                return RedirectToAction("Success", new { bookingCode });
+                TempData["ErrorMessage"] = "Không tìm thấy mã đặt sân.";
+                return RedirectToAction("Index");
+            }
+
+            var codes = bookingCodes.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var successCount = 0;
+            var lastMessage = "";
+
+            foreach (var code in codes)
+            {
+                // We pass amount = 0, the backend webhook handler will validate the booking's actual amount
+                var (success, message, _) = await _apiService.SimulateSePayWebhookAsync(code.Trim(), 0);
+                if (success)
+                {
+                    successCount++;
+                    lastMessage = message;
+                }
+            }
+
+            if (successCount > 0)
+            {
+                TempData["SuccessMessage"] = $"Đã thanh toán thành công {successCount}/{codes.Length} đơn đặt sân.";
+                return RedirectToAction("Success", new { bookingCodes });
             }
             else
             {
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessage"] = "Thanh toán không thành công. Vui lòng thử lại.";
                 return RedirectToAction("Index");
             }
         }
 
-        // GET: /Booking/Success?bookingCode=BK-XXXXXXXX
+        // GET: /Booking/Success?bookingCodes=BK-001,BK-002
         [HttpGet]
-        public IActionResult Success(string bookingCode)
+        public IActionResult Success(string bookingCodes)
         {
-            ViewBag.BookingCode = bookingCode;
+            ViewBag.BookingCode = bookingCodes;
+            ViewBag.BookingCodeList = bookingCodes?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
             return View();
         }
     }
