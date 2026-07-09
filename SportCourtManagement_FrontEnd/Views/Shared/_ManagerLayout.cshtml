@@ -128,15 +128,30 @@
     <script>
         // Set active link highlight based on current path
         const currentPath = window.location.pathname;
+        let activeLink = null;
+
         document.querySelectorAll('.sidebar-link').forEach(link => {
             const href = link.getAttribute('href');
-            if (href === '/logout') return;
+            if (!href || href === '/logout') return;
             
-            if (currentPath === href || (href !== '/manager/dashboard' && currentPath.startsWith(href))) {
-                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
+            let isMatch = false;
+            if (currentPath === href) {
+                isMatch = true;
+            } else if (href === '/manager/staff/shifts' && currentPath.startsWith('/manager/staff')) {
+                isMatch = true;
+            } else if (href !== '/manager/dashboard' && href !== '/' && currentPath.startsWith(href)) {
+                isMatch = true;
+            }
+            
+            if (isMatch) {
+                activeLink = link;
             }
         });
+
+        if (activeLink) {
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            activeLink.classList.add('active');
+        }
 
         function changeComplex(id) {
             const url = new URL(window.location.href);
