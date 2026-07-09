@@ -1,5 +1,341 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+@model SportCourtManagement_FrontEnd.Models.ViewModels.SingularBookingViewModel
+
 @{
+    ViewData["Title"] = "Đặt Sân Thể Thao";
+}
+
+<main class="sc-container py-4">
+    <!-- Breadcrumb -->
+    <nav class="sc-breadcrumb">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span>›</span>
+        <a asp-controller="Courts" asp-action="Index">Tìm sân</a>
+        <span>›</span>
+        <span class="text-white fw-medium">Đặt sân</span>
+    </nav>
+
+    <!-- Page Title -->
+    <div class="mb-5">
+        <h2 class="font-outfit text-white mb-2" style="font-weight: 900; letter-spacing: -0.5px;">
+            <i class="bi bi-calendar-check me-2" style="color: var(--sc-blue-light);"></i>Đặt Sân Thể Thao
+        </h2>
+        <p class="text-sc-muted mb-0" style="font-size: 14px;">Chọn sân, khung giờ và dịch vụ phụ trợ để hoàn tất đơn đặt sân của bạn.</p>
+    </div>
+
+    <!-- Error / Success Messages -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert d-flex align-items-center gap-2 mb-4 py-3 px-4 rounded-3" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: #FCA5A5;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+
+    <form id="booking-form" asp-controller="Booking" asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="row g-4">
+            <!-- LEFT COLUMN: Form -->
+            <div class="col-lg-8">
+                <div class="sc-card p-4" style="background-color: #0D121F;">
+                    <h4 class="font-outfit text-white mb-4" style="font-weight: 800; border-left: 4px solid var(--sc-blue); padding-left: 12px;">
+                        Thiết Lập Đơn Đặt Sân
+                    </h4>
+
+                    <!-- Court Selection -->
+                    <div class="mb-4">
+                        <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="bi bi-building me-1 text-sc-blue-light"></i>Chọn sân thể thao <span class="text-danger">*</span>
+                        </label>
+                        <select name="courtId" id="court-select" class="sc-input" required style="color-scheme: dark;">
+                            <option value="">-- Chọn sân --</option>
+                            @foreach (var court in Model.Courts)
+                            {
+                                var selected = Model.SelectedCourtId.HasValue && Model.SelectedCourtId.Value == court.CourtId ? "selected" : "";
+                                <option value="@court.CourtId" @selected
+                                        data-name="@court.CourtName"
+                                        data-type="@court.CourtTypeName"
+                                        data-location="@court.Location"
+                                        data-image="@court.ImageUrl"
+                                        data-price="@court.PricePerHour">
+                                    @court.CourtName — @court.CourtTypeName (@(court.Location ?? "N/A"))
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Court Preview Card (shown when court is selected) -->
+                    <div id="court-preview" class="d-none mb-4">
+                        <div class="d-flex align-items-center gap-3 p-3 rounded" style="background-color: rgba(255, 255, 255, 0.02); border: 1px solid var(--sc-border);">
+                            <div style="width: 80px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #1e293b;">
+                                <img id="court-preview-img" src="" alt="" class="w-100 h-100 object-fit-cover" style="display:none;" />
+                                <div id="court-preview-noimg" class="w-100 h-100 d-flex align-items-center justify-content-center text-sc-muted" style="font-size: 20px;">
+                                    <i class="bi bi-dribbble"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 id="court-preview-name" class="text-white font-outfit mb-0" style="font-weight: 700; font-size: 15px;"></h6>
+                                <small id="court-preview-meta" class="text-sc-muted" style="font-size: 12px;"></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date & Slot Selection -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="bi bi-calendar3 me-1 text-sc-blue-light"></i>Ngày đặt sân <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" name="bookingDate" id="booking-date" class="sc-input" required
+                                   value="@(Model.SelectedDate?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                   style="color-scheme: dark;" />
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="bi bi-clock me-1 text-sc-green"></i>Khung giờ <span class="text-danger">*</span>
+                            </label>
+                            <select name="slotId" id="slot-select" class="sc-input" required style="color-scheme: dark;">
+                                <option value="">-- Chọn khung giờ --</option>
+                                @foreach (var slot in Model.TimeSlots)
+                                {
+                                    var slotSelected = Model.SelectedSlotId.HasValue && Model.SelectedSlotId.Value == slot.SlotId ? "selected" : "";
+                                    <option value="@slot.SlotId" @slotSelected data-name="@slot.SlotName">
+                                        @slot.SlotName (@slot.StartTime - @slot.EndTime)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Services Add-ons -->
+                    @if (Model.Services.Any())
+                    {
+                        <div class="mb-4">
+                            <h5 class="font-outfit text-white mb-3" style="font-weight: 700; font-size: 16px;">
+                                <i class="bi bi-box-seam me-1 text-sc-blue-light"></i> Dịch vụ phụ trợ (Tùy chọn)
+                            </h5>
+                            <div class="row g-3">
+                                @foreach (var service in Model.Services)
+                                {
+                                    <div class="col-sm-6">
+                                        <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background-color: rgba(255, 255, 255, 0.01); border: 1px solid var(--sc-border);">
+                                            <div>
+                                                <div class="text-white fw-bold" style="font-size: 14px;">@service.ServiceName</div>
+                                                <div class="text-sc-green fw-medium" style="font-size: 12px;">@service.Price.ToString("N0")đ / đơn vị</div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-service-id="@service.ServiceId" data-delta="-1">-</button>
+                                                <input type="number" name="serviceQuantities[@service.ServiceId]" id="service-qty-@service.ServiceId"
+                                                       value="0" min="0" max="@Math.Min(service.StockQty, 20)"
+                                                       data-price="@service.Price"
+                                                       class="text-center bg-transparent border-0 text-white font-monospace service-qty-input"
+                                                       style="width: 30px; font-size: 14px;" readonly />
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-service-id="@service.ServiceId" data-delta="1">+</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Promo Code -->
+                    <div class="mb-4">
+                        <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="bi bi-tag me-1 text-sc-amber"></i>Mã giảm giá (Nếu có)
+                        </label>
+                        <div class="d-flex gap-2">
+                            <input type="text" name="promoCode" id="promo-input" class="sc-input" placeholder="Nhập mã ưu đãi (Ví dụ: DISCOUNT10)" style="max-width: 320px;" />
+                            <button type="button" id="btn-apply-promo" class="sc-btn sc-btn-secondary py-2 px-3" style="font-size: 13px;">Áp dụng</button>
+                        </div>
+                        <div id="promo-msg" class="form-text small mt-1" style="display:none;"></div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="mt-4 pt-3 border-top" style="border-top-color: rgba(255,255,255,0.05) !important;">
+                        <button type="submit" id="btn-submit" class="sc-btn sc-btn-primary px-5 py-3 d-flex align-items-center gap-2 fw-bold" style="font-size: 15px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none;">
+                            <i class="bi bi-check-circle-fill"></i> Xác nhận đặt sân
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Order Summary -->
+            <div class="col-lg-4">
+                <div class="sc-booking-sidebar" style="position: sticky; top: 100px;">
+                    <div class="sc-card p-4" style="background-color: #0D121F;">
+                        <h5 class="font-outfit text-white mb-3 pb-2 border-bottom" style="font-weight: 700; border-bottom-color: rgba(255,255,255,0.05) !important;">
+                            <i class="bi bi-receipt me-1 text-sc-blue-light"></i> Tóm Tắt Đơn Đặt Sân
+                        </h5>
+
+                        <!-- Dynamic Court Info -->
+                        <div id="summary-court-section" class="mb-3" style="display: none;">
+                            <div class="d-flex justify-content-between mb-1" style="font-size: 13px;">
+                                <span class="text-sc-muted">Sân:</span>
+                                <span id="summary-court" class="text-white fw-semibold">—</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1" style="font-size: 13px;">
+                                <span class="text-sc-muted">Ngày:</span>
+                                <span id="summary-date" class="text-white fw-semibold">—</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1" style="font-size: 13px;">
+                                <span class="text-sc-muted">Khung giờ:</span>
+                                <span id="summary-slot" class="text-white fw-semibold">—</span>
+                            </div>
+                        </div>
+
+                        <hr style="border-color: rgba(255,255,255,0.05);" />
+
+                        <!-- Price breakdown -->
+                        <div class="mb-4" style="font-size: 13.5px; line-height: 1.8;">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-sc-muted">Tiền sân (ước tính):</span>
+                                <span id="summary-court-price" class="text-white fw-semibold">—</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-sc-muted">Tiền dịch vụ thêm:</span>
+                                <span id="summary-service-price" class="text-white fw-semibold">0đ</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-sc-amber" id="summary-promo-row" style="display: none;">
+                                <span>Mã giảm giá:</span>
+                                <span id="summary-promo-code">—</span>
+                            </div>
+                            <hr style="border-color: rgba(255,255,255,0.05);" />
+                            <div class="d-flex justify-content-between align-items-baseline">
+                                <span class="text-white fw-bold">Tạm tính:</span>
+                                <span id="summary-total" class="font-outfit text-sc-green fw-black" style="font-size: 22px; font-weight: 900;">—</span>
+                            </div>
+                        </div>
+
+                        <!-- Note -->
+                        <div class="p-3 rounded text-sc-muted text-center" style="background: #141B2D; font-size: 12px; border: 1px solid var(--sc-border);">
+                            <i class="bi bi-info-circle-fill text-sc-blue-light me-1"></i>
+                            Giá cuối cùng sẽ được tính chính xác bởi hệ thống khi bạn xác nhận đặt sân.
+                        </div>
+                    </div>
+
+                    <!-- Policy -->
+                    <div class="mt-3 p-3 rounded" style="background-color: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.12); font-size: 12px; line-height: 1.5;">
+                        <span class="text-sc-red fw-bold d-block mb-1"><i class="bi bi-info-circle-fill me-1"></i> Lưu ý</span>
+                        <span class="text-sc-muted">Booking sẽ được giữ tạm trong 5 phút. Nếu không thanh toán trong thời gian này, đơn đặt sân sẽ tự động hủy.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</main>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            const courtSelect = $('#court-select');
+            const slotSelect = $('#slot-select');
+            const dateInput = $('#booking-date');
+
+            // --- Court Preview ---
+            function updateCourtPreview() {
+                const opt = courtSelect.find(':selected');
+                if (!opt.val()) {
+                    $('#court-preview').addClass('d-none');
+                    $('#summary-court-section').hide();
+                    return;
+                }
+                const name = opt.data('name');
+                const type = opt.data('type');
+                const location = opt.data('location') || 'N/A';
+                const image = opt.data('image');
+                const price = opt.data('price');
+
+                $('#court-preview-name').text(name);
+                $('#court-preview-meta').html(`<i class="bi bi-dribbble me-1"></i>${type} &middot; <i class="bi bi-geo-alt me-1"></i>${location}`);
+
+                if (image) {
+                    $('#court-preview-img').attr('src', `/images/courts/${image}`).show();
+                    $('#court-preview-noimg').hide();
+                } else {
+                    $('#court-preview-img').hide();
+                    $('#court-preview-noimg').show();
+                }
+
+                $('#court-preview').removeClass('d-none');
+
+                // Update summary
+                $('#summary-court').text(name);
+                $('#summary-court-price').text(price ? Number(price).toLocaleString('vi-VN') + 'đ' : '—');
+                $('#summary-court-section').show();
+
+                updateSummary();
+            }
+
+            courtSelect.on('change', updateCourtPreview);
+            updateCourtPreview(); // Run on page load
+
+            // --- Date & Slot Summary ---
+            function updateDateSlotSummary() {
+                const dateVal = dateInput.val();
+                const slotOpt = slotSelect.find(':selected');
+
+                if (dateVal) {
+                    const d = new Date(dateVal);
+                    const formatted = d.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+                    $('#summary-date').text(formatted);
+                } else {
+                    $('#summary-date').text('—');
+                }
+
+                if (slotOpt.val()) {
+                    $('#summary-slot').text(slotOpt.text().trim());
+                } else {
+                    $('#summary-slot').text('—');
+                }
+            }
+
+            dateInput.on('change', updateDateSlotSummary);
+            slotSelect.on('change', updateDateSlotSummary);
+            updateDateSlotSummary();
+
+            // --- Service Quantity ---
+            $(document).on('click', '.service-qty-btn', function () {
+                const serviceId = $(this).data('service-id');
+                const delta = parseInt($(this).data('delta'));
+                const input = $(`#service-qty-${serviceId}`);
+                let val = parseInt(input.val()) || 0;
+                val = Math.max(parseInt(input.attr('min')), Math.min(parseInt(input.attr('max')), val + delta));
+                input.val(val);
+                updateSummary();
+            });
+
+            // --- Promo Code ---
+            $('#btn-apply-promo').on('click', function () {
+                const code = $('#promo-input').val().trim();
+                if (code) {
+                    $('#promo-msg').text(`Mã "${code}" sẽ được áp dụng khi xác nhận.`).css('color', '#10B981').show();
+                    $('#summary-promo-row').show();
+                    $('#summary-promo-code').text(code);
+                } else {
+                    $('#promo-msg').text('Vui lòng nhập mã giảm giá.').css('color', '#EF4444').show();
+                    $('#summary-promo-row').hide();
+                }
+            });
+
+            // --- Update Summary Totals ---
+            function updateSummary() {
+                let serviceTotal = 0;
+                $('.service-qty-input').each(function () {
+                    const qty = parseInt($(this).val()) || 0;
+                    const price = parseFloat($(this).data('price')) || 0;
+                    serviceTotal += qty * price;
+                });
+
+                $('#summary-service-price').text(serviceTotal > 0 ? serviceTotal.toLocaleString('vi-VN') + 'đ' : '0đ');
+
+                const courtPrice = parseFloat(courtSelect.find(':selected').data('price')) || 0;
+                const total = courtPrice + serviceTotal;
+                $('#summary-total').text(total > 0 ? total.toLocaleString('vi-VN') + 'đ' : '—');
+            }
+
+            updateSummary();
+        });
+    </script>
 }
