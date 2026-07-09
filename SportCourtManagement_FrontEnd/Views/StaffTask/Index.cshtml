@@ -1,0 +1,166 @@
+@model SportCourtManagement_FrontEnd.Models.Manager.PagedTaskResponse
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Công việc của tôi | ProCourt";
+    string? selectedStatus = ViewBag.SelectedStatus as string;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/staff-tasks.css" asp-append-version="true" />
+}
+
+<div class="tasks-wrapper">
+    <!-- Module Header -->
+    <div class="tasks-header">
+        <h2>Công việc của tôi</h2>
+        <p>Theo dõi, thực hiện và báo cáo tiến độ các công việc được phân công.</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <a class="filter-tab @(string.IsNullOrEmpty(selectedStatus) ? "active" : "")" href="/staff/tasks">Tất cả</a>
+        <a class="filter-tab @(selectedStatus == "Pending" ? "active" : "")" href="/staff/tasks?status=Pending">Chờ thực hiện (Pending)</a>
+        <a class="filter-tab @(selectedStatus == "InProgress" ? "active" : "")" href="/staff/tasks?status=InProgress">Đang làm (InProgress)</a>
+        <a class="filter-tab @(selectedStatus == "Completed" ? "active" : "")" href="/staff/tasks?status=Completed">Chờ nghiệm thu (Completed)</a>
+        <a class="filter-tab @(selectedStatus == "Approved" ? "active" : "")" href="/staff/tasks?status=Approved">Đã duyệt (Approved)</a>
+    </div>
+
+    <!-- Tasks Grid -->
+    @if (Model.Items == null || !Model.Items.Any())
+    {
+        <div class="empty-state">
+            <span class="material-symbols-outlined empty-state-icon" style="font-size: 48px;">assignment_late</span>
+            <h4>Không tìm thấy công việc nào</h4>
+            <p>Bạn không có công việc nào thuộc danh mục này hoặc chưa được giao việc.</p>
+        </div>
+    }
+    else
+    {
+        <div class="tasks-grid">
+            @foreach (var task in Model.Items)
+            {
+                var priorityClass = task.Priority.ToLower() switch
+                {
+                    "high" => "priority-high",
+                    "medium" => "priority-medium",
+                    _ => "priority-low"
+                };
+
+                var statusClass = task.Status.ToLower() switch
+                {
+                    "pending" => "status-pending",
+                    "inprogress" => "status-inprogress",
+                    "completed" => "status-completed",
+                    "approved" => "status-approved",
+                    _ => "status-pending"
+                };
+
+                <div class="task-card">
+                    <div class="task-card-header">
+                        <div class="task-meta-top">
+                            <span class="badge-custom @priorityClass">@task.Priority</span>
+                            <span class="badge-custom @statusClass">@task.Status</span>
+                        </div>
+                        <div class="task-due-date">
+                            <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">event</span>
+                            <span>@task.DueDate.ToString("dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+
+                    <div class="task-card-body">
+                        <h3 class="task-card-title">@task.Title</h3>
+                        <p class="task-card-desc">@task.Description</p>
+                    </div>
+
+                    <div class="task-card-footer">
+                        <span class="task-category">@task.Category</span>
+
+                        @if (task.Status == "Pending")
+                        {
+                            <form asp-controller="StaffTask" asp-action="StartTask" asp-route-taskId="@task.TaskId" asp-route-status="@selectedStatus" asp-route-page="@Model.Page" method="post" style="margin: 0;">
+                                <button type="submit" class="task-action-btn btn-start">
+                                    <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">play_arrow</span>
+                                    Bắt đầu làm
+                                </button>
+                            </form>
+                        }
+                        else if (task.Status == "InProgress")
+                        {
+                            <form asp-controller="StaffTask" asp-action="CompleteTask" asp-route-taskId="@task.TaskId" asp-route-status="@selectedStatus" asp-route-page="@Model.Page" method="post" style="margin: 0;">
+                                <button type="submit" class="task-action-btn btn-complete">
+                                    <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">done_all</span>
+                                    Hoàn thành
+                                </button>
+                            </form>
+                        }
+                        else if (task.Status == "Completed")
+                        {
+                            <span style="font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                                <span class="material-symbols-outlined" style="color: #10b981; font-size: 16px;">schedule</span>
+                                Chờ nghiệm thu
+                            </span>
+                        }
+                        else if (task.Status == "Approved")
+                        {
+                            <span style="font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                                <span class="material-symbols-outlined" style="color: #22c55e; font-size: 16px;">check_circle</span>
+                                Đã nghiệm thu
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="pagination-container">
+                <span class="pagination-info">Hiển thị trang @Model.Page / @Model.TotalPages (Tổng số @Model.TotalCount công việc)</span>
+                <div class="pagination-btns">
+                    <a class="page-btn @(Model.Page <= 1 ? "disabled" : "")" 
+                       href="@(Model.Page <= 1 ? "#" : $"/staff/tasks?status={selectedStatus}&page={Model.Page - 1}")"
+                       style="@(Model.Page <= 1 ? "pointer-events: none; opacity: 0.5;" : "")">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">chevron_left</span>
+                    </a>
+                    
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <a class="page-btn @(i == Model.Page ? "active" : "")" href="/staff/tasks?status=@selectedStatus&page=@i">@i</a>
+                    }
+
+                    <a class="page-btn @(Model.Page >= Model.TotalPages ? "disabled" : "")" 
+                       href="@(Model.Page >= Model.TotalPages ? "#" : $"/staff/tasks?status={selectedStatus}&page={Model.Page + 1}")"
+                       style="@(Model.Page >= Model.TotalPages ? "pointer-events: none; opacity: 0.5;" : "")">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">chevron_right</span>
+                    </a>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // ── Toast Helper ──────────────────────────────────────────────────────
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            const icon = type === 'error' ? 'error' : (type === 'info' ? 'info' : 'check_circle');
+            toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span><div>${message}</div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ── TempData Toasts (server redirect feedback) ────────────────────────
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');</text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
+        }
+    </script>
+}
