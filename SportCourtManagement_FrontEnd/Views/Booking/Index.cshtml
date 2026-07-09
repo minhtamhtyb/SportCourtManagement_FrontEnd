@@ -93,40 +93,38 @@
                         </div>
                     </div>
 
-                    <!-- Date & Slot Selection -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-sm-6">
-                            <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="bi bi-calendar3 me-1 text-sc-blue-light"></i>Ngày đặt sân <span class="text-danger">*</span>
-                            </label>
-                            <input type="date" name="bookingDate" id="booking-date" class="sc-input" required
-                                   value="@(Model.SelectedDate?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))"
-                                   min="@DateTime.Today.ToString("yyyy-MM-dd")"
-                                   style="color-scheme: dark;" />
+                    <!-- Date Selection -->
+                    <div class="mb-4">
+                        <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="bi bi-calendar3 me-1 text-sc-blue-light"></i>Ngày đặt sân <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" name="bookingDate" id="booking-date" class="sc-input" required
+                               value="@(Model.SelectedDate?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))"
+                               min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                               style="color-scheme: dark; max-width: 300px;" />
+                    </div>
+
+                    <!-- Multi Slot Selection (Checkboxes) -->
+                    <div class="mb-4">
+                        <label class="form-label text-sc-muted font-inter d-block" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="bi bi-clock me-1 text-sc-green"></i>Chọn khung giờ <span class="text-danger">*</span>
+                            <span class="text-sc-muted fw-normal" style="text-transform: none;">(có thể chọn nhiều)</span>
+                        </label>
+                        <div class="d-flex flex-wrap gap-2" id="slot-checkboxes">
+                            @foreach (var slot in Model.TimeSlots)
+                            {
+                                var isChecked = Model.SelectedSlotId.HasValue && Model.SelectedSlotId.Value == slot.SlotId;
+                                <label class="slot-checkbox-label p-2 px-3 rounded d-inline-flex align-items-center gap-2 text-white"
+                                       style="background: rgba(255,255,255,0.02); border: 1px solid var(--sc-border); cursor: pointer; font-size: 13px; transition: all 0.2s ease;">
+                                    <input type="checkbox" name="slotIds" value="@slot.SlotId"
+                                           class="slot-checkbox" data-name="@slot.SlotName (@slot.StartTime - @slot.EndTime)"
+                                           checked="@isChecked"
+                                           style="accent-color: var(--sc-blue); width: 16px; height: 16px;" />
+                                    <span>@slot.SlotName <span class="text-sc-muted" style="font-size: 11px;">(@slot.StartTime - @slot.EndTime)</span></span>
+                                </label>
+                            }
                         </div>
-                        <div class="col-sm-6">
-                            <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="bi bi-clock me-1 text-sc-green"></i>Khung giờ <span class="text-danger">*</span>
-                            </label>
-                            <select name="slotId" id="slot-select" class="sc-input" required style="color-scheme: dark;">
-                                <option value="">-- Chọn khung giờ --</option>
-                                @foreach (var slot in Model.TimeSlots)
-                                {
-                                    if (Model.SelectedSlotId.HasValue && Model.SelectedSlotId.Value == slot.SlotId)
-                                    {
-                                        <option value="@slot.SlotId" selected="selected" data-name="@slot.SlotName">
-                                            @slot.SlotName (@slot.StartTime - @slot.EndTime)
-                                        </option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@slot.SlotId" data-name="@slot.SlotName">
-                                            @slot.SlotName (@slot.StartTime - @slot.EndTime)
-                                        </option>
-                                    }
-                                }
-                            </select>
-                        </div>
+                        <div id="slot-error" class="text-danger small mt-1" style="display:none;">Vui lòng chọn ít nhất một khung giờ.</div>
                     </div>
 
                     <!-- Services Add-ons -->
@@ -146,13 +144,13 @@
                                                 <div class="text-sc-green fw-medium" style="font-size: 12px;">@service.Price.ToString("N0")đ / đơn vị</div>
                                             </div>
                                             <div class="d-flex align-items-center gap-2">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-service-id="@service.ServiceId" data-delta="-1">-</button>
-                                                <input type="number" name="serviceQuantities[@service.ServiceId]" id="service-qty-@service.ServiceId"
-                                                       value="0" min="0" max="@Math.Min(service.StockQty, 20)"
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="@service.ServiceId" data-delta="-1">-</button>
+                                                <input type="number" name="serviceQuantities[@service.ServiceId]" id="svc-@service.ServiceId"
+                                                       value="0" min="0" max="@(service.StockQty > 0 ? Math.Min(service.StockQty, 20) : 20)"
                                                        data-price="@service.Price"
                                                        class="text-center bg-transparent border-0 text-white font-monospace service-qty-input"
-                                                       style="width: 30px; font-size: 14px;" readonly />
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-service-id="@service.ServiceId" data-delta="1">+</button>
+                                                       style="width: 40px; font-size: 14px;" readonly />
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="@service.ServiceId" data-delta="1">+</button>
                                             </div>
                                         </div>
                                     </div>
@@ -248,10 +246,19 @@
 </main>
 
 @section Scripts {
+    <style>
+        .slot-checkbox-label:has(input:checked) {
+            background: rgba(79, 110, 247, 0.12) !important;
+            border-color: rgba(79, 110, 247, 0.5) !important;
+            box-shadow: 0 0 0 1px rgba(79, 110, 247, 0.3);
+        }
+        .slot-checkbox-label:hover {
+            border-color: rgba(255,255,255,0.15) !important;
+        }
+    </style>
     <script>
         $(document).ready(function () {
             const courtSelect = $('#court-select');
-            const slotSelect = $('#slot-select');
             const dateInput = $('#booking-date');
 
             // --- Court Preview ---
@@ -280,23 +287,18 @@
                 }
 
                 $('#court-preview').removeClass('d-none');
-
-                // Update summary
                 $('#summary-court').text(name);
                 $('#summary-court-price').text(price ? Number(price).toLocaleString('vi-VN') + 'đ' : '—');
                 $('#summary-court-section').show();
-
                 updateSummary();
             }
 
             courtSelect.on('change', updateCourtPreview);
-            updateCourtPreview(); // Run on page load
+            updateCourtPreview();
 
-            // --- Date & Slot Summary ---
-            function updateDateSlotSummary() {
+            // --- Date Summary ---
+            function updateDateSummary() {
                 const dateVal = dateInput.val();
-                const slotOpt = slotSelect.find(':selected');
-
                 if (dateVal) {
                     const d = new Date(dateVal);
                     const formatted = d.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -304,25 +306,38 @@
                 } else {
                     $('#summary-date').text('—');
                 }
-
-                if (slotOpt.val()) {
-                    $('#summary-slot').text(slotOpt.text().trim());
-                } else {
-                    $('#summary-slot').text('—');
-                }
             }
+            dateInput.on('change', updateDateSummary);
+            updateDateSummary();
 
-            dateInput.on('change', updateDateSlotSummary);
-            slotSelect.on('change', updateDateSlotSummary);
-            updateDateSlotSummary();
+            // --- Slot Checkboxes ---
+            function updateSlotSummary() {
+                const checked = $('.slot-checkbox:checked');
+                if (checked.length === 0) {
+                    $('#summary-slot').text('—');
+                } else {
+                    const names = [];
+                    checked.each(function () { names.push($(this).data('name')); });
+                    $('#summary-slot').html(names.join('<br/>'));
+                }
+                updateSummary();
+            }
+            $(document).on('change', '.slot-checkbox', updateSlotSummary);
+            updateSlotSummary();
 
-            // --- Service Quantity ---
-            $(document).on('click', '.service-qty-btn', function () {
-                const serviceId = $(this).data('service-id');
+            // --- Service Quantity +/- Buttons ---
+            $(document).on('click', '.service-qty-btn', function (e) {
+                e.preventDefault();
+                const sid = $(this).data('sid');
                 const delta = parseInt($(this).data('delta'));
-                const input = $(`#service-qty-${serviceId}`);
+                const input = $('#svc-' + sid);
+                if (input.length === 0) return;
+                const minVal = parseInt(input.attr('min')) || 0;
+                const maxVal = parseInt(input.attr('max')) || 20;
                 let val = parseInt(input.val()) || 0;
-                val = Math.max(parseInt(input.attr('min')), Math.min(parseInt(input.attr('max')), val + delta));
+                val = val + delta;
+                if (val < minVal) val = minVal;
+                if (val > maxVal) val = maxVal;
                 input.val(val);
                 updateSummary();
             });
@@ -331,7 +346,7 @@
             $('#btn-apply-promo').on('click', function () {
                 const code = $('#promo-input').val().trim();
                 if (code) {
-                    $('#promo-msg').text(`Mã "${code}" sẽ được áp dụng khi xác nhận.`).css('color', '#10B981').show();
+                    $('#promo-msg').text('Mã "' + code + '" sẽ được áp dụng khi xác nhận.').css('color', '#10B981').show();
                     $('#summary-promo-row').show();
                     $('#summary-promo-code').text(code);
                 } else {
@@ -348,15 +363,30 @@
                     const price = parseFloat($(this).data('price')) || 0;
                     serviceTotal += qty * price;
                 });
-
                 $('#summary-service-price').text(serviceTotal > 0 ? serviceTotal.toLocaleString('vi-VN') + 'đ' : '0đ');
 
                 const courtPrice = parseFloat(courtSelect.find(':selected').data('price')) || 0;
-                const total = courtPrice + serviceTotal;
+                const slotCount = $('.slot-checkbox:checked').length;
+                const courtTotal = courtPrice * Math.max(slotCount, 1);
+                $('#summary-court-price').text(courtTotal > 0 ? courtTotal.toLocaleString('vi-VN') + 'đ' + (slotCount > 1 ? ' (x' + slotCount + ' slot)' : '') : '—');
+
+                const total = courtTotal + serviceTotal;
                 $('#summary-total').text(total > 0 ? total.toLocaleString('vi-VN') + 'đ' : '—');
             }
 
             updateSummary();
+
+            // --- Form Validation ---
+            $('#booking-form').on('submit', function (e) {
+                const checked = $('.slot-checkbox:checked');
+                if (checked.length === 0) {
+                    e.preventDefault();
+                    $('#slot-error').show();
+                    return false;
+                }
+                $('#slot-error').hide();
+                return true;
+            });
         });
     </script>
 }
