@@ -77,7 +77,7 @@ public class CourtsController : Controller
 
     // GET: /Courts/Availability/{id}?date=YYYY-MM-DD (AJAX)
     [HttpGet]
-    public async Task<IActionResult> GetAvailability(int id, string date)
+    public async Task<IActionResult> GetAvailability([FromQuery] int id, string date)
     {
         if (!DateTime.TryParse(date, out var parsedDate))
         {
@@ -95,7 +95,7 @@ public class CourtsController : Controller
 
     // GET: /Courts/CheckAvailabilityJson (AJAX JSON)
     [HttpGet]
-    public async Task<IActionResult> CheckAvailabilityJson(int id, string date)
+    public async Task<IActionResult> CheckAvailabilityJson([FromQuery] int id, string date)
     {
         if (!DateTime.TryParse(date, out var parsedDate))
         {
