@@ -51,15 +51,28 @@
                             <option value="">-- Chọn sân --</option>
                             @foreach (var court in Model.Courts)
                             {
-                                var selected = Model.SelectedCourtId.HasValue && Model.SelectedCourtId.Value == court.CourtId ? "selected" : "";
-                                <option value="@court.CourtId" @selected
-                                        data-name="@court.CourtName"
-                                        data-type="@court.CourtTypeName"
-                                        data-location="@court.Location"
-                                        data-image="@court.ImageUrl"
-                                        data-price="@court.PricePerHour">
-                                    @court.CourtName — @court.CourtTypeName (@(court.Location ?? "N/A"))
-                                </option>
+                                if (Model.SelectedCourtId.HasValue && Model.SelectedCourtId.Value == court.CourtId)
+                                {
+                                    <option value="@court.CourtId" selected="selected"
+                                            data-name="@court.CourtName"
+                                            data-type="@court.CourtTypeName"
+                                            data-location="@court.Location"
+                                            data-image="@court.ImageUrl"
+                                            data-price="@court.PricePerHour">
+                                        @court.CourtName — @court.CourtTypeName (@(court.Location ?? "N/A"))
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@court.CourtId"
+                                            data-name="@court.CourtName"
+                                            data-type="@court.CourtTypeName"
+                                            data-location="@court.Location"
+                                            data-image="@court.ImageUrl"
+                                            data-price="@court.PricePerHour">
+                                        @court.CourtName — @court.CourtTypeName (@(court.Location ?? "N/A"))
+                                    </option>
+                                }
                             }
                         </select>
                     </div>
@@ -99,10 +112,18 @@
                                 <option value="">-- Chọn khung giờ --</option>
                                 @foreach (var slot in Model.TimeSlots)
                                 {
-                                    var slotSelected = Model.SelectedSlotId.HasValue && Model.SelectedSlotId.Value == slot.SlotId ? "selected" : "";
-                                    <option value="@slot.SlotId" @slotSelected data-name="@slot.SlotName">
-                                        @slot.SlotName (@slot.StartTime - @slot.EndTime)
-                                    </option>
+                                    if (Model.SelectedSlotId.HasValue && Model.SelectedSlotId.Value == slot.SlotId)
+                                    {
+                                        <option value="@slot.SlotId" selected="selected" data-name="@slot.SlotName">
+                                            @slot.SlotName (@slot.StartTime - @slot.EndTime)
+                                        </option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@slot.SlotId" data-name="@slot.SlotName">
+                                            @slot.SlotName (@slot.StartTime - @slot.EndTime)
+                                        </option>
+                                    }
                                 }
                             </select>
                         </div>
