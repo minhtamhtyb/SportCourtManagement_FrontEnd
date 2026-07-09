@@ -46,7 +46,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
         // ── GET: /manager ─────────────────────────────────────────────────────
         [HttpGet("")]
-        public IActionResult Index() => RedirectToAction(nameof(Shifts));
+        public IActionResult Index() => RedirectToAction(nameof(Dashboard));
 
         // ── GET: /manager/staff/shifts ────────────────────────────────────────
         [HttpGet("staff/shifts")]
@@ -458,7 +458,84 @@ namespace SportCourtManagement_FrontEnd.Controllers
         }
 
         [HttpGet("dashboard")]
-        public IActionResult Dashboard() => RedirectToAction(nameof(Shifts));
+        public async Task<IActionResult> Dashboard()
+        {
+            await LoadLayoutDataAsync();
+            AttachAuthToken();
+
+            int staffCount = 0;
+            int todayShiftCount = 0;
+            int pendingTaskCount = 0;
+
+            // 1. Get Staff Count
+            try
+            {
+                var response = await _client.GetAsync(_apiBase + "/staff?pageSize=1");
+                if (response.IsSuccessStatusCode)
+                {
+                    string rawJson = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(rawJson);
+                    if (doc.RootElement.TryGetProperty("totalCount", out var totalCountProp))
+                    {
+                        staffCount = totalCountProp.GetInt32();
+                    }
+                }
+            }
+            catch { }
+
+            // 2. Get Today's Shifts Count
+            try
+            {
+                var response = await _client.GetAsync(_apiBase + "/staff/schedule");
+                if (response.IsSuccessStatusCode)
+                {
+                    string rawJson = await response.Content.ReadAsStringAsync();
+                    var schedule = JsonSerializer.Deserialize<WeeklyScheduleResponse>(rawJson, _jsonOpts);
+                    if (schedule != null && schedule.Days != null)
+                    {
+                        string todayStr = DateTime.Today.ToString("dd/MM/yyyy");
+                        var todayDay = schedule.Days.FirstOrDefault(d => d.Date == todayStr);
+                        if (todayDay != null && todayDay.Shifts != null)
+                        {
+                            todayShiftCount = todayDay.Shifts.Count;
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            // 3. Get Pending Tasks Count
+            try
+            {
+                var response = await _client.GetAsync(_apiBase + "/tasks?pageSize=100");
+                if (response.IsSuccessStatusCode)
+                {
+                    string rawJson = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(rawJson);
+                    if (doc.RootElement.TryGetProperty("items", out var itemsProp) && itemsProp.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var item in itemsProp.EnumerateArray())
+                        {
+                            if (item.TryGetProperty("status", out var statusProp))
+                            {
+                                string? status = statusProp.GetString();
+                                if (status == "Pending" || status == "InProgress")
+                                {
+                                    pendingTaskCount++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            ViewBag.StaffCount = staffCount;
+            ViewBag.TodayShiftCount = todayShiftCount;
+            ViewBag.PendingTaskCount = pendingTaskCount;
+
+            return View();
+        }
 
         private void AttachAuthToken()
         {

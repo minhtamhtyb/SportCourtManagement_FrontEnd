@@ -1,0 +1,109 @@
+@{
+    Layout = "_ManagerLayout";
+    ViewData["Title"] = "Dashboard";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Manager/dashboard.css" asp-append-version="true" />
+}
+
+<div class="dashboard-wrapper">
+    <!-- Welcome banner -->
+    <div class="welcome-section">
+        <h2 class="welcome-title">Chào mừng quay trở lại, Manager!</h2>
+        <p class="welcome-subtitle">Hệ thống quản lý ca trực, công việc và đối soát chấm công cho cơ sở của bạn.</p>
+    </div>
+
+    <!-- Quick stats overview -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon staff">
+                <span class="material-symbols-outlined">groups</span>
+            </div>
+            <div class="stat-details">
+                <span class="stat-value">@ViewBag.StaffCount</span>
+                <span class="stat-label">Nhân sự chi nhánh</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon shift">
+                <span class="material-symbols-outlined">calendar_today</span>
+            </div>
+            <div class="stat-details">
+                <span class="stat-value">@ViewBag.TodayShiftCount Ca trực</span>
+                <span class="stat-label">Đang hoạt động hôm nay</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon task">
+                <span class="material-symbols-outlined">assignment</span>
+            </div>
+            <div class="stat-details">
+                <span class="stat-value">@ViewBag.PendingTaskCount Công việc</span>
+                <span class="stat-label">Đang chờ xử lý / bảo trì</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation shortcuts -->
+    <h4 class="menu-section-title">
+        <span class="material-symbols-outlined" style="font-size: 20px; color: var(--primary);">grid_view</span>
+        Lối tắt quản lý nhanh
+    </h4>
+    
+    <div class="menu-grid">
+        <a class="menu-card" href="/manager/staff/shifts">
+            <div class="menu-card-header">
+                <span class="material-symbols-outlined menu-card-icon">calendar_month</span>
+                <span class="material-symbols-outlined menu-card-arrow">arrow_forward</span>
+            </div>
+            <h5 class="menu-card-title">Xếp ca làm việc</h5>
+            <p class="menu-card-desc">Lên lịch ca làm việc hàng tuần cho nhân viên vận hành tại các cơ sở sân bãi.</p>
+        </a>
+
+        <a class="menu-card" href="/manager/staff/attendance">
+            <div class="menu-card-header">
+                <span class="material-symbols-outlined menu-card-icon">fact_check</span>
+                <span class="material-symbols-outlined menu-card-arrow">arrow_forward</span>
+            </div>
+            <h5 class="menu-card-title">Đối soát Chấm công</h5>
+            <p class="menu-card-desc">Thực hiện điểm danh check-in, check-out và quản lý chuyên cần của nhân sự thực tế.</p>
+        </a>
+
+        <a class="menu-card" href="/manager/staff/list">
+            <div class="menu-card-header">
+                <span class="material-symbols-outlined menu-card-icon">badge</span>
+                <span class="material-symbols-outlined menu-card-arrow">arrow_forward</span>
+            </div>
+            <h5 class="menu-card-title">Danh sách Nhân viên</h5>
+            <p class="menu-card-desc">Quản lý hồ sơ nhân viên, trạng thái hoạt động và gán nhân sự vào chi nhánh.</p>
+        </a>
+
+        <a class="menu-card" href="/manager/staff/salary">
+            <div class="menu-card-header">
+                <span class="material-symbols-outlined menu-card-icon">payments</span>
+                <span class="material-symbols-outlined menu-card-arrow">arrow_forward</span>
+            </div>
+            <h5 class="menu-card-title">Cấu hình Tiền lương</h5>
+            <p class="menu-card-desc">Cấu hình lương cơ bản theo ca trực và các khoản phạt đi muộn/về sớm của nhân viên.</p>
+        </a>
+
+        <a class="menu-card" href="/manager/tasks">
+            <div class="menu-card-header">
+                <span class="material-symbols-outlined menu-card-icon">assignment</span>
+                <span class="material-symbols-outlined menu-card-arrow">arrow_forward</span>
+            </div>
+            <h5 class="menu-card-title">Quản lý Công việc</h5>
+            <p class="menu-card-desc">Tạo task, phân công cho nhân viên trực ca và phê duyệt kết quả công việc đã làm.</p>
+        </a>
+
+        <a class="menu-card" href="/manager/maintenance">
+            <div class="menu-card-header">
+                <span class="material-symbols-outlined menu-card-icon">handyman</span>
+                <span class="material-symbols-outlined menu-card-arrow">arrow_forward</span>
+            </div>
+            <h5 class="menu-card-title">Bảo trì Sân bãi</h5>
+            <p class="menu-card-desc">Theo dõi tình trạng hư hại của các sân đấu và điều phối nhân sự sửa chữa kịp thời.</p>
+        </a>
+    </div>
+</div>

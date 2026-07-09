@@ -28,12 +28,12 @@
             </div>
             <nav class="flex-grow-1 py-3">
                 <ul class="nav flex-column px-2 gap-1">
-                    @* <li class="nav-item">
-                        <a class="sidebar-link active" href="/manager/dashboard">
+                    <li class="nav-item">
+                        <a class="sidebar-link" href="/manager/dashboard">
                             <span class="material-symbols-outlined">dashboard</span>
                             Dashboard
                         </a>
-                    </li> *@
+                    </li>
                     <li class="nav-item">
                         <a class="sidebar-link" href="/manager/staff/shifts">
                             <span class="material-symbols-outlined">groups</span>
@@ -136,6 +136,8 @@
             
             let isMatch = false;
             if (currentPath === href) {
+                isMatch = true;
+            } else if (href === '/manager/dashboard' && currentPath === '/manager') {
                 isMatch = true;
             } else if (href === '/manager/staff/shifts' && currentPath.startsWith('/manager/staff')) {
                 isMatch = true;
