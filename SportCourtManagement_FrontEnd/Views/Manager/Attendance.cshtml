@@ -384,40 +384,51 @@
                     <div class="detail-note-box" id="detailNoteText" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(144, 143, 160, 0.1); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; color: var(--on-surface); word-break: break-word;"></div>
                 </div>
             </div>
-            <div class="modal-footer" style="border-top: 1px solid rgba(144, 143, 160, 0.1); padding: 16px 24px;">
+            <div class="modal-footer" style="border-top: 1px solid rgba(144, 143, 160, 0.1); padding: 16px 24px; gap: 8px;">
+                <button type="button" class="btn btn-success" id="modalCheckInBtn" style="display: none; align-items: center; gap: 6px; padding: 8px 16px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">login</span>
+                    Check-in
+                </button>
+                <button type="button" class="btn btn-warning text-dark" id="modalCheckOutBtn" style="display: none; align-items: center; gap: 6px; padding: 8px 16px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">logout</span>
+                    Check-out
+                </button>
                 <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
 </div>
 
+<form id="checkInForm" method="post" action="" style="display:none;">@Html.AntiForgeryToken()</form>
+<form id="checkOutForm" method="post" action="" style="display:none;">@Html.AntiForgeryToken()</form>
+ 
 @section Scripts {
     <script>
         // Detail Modal show event
         document.querySelector('.attendance-table tbody').addEventListener('click', (e) => {
             const row = e.target.closest('tr');
             if (!row || row.cells.length === 1) return; // Skip empty row
-
+ 
             // Highlight animation effect
             row.style.backgroundColor = 'rgba(192, 193, 255, 0.1)';
             setTimeout(() => { row.style.backgroundColor = ''; }, 300);
-
+ 
             const d = row.dataset;
             document.getElementById('detailStaffAvatar').src = d.avatarUrl;
             document.getElementById('detailStaffName').textContent = d.staffName;
             document.getElementById('detailStaffEmail').textContent = d.staffEmail || 'Chưa cập nhật';
-            
+             
             const roleBadge = document.getElementById('detailStaffRole');
             roleBadge.textContent = d.staffRole || 'Staff';
-            
+             
             document.getElementById('detailShiftType').textContent = d.type;
             document.getElementById('detailShiftDate').textContent = d.date;
             document.getElementById('detailShiftHours').textContent = `${d.startTime} - ${d.endTime}`;
             document.getElementById('detailComplexName').textContent = d.complexName || 'Cơ sở 1';
-            
+             
             document.getElementById('detailCheckInTime').textContent = d.checkin ? d.checkin.split(' ')[1] : '--:--';
             document.getElementById('detailCheckOutTime').textContent = d.checkout ? d.checkout.split(' ')[1] : '--:--';
-
+ 
             // Check-in status badge in modal
             const checkInStatus = d.checkinStatus;
             const ciBadge = document.getElementById('detailCheckInStatus');
@@ -425,7 +436,7 @@
             ciBadge.className = 'status-badge';
             if (checkInStatus === 'Đúng giờ') ciBadge.classList.add('on-time');
             else ciBadge.classList.add('late-badge');
-
+ 
             // Check-out status badge in modal
             const checkOutStatus = d.checkoutStatus;
             const coBadge = document.getElementById('detailCheckOutStatus');
@@ -435,19 +446,19 @@
             else if (checkOutStatus === 'Về sớm') coBadge.classList.add('early');
             else if (checkOutStatus === 'Đang trực') coBadge.classList.add('working');
             else coBadge.classList.add('finished');
-
+ 
             // Late / Early stats
             const lateVal = parseInt(d.late || '0');
             const earlyVal = parseInt(d.early || '0');
-            
+             
             const lateEl = document.getElementById('detailLateMinutes');
             lateEl.textContent = lateVal > 0 ? `${lateVal} phút` : 'Đúng giờ';
             lateEl.style.color = lateVal > 0 ? 'var(--orange-400)' : 'var(--emerald-400)';
-
+ 
             const earlyEl = document.getElementById('detailEarlyLeaveMinutes');
             earlyEl.textContent = earlyVal > 0 ? `${earlyVal} phút` : 'Đúng giờ';
             earlyEl.style.color = earlyVal > 0 ? 'var(--rose-400)' : 'var(--emerald-400)';
-
+ 
             // Note
             const noteSection = document.getElementById('detailNoteSection');
             if (d.note && d.note.trim() && d.note !== 'null') {
@@ -457,8 +468,62 @@
                 noteSection.style.display = 'none';
             }
 
+            // Setup Check-in / Check-out button visibility and forms
+            const checkInBtn = document.getElementById('modalCheckInBtn');
+            const checkOutBtn = document.getElementById('modalCheckOutBtn');
+            
+            checkInBtn.style.display = 'none';
+            checkOutBtn.style.display = 'none';
+
+            // Check if shift is today
+            const shiftDateStr = d.date; // e.g. "09/07/2026"
+            const today = new Date();
+            const todayStr = String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
+            
+            if (shiftDateStr === todayStr) {
+                // If not checked in yet
+                if (!d.checkin || d.checkin.trim() === '') {
+                    checkInBtn.style.display = 'inline-flex';
+                    checkInBtn.onclick = () => {
+                        const form = document.getElementById('checkInForm');
+                        form.action = `/manager/staff/shifts/${d.id}/check-in?dateFrom=${encodeURIComponent('@Model.DateFrom')}&dateTo=${encodeURIComponent('@Model.DateTo')}&staffId=${encodeURIComponent('@Model.SelectedStaffId')}&shiftType=${encodeURIComponent('@Model.SelectedShiftType')}&search=${encodeURIComponent('@Model.SearchQuery')}`;
+                        form.submit();
+                    };
+                }
+                // If checked in but not checked out yet
+                else if (d.checkin && (!d.checkout || d.checkout.trim() === '')) {
+                    checkOutBtn.style.display = 'inline-flex';
+                    checkOutBtn.onclick = () => {
+                        const form = document.getElementById('checkOutForm');
+                        form.action = `/manager/staff/shifts/${d.id}/check-out?dateFrom=${encodeURIComponent('@Model.DateFrom')}&dateTo=${encodeURIComponent('@Model.DateTo')}&staffId=${encodeURIComponent('@Model.SelectedStaffId')}&shiftType=${encodeURIComponent('@Model.SelectedShiftType')}&search=${encodeURIComponent('@Model.SearchQuery')}`;
+                        form.submit();
+                    };
+                }
+            }
+ 
             const modal = new bootstrap.Modal(document.getElementById('viewShiftDetailModal'));
             modal.show();
         });
+
+        // ── Toast Helper ──────────────────────────────────────────────────────
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            const icon = type === 'error' ? 'error' : (type === 'info' ? 'info' : 'check_circle');
+            toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span><div>${message}</div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ── TempData Toasts (server redirect feedback) ────────────────────────
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');</text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
+        }
     </script>
 }

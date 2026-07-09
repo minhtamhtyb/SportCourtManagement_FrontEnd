@@ -283,6 +283,74 @@ namespace SportCourtManagement_FrontEnd.Controllers
             return View(model);
         }
 
+        // ── POST: /manager/staff/shifts/{shiftId}/check-in ───────────────────
+        [HttpPost("staff/shifts/{shiftId:int}/check-in")]
+        public async Task<IActionResult> CheckInStaff(int shiftId, [FromQuery] string? dateFrom = null, [FromQuery] string? dateTo = null, [FromQuery] int? staffId = null, [FromQuery] string? shiftType = null, [FromQuery] string? search = null)
+        {
+            AttachAuthToken();
+            var response = await _client.PostAsync(_apiBase + $"/staff/shifts/{shiftId}/check-in", null);
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["SuccessMessage"] = "Điểm danh vào ca thành công!";
+            }
+            else
+            {
+                string rawError = await response.Content.ReadAsStringAsync();
+                try
+                {
+                    using var doc = JsonDocument.Parse(rawError);
+                    if (doc.RootElement.TryGetProperty("message", out var msgProp))
+                    {
+                        TempData["ErrorMessage"] = $"Lỗi: {msgProp.GetString()}";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = $"Không thể điểm danh. Lỗi: {response.StatusCode}";
+                    }
+                }
+                catch
+                {
+                    TempData["ErrorMessage"] = $"Không thể điểm danh. Lỗi: {response.StatusCode}";
+                }
+            }
+
+            return RedirectToAction("Attendance", new { dateFrom, dateTo, staffId, shiftType, search });
+        }
+
+        // ── POST: /manager/staff/shifts/{shiftId}/check-out ──────────────────
+        [HttpPost("staff/shifts/{shiftId:int}/check-out")]
+        public async Task<IActionResult> CheckOutStaff(int shiftId, [FromQuery] string? dateFrom = null, [FromQuery] string? dateTo = null, [FromQuery] int? staffId = null, [FromQuery] string? shiftType = null, [FromQuery] string? search = null)
+        {
+            AttachAuthToken();
+            var response = await _client.PostAsync(_apiBase + $"/staff/shifts/{shiftId}/check-out", null);
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["SuccessMessage"] = "Điểm danh ra ca thành công!";
+            }
+            else
+            {
+                string rawError = await response.Content.ReadAsStringAsync();
+                try
+                {
+                    using var doc = JsonDocument.Parse(rawError);
+                    if (doc.RootElement.TryGetProperty("message", out var msgProp))
+                    {
+                        TempData["ErrorMessage"] = $"Lỗi: {msgProp.GetString()}";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = $"Không thể điểm danh. Lỗi: {response.StatusCode}";
+                    }
+                }
+                catch
+                {
+                    TempData["ErrorMessage"] = $"Không thể điểm danh. Lỗi: {response.StatusCode}";
+                }
+            }
+
+            return RedirectToAction("Attendance", new { dateFrom, dateTo, staffId, shiftType, search });
+        }
+
         [HttpGet("staff/list")]
         public async Task<IActionResult> StaffList([FromQuery] string? search = null, [FromQuery] int page = 1)
         {
