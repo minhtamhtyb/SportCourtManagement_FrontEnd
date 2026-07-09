@@ -1,8 +1,11 @@
-@model SportCourtManagement_FrontEnd.Models.Bookings.SingularBookingResponseDto
+@model List<SportCourtManagement_FrontEnd.Models.Bookings.SingularBookingResponseDto>
 
 @{
-    ViewData["Title"] = "Thanh toán - " + Model.BookingCode;
+    var firstBooking = Model.FirstOrDefault() ?? new SportCourtManagement_FrontEnd.Models.Bookings.SingularBookingResponseDto();
+    ViewData["Title"] = "Thanh toán đơn hàng";
     var qrCode = ViewBag.QrCode as SportCourtManagement_FrontEnd.Models.Bookings.SePayQrCodeDto;
+    var totalAmount = ViewBag.TotalAmount as decimal? ?? Model.Sum(b => b.TotalAmount);
+    var bookingCodesStr = ViewBag.BookingCodes as string ?? string.Join(",", Model.Select(b => b.BookingCode));
 }
 
 <main class="sc-container py-5">
@@ -16,64 +19,68 @@
                         <i class="bi bi-wallet2 text-warning" style="font-size: 28px;"></i>
                     </div>
                     <h3 class="text-white font-outfit fw-bold mb-1">Thanh Toán Đặt Sân</h3>
-                    <p class="text-sc-muted mb-0 small">Quét mã QR hoặc chuyển khoản để hoàn tất đặt sân</p>
+                    <p class="text-sc-muted mb-0 small">Quét mã QR dưới đây để hoàn tất thanh toán cho các đơn đặt sân</p>
                 </div>
 
                 <div class="p-4">
-                    <!-- Booking Code Badge -->
-                    <div class="text-center mb-4">
-                        <span class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill" style="background: rgba(79, 110, 247, 0.1); border: 1px solid rgba(79, 110, 247, 0.3); font-size: 13px;">
-                            <i class="bi bi-hash text-sc-blue-light"></i>
-                            <span class="text-white fw-bold font-monospace">@Model.BookingCode</span>
-                        </span>
+                    <!-- Booking Code Badges -->
+                    <div class="text-center mb-4 d-flex flex-wrap justify-content-center gap-2">
+                        @foreach (var booking in Model)
+                        {
+                            <span class="d-inline-flex align-items-center gap-1 px-3 py-2 rounded-pill" style="background: rgba(79, 110, 247, 0.1); border: 1px solid rgba(79, 110, 247, 0.3); font-size: 12px;">
+                                <i class="bi bi-hash text-sc-blue-light"></i>
+                                <span class="text-white fw-bold font-monospace">@booking.BookingCode</span>
+                            </span>
+                        }
                     </div>
 
-                    <!-- Booking Summary -->
+                    <!-- Bookings Details List -->
                     <div class="p-3 rounded mb-4" style="background-color: #141B2D; border: 1px solid var(--sc-border); font-size: 13.5px;">
                         <h6 class="text-white font-outfit mb-3" style="font-weight: 700;">
-                            <i class="bi bi-receipt me-1 text-sc-blue-light"></i> Tóm tắt đơn hàng
+                            <i class="bi bi-receipt me-1 text-sc-blue-light"></i> Chi tiết đơn hàng (@Model.Count)
                         </h6>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-sc-muted">Sân đấu:</span>
-                            <span class="text-white fw-bold">@Model.CourtName</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-sc-muted">Ngày chơi:</span>
-                            <span class="text-white fw-semibold">@Model.BookingDate.ToString("dd/MM/yyyy")</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-sc-muted">Khung giờ:</span>
-                            <span class="text-white fw-semibold">@Model.SlotName (@Model.StartTime.ToString(@"hh\:mm") - @Model.EndTime.ToString(@"hh\:mm"))</span>
-                        </div>
 
-                        @if (Model.BookingServices.Any())
+                        @for (int i = 0; i < Model.Count; i++)
                         {
-                            <hr style="border-color: rgba(255,255,255,0.05); margin: 10px 0;" />
-                            <div class="mb-1 text-sc-muted" style="font-size: 12px; text-transform: uppercase; font-weight: 700;">Dịch vụ phụ trợ</div>
-                            @foreach (var svc in Model.BookingServices)
-                            {
+                            var booking = Model[i];
+                            <div class="mb-3 @(i > 0 ? "pt-3 border-top" : "")" style="@(i > 0 ? "border-top-color: rgba(255, 255, 255, 0.05) !important;" : "")">
                                 <div class="d-flex justify-content-between mb-1">
-                                    <span class="text-sc-muted">@svc.ServiceName x@svc.Quantity</span>
-                                    <span class="text-white">@svc.TotalPrice.ToString("N0")đ</span>
+                                    <span class="text-sc-blue-light fw-bold">#@booking.BookingCode</span>
+                                    <span class="text-sc-green fw-bold">@booking.TotalAmount.ToString("N0")đ</span>
                                 </div>
-                            }
+                                <div class="d-flex justify-content-between mb-1" style="font-size: 12.5px;">
+                                    <span class="text-sc-muted">Sân đấu:</span>
+                                    <span class="text-white">@booking.CourtName</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1" style="font-size: 12.5px;">
+                                    <span class="text-sc-muted">Ngày:</span>
+                                    <span class="text-white">@booking.BookingDate.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1" style="font-size: 12.5px;">
+                                    <span class="text-sc-muted">Khung giờ:</span>
+                                    <span class="text-white">@booking.SlotName (@booking.StartTime.ToString(@"hh\:mm") - @booking.EndTime.ToString(@"hh\:mm"))</span>
+                                </div>
+
+                                @if (booking.BookingServices.Any())
+                                {
+                                    <div class="mt-1 ps-2 border-start" style="border-start-color: rgba(255,255,255,0.1) !important; font-size: 12px;">
+                                        <span class="text-sc-muted">Dịch vụ phụ trợ:</span>
+                                        @foreach (var svc in booking.BookingServices)
+                                        {
+                                            <div class="d-flex justify-content-between text-sc-muted">
+                                                <span>• @svc.ServiceName x@svc.Quantity</span>
+                                                <span>@svc.TotalPrice.ToString("N0")đ</span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
                         }
 
                         <hr style="border-color: rgba(255,255,255,0.05); margin: 12px 0;" />
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-sc-muted">Tiền thuê sân:</span>
-                            <span class="text-white">@Model.SubTotal.ToString("N0")đ</span>
-                        </div>
-                        @if (Model.DiscountAmount > 0)
-                        {
-                            <div class="d-flex justify-content-between mb-1 text-sc-amber">
-                                <span>Giảm giá (@(Model.PromoCode ?? "")):</span>
-                                <span>-@Model.DiscountAmount.ToString("N0")đ</span>
-                            </div>
-                        }
-                        <div class="d-flex justify-content-between align-items-baseline mt-3 pt-2 border-top" style="border-top-style: dashed; border-top-color: rgba(255,255,255,0.05) !important;">
+                        <div class="d-flex justify-content-between align-items-baseline mt-3 pt-2">
                             <span class="text-white fw-bold" style="font-size: 15px;">Tổng cộng:</span>
-                            <span class="font-outfit text-sc-green fw-black" style="font-size: 26px; font-weight: 900;">@Model.TotalAmount.ToString("N0")đ</span>
+                            <span class="font-outfit text-sc-green fw-black" style="font-size: 26px; font-weight: 900;">@totalAmount.ToString("N0")đ</span>
                         </div>
                     </div>
 
@@ -82,7 +89,7 @@
                     {
                         <div class="text-center mb-4">
                             <h6 class="text-white font-outfit mb-3" style="font-weight: 700;">
-                                <i class="bi bi-qr-code me-1 text-sc-blue-light"></i> Quét mã QR để thanh toán
+                                <i class="bi bi-qr-code me-1 text-sc-blue-light"></i> Quét mã QR để thanh toán (Đơn đầu tiên)
                             </h6>
                             <div class="d-inline-block p-3 rounded-3 mb-3" style="background: #ffffff; border-radius: 16px !important;">
                                 <img src="@qrCode.QrCodeUrl" alt="QR Code thanh toán" style="width: 220px; height: 220px;" />
@@ -92,6 +99,9 @@
                                 <div><strong class="text-white">STK:</strong> <span class="font-monospace">@qrCode.AccountNumber</span></div>
                                 <div><strong class="text-white">Chủ TK:</strong> @qrCode.AccountName</div>
                                 <div><strong class="text-white">Nội dung CK:</strong> <span class="text-sc-amber font-monospace fw-bold">@qrCode.BookingCode</span></div>
+                            </div>
+                            <div class="small text-sc-amber mt-2" style="font-size: 11px;">
+                                <i class="bi bi-exclamation-circle-fill"></i> SePay sẽ quét giao dịch chuyển khoản với nội dung là mã đặt sân để tự động kích hoạt.
                             </div>
                         </div>
                     }
@@ -116,8 +126,7 @@
                         <!-- Simulate Payment Button -->
                         <form asp-controller="Booking" asp-action="SimulatePayment" method="post">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="bookingCode" value="@Model.BookingCode" />
-                            <input type="hidden" name="amount" value="@Model.TotalAmount" />
+                            <input type="hidden" name="bookingCodes" value="@bookingCodesStr" />
                             <button type="submit" class="sc-btn w-100 py-3 font-outfit fw-bold d-flex align-items-center justify-content-center gap-2"
                                     style="font-size: 16px; border-radius: 12px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; color: #fff;">
                                 <i class="bi bi-lightning-charge-fill"></i> Mô phỏng thanh toán thành công
