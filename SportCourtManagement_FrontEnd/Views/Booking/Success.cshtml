@@ -1,0 +1,103 @@
+@{
+    ViewData["Title"] = "Đặt sân thành công";
+    var bookingCode = ViewBag.BookingCode as string ?? "N/A";
+    var successMessage = TempData["SuccessMessage"] as string;
+}
+
+<main class="sc-container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="sc-card p-0" style="background-color: #0D121F; border: 1px solid rgba(16, 185, 129, 0.3); box-shadow: 0 8px 40px rgba(16, 185, 129, 0.08); overflow: hidden;">
+
+                <!-- Success Gradient Header -->
+                <div class="text-center py-5 px-4" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.06) 100%); border-bottom: 1px solid rgba(16, 185, 129, 0.15);">
+                    <!-- Animated Check Circle -->
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 success-icon-pulse" style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.15); border: 3px solid rgba(16, 185, 129, 0.4);">
+                        <i class="bi bi-check-lg" style="font-size: 40px; color: #10B981;"></i>
+                    </div>
+                    <h2 class="text-white font-outfit fw-bold mb-2" style="letter-spacing: -0.5px;">Đặt Sân Thành Công!</h2>
+                    <p class="text-sc-muted mb-0" style="font-size: 14px;">Booking của bạn đã được xác nhận và thanh toán thành công.</p>
+                </div>
+
+                <div class="p-4">
+                    <!-- Booking Code -->
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex flex-column align-items-center gap-2 p-4 rounded-3" style="background: rgba(16, 185, 129, 0.05); border: 1px dashed rgba(16, 185, 129, 0.3); min-width: 260px;">
+                            <span class="text-sc-muted" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Mã đặt sân</span>
+                            <span class="font-monospace text-sc-green fw-bold" style="font-size: 28px; letter-spacing: 2px;">@bookingCode</span>
+                            <span class="text-sc-muted" style="font-size: 11px;">Vui lòng lưu lại mã này để tra cứu sau.</span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <div class="d-flex align-items-center gap-2 mb-4 p-3 rounded-3" style="background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.15); font-size: 13px;">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <span class="text-sc-muted">@successMessage</span>
+                        </div>
+                    }
+
+                    <!-- Info Cards -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="p-3 rounded-3 text-center" style="background: #141B2D; border: 1px solid var(--sc-border);">
+                                <i class="bi bi-shield-check text-sc-green" style="font-size: 24px;"></i>
+                                <div class="text-white fw-bold mt-2" style="font-size: 13px;">Đã xác nhận</div>
+                                <div class="text-sc-muted" style="font-size: 11px;">Trạng thái booking</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 rounded-3 text-center" style="background: #141B2D; border: 1px solid var(--sc-border);">
+                                <i class="bi bi-credit-card-2-front text-sc-blue-light" style="font-size: 24px;"></i>
+                                <div class="text-white fw-bold mt-2" style="font-size: 13px;">Đã thanh toán</div>
+                                <div class="text-sc-muted" style="font-size: 11px;">Chuyển khoản ngân hàng</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="p-3 rounded-3 mb-4" style="background: rgba(79, 110, 247, 0.04); border: 1px solid rgba(79, 110, 247, 0.12); font-size: 13px; line-height: 1.7;">
+                        <div class="fw-bold text-white mb-2"><i class="bi bi-lightbulb me-1 text-sc-amber"></i> Bước tiếp theo</div>
+                        <ul class="text-sc-muted mb-0 ps-3">
+                            <li>Đến sân đúng giờ đã đặt và mang theo mã booking.</li>
+                            <li>Xuất trình mã <strong class="text-sc-green">@bookingCode</strong> tại quầy lễ tân.</li>
+                            <li>Nếu cần hỗ trợ, liên hệ hotline <strong class="text-white">1900 1234</strong>.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-column gap-3">
+                        <a asp-controller="Booking" asp-action="Index" class="sc-btn sc-btn-primary w-100 py-3 font-outfit fw-bold text-center d-flex align-items-center justify-content-center gap-2 text-decoration-none"
+                           style="font-size: 15px; border-radius: 12px; background: linear-gradient(135deg, #4F6EF7 0%, #3B5BDF 100%); border: none;">
+                            <i class="bi bi-plus-circle"></i> Đặt thêm sân khác
+                        </a>
+                        <a asp-controller="Courts" asp-action="Index" class="sc-btn sc-btn-secondary w-100 py-3 font-outfit text-center d-block text-decoration-none" style="font-size: 14px; border-radius: 12px;">
+                            <i class="bi bi-grid me-1"></i> Về danh sách sân
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <style>
+        .sc-card:hover {
+            transform: none !important;
+        }
+
+        .success-icon-pulse {
+            animation: pulse-green 2s ease-in-out infinite;
+        }
+
+        @@keyframes pulse-green {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 0 16px rgba(16, 185, 129, 0);
+            }
+        }
+    </style>
+}
