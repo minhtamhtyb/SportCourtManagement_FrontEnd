@@ -104,27 +104,70 @@
                                style="color-scheme: dark; max-width: 300px;" />
                     </div>
 
-                    <!-- Multi Slot Selection (Checkboxes) -->
+                    <!-- Timeline Slot Selection -->
                     <div class="mb-4">
                         <label class="form-label text-sc-muted font-inter d-block" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                             <i class="bi bi-clock me-1 text-sc-green"></i>Chọn khung giờ <span class="text-danger">*</span>
-                            <span class="text-sc-muted fw-normal" style="text-transform: none;">(có thể chọn nhiều)</span>
                         </label>
-                        <div class="d-flex flex-wrap gap-2" id="slot-checkboxes">
-                            @foreach (var slot in Model.TimeSlots)
-                            {
-                                var isChecked = Model.SelectedSlotId.HasValue && Model.SelectedSlotId.Value == slot.SlotId;
-                                <label class="slot-checkbox-label p-2 px-3 rounded d-inline-flex align-items-center gap-2 text-white"
-                                       style="background: rgba(255,255,255,0.02); border: 1px solid var(--sc-border); cursor: pointer; font-size: 13px; transition: all 0.2s ease;">
-                                    <input type="checkbox" name="slotIds" value="@slot.SlotId"
-                                           class="slot-checkbox" data-name="@slot.SlotName (@slot.StartTime - @slot.EndTime)"
-                                           checked="@isChecked"
-                                           style="accent-color: var(--sc-blue); width: 16px; height: 16px;" />
-                                    <span>@slot.SlotName <span class="text-sc-muted" style="font-size: 11px;">(@slot.StartTime - @slot.EndTime)</span></span>
-                                </label>
-                            }
+
+                        <!-- Instructions -->
+                        <div class="mb-3 d-flex flex-wrap align-items-center gap-3" style="font-size: 12px;">
+                            <span class="d-inline-flex align-items-center gap-1 text-sc-muted">
+                                <span style="width: 12px; height: 12px; border-radius: 3px; background: linear-gradient(135deg, #10B981, #059669); display: inline-block;"></span> Trống
+                            </span>
+                            <span class="d-inline-flex align-items-center gap-1 text-sc-muted">
+                                <span style="width: 12px; height: 12px; border-radius: 3px; background: #1a1a2e; border: 1px solid #333; display: inline-block;"></span> Đã đặt
+                            </span>
+                            <span class="d-inline-flex align-items-center gap-1 text-sc-muted">
+                                <span style="width: 12px; height: 12px; border-radius: 3px; background: linear-gradient(135deg, #F59E0B, #D97706); display: inline-block;"></span> Bảo trì
+                            </span>
+                            <span class="d-inline-flex align-items-center gap-1 text-sc-muted">
+                                <span style="width: 12px; height: 12px; border-radius: 3px; background: linear-gradient(135deg, #3B82F6, #2563EB); display: inline-block;"></span> Đã chọn
+                            </span>
+                            <span class="ms-auto text-sc-muted fst-italic" style="font-size: 11px;">
+                                <i class="bi bi-info-circle me-1"></i>Bấm chọn slot bắt đầu, sau đó bấm slot kết thúc
+                            </span>
                         </div>
+
+                        <!-- Timeline Container -->
+                        <div id="slot-timeline-container">
+                            <!-- Placeholder when no court/date selected -->
+                            <div id="slot-timeline-placeholder" class="text-center py-4 rounded-3" style="background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.1);">
+                                <i class="bi bi-calendar2-event text-sc-muted" style="font-size: 28px;"></i>
+                                <p class="text-sc-muted mt-2 mb-0" style="font-size: 13px;">Vui lòng chọn sân và ngày để xem khung giờ trống.</p>
+                            </div>
+
+                            <!-- Loading spinner -->
+                            <div id="slot-timeline-loading" class="text-center py-4" style="display: none;">
+                                <div class="spinner-border spinner-border-sm text-sc-blue-light" role="status"></div>
+                                <span class="text-sc-muted ms-2" style="font-size: 13px;">Đang tải khung giờ...</span>
+                            </div>
+
+                            <!-- Timeline bar (dynamically rendered) -->
+                            <div id="slot-timeline" style="display: none;"></div>
+                        </div>
+
+                        <!-- Hidden inputs for selected slot IDs (dynamically managed by JS) -->
+                        <div id="slot-hidden-inputs"></div>
+
+                        <!-- Selection info -->
+                        <div id="slot-selection-info" class="mt-2" style="display: none;">
+                            <div class="d-flex align-items-center gap-2 p-2 px-3 rounded-2" style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); font-size: 13px;">
+                                <i class="bi bi-check2-circle text-sc-blue-light"></i>
+                                <span class="text-white">Đã chọn: <strong id="slot-selection-text"></strong></span>
+                                <button type="button" id="btn-clear-slots" class="btn btn-sm ms-auto py-0 px-2" style="font-size: 11px; color: #FCA5A5; border: 1px solid rgba(239,68,68,0.3); border-radius: 4px;">
+                                    <i class="bi bi-x-lg me-1"></i>Xoá
+                                </button>
+                            </div>
+                        </div>
+
                         <div id="slot-error" class="text-danger small mt-1" style="display:none;">Vui lòng chọn ít nhất một khung giờ.</div>
+                        <div id="slot-booked-warning" class="mt-2" style="display: none;">
+                            <div class="d-flex align-items-center gap-2 p-2 px-3 rounded-2" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); font-size: 12px; color: #FCA5A5;">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <span>Không thể chọn vùng giờ này vì có slot đã được đặt hoặc đang bảo trì ở giữa.</span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Services Add-ons -->
@@ -200,7 +243,7 @@
                             </div>
                             <div class="d-flex justify-content-between mb-1" style="font-size: 13px;">
                                 <span class="text-sc-muted">Khung giờ:</span>
-                                <span id="summary-slot" class="text-white fw-semibold">—</span>
+                                <span id="summary-slot" class="text-white fw-semibold text-end" style="max-width: 60%;">—</span>
                             </div>
                         </div>
 
@@ -247,19 +290,187 @@
 
 @section Scripts {
     <style>
-        .slot-checkbox-label:has(input:checked) {
-            background: rgba(79, 110, 247, 0.12) !important;
-            border-color: rgba(79, 110, 247, 0.5) !important;
-            box-shadow: 0 0 0 1px rgba(79, 110, 247, 0.3);
+        /* ===== TIMELINE BAR STYLES ===== */
+        .slot-timeline-bar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding: 4px 0;
         }
-        .slot-checkbox-label:hover {
-            border-color: rgba(255,255,255,0.15) !important;
+
+        .slot-segment {
+            flex: 1 1 120px;
+            max-width: 180px;
+            min-width: 110px;
+            padding: 12px 10px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .slot-segment::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        /* Available */
+        .slot-segment.slot-available {
+            background: rgba(16, 185, 129, 0.06);
+            border: 1.5px solid rgba(16, 185, 129, 0.25);
+        }
+        .slot-segment.slot-available:hover {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15);
+        }
+
+        /* Booked */
+        .slot-segment.slot-booked {
+            background: #0a0a14;
+            border: 1.5px solid #1a1a2e;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .slot-segment.slot-booked .slot-time,
+        .slot-segment.slot-booked .slot-name {
+            color: #444 !important;
+            text-decoration: line-through;
+        }
+        .slot-segment.slot-booked .slot-status-badge {
+            background: rgba(239, 68, 68, 0.15);
+            color: #EF4444;
+        }
+
+        /* Maintenance */
+        .slot-segment.slot-maintenance {
+            background: rgba(245, 158, 11, 0.05);
+            border: 1.5px solid rgba(245, 158, 11, 0.2);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .slot-segment.slot-maintenance .slot-status-badge {
+            background: rgba(245, 158, 11, 0.15);
+            color: #F59E0B;
+        }
+
+        /* Selected (start or end) */
+        .slot-segment.slot-selected {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.2));
+            border-color: rgba(59, 130, 246, 0.6);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2), inset 0 0 15px rgba(59, 130, 246, 0.05);
+            transform: translateY(-2px);
+        }
+        .slot-segment.slot-selected .slot-status-badge {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60A5FA;
+        }
+
+        /* In-range (between start and end) */
+        .slot-segment.slot-in-range {
+            background: rgba(59, 130, 246, 0.08);
+            border-color: rgba(59, 130, 246, 0.35);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+        }
+        .slot-segment.slot-in-range .slot-status-badge {
+            background: rgba(59, 130, 246, 0.15);
+            color: #93C5FD;
+        }
+
+        /* Start marker */
+        .slot-segment.slot-start::after {
+            content: 'BẮT ĐẦU';
+            position: absolute;
+            top: 3px;
+            right: 5px;
+            font-size: 8px;
+            font-weight: 800;
+            color: #60A5FA;
+            letter-spacing: 0.5px;
+        }
+
+        /* End marker */
+        .slot-segment.slot-end::after {
+            content: 'KẾT THÚC';
+            position: absolute;
+            top: 3px;
+            right: 5px;
+            font-size: 8px;
+            font-weight: 800;
+            color: #60A5FA;
+            letter-spacing: 0.5px;
+        }
+
+        /* Inner elements */
+        .slot-time {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: #E2E8F0;
+            line-height: 1.2;
+        }
+        .slot-name {
+            font-size: 10px;
+            color: #64748B;
+            margin-top: 2px;
+        }
+        .slot-price {
+            font-size: 11px;
+            font-weight: 600;
+            color: #10B981;
+            margin-top: 4px;
+        }
+        .slot-status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 5px;
+        }
+
+        /* Pulse animation for selected slots */
+        .slot-segment.slot-selected {
+            animation: slotPulse 2s ease-in-out infinite;
+        }
+        @@keyframes slotPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2), inset 0 0 15px rgba(59, 130, 246, 0.05); }
+            50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.35), inset 0 0 20px rgba(59, 130, 246, 0.1); }
+        }
+
+        /* Responsive */
+        @@media (max-width: 576px) {
+            .slot-segment {
+                flex: 1 1 90px;
+                min-width: 90px;
+                max-width: none;
+                padding: 10px 6px;
+            }
+            .slot-time { font-size: 12px; }
+            .slot-segment.slot-start::after,
+            .slot-segment.slot-end::after { font-size: 7px; }
         }
     </style>
     <script>
         $(document).ready(function () {
             const courtSelect = $('#court-select');
             const dateInput = $('#booking-date');
+
+            // --- State ---
+            let slotsData = [];        // Array of slot objects from AJAX
+            let selectionStart = null; // slotId of the start selection
+            let selectionEnd = null;   // slotId of the end selection
+            let selectedSlotIds = [];  // Array of selected slotIds
 
             // --- Court Preview ---
             function updateCourtPreview() {
@@ -273,7 +484,6 @@
                 const type = opt.data('type');
                 const location = opt.data('location') || 'N/A';
                 const image = opt.data('image');
-                const price = opt.data('price');
 
                 $('#court-preview-name').text(name);
                 $('#court-preview-meta').html(`<i class="bi bi-dribbble me-1"></i>${type} &middot; <i class="bi bi-geo-alt me-1"></i>${location}`);
@@ -288,12 +498,13 @@
 
                 $('#court-preview').removeClass('d-none');
                 $('#summary-court').text(name);
-                $('#summary-court-price').text(price ? Number(price).toLocaleString('vi-VN') + 'đ' : '—');
                 $('#summary-court-section').show();
-                updateSummary();
             }
 
-            courtSelect.on('change', updateCourtPreview);
+            courtSelect.on('change', function () {
+                updateCourtPreview();
+                loadSlotAvailability();
+            });
             updateCourtPreview();
 
             // --- Date Summary ---
@@ -307,23 +518,283 @@
                     $('#summary-date').text('—');
                 }
             }
-            dateInput.on('change', updateDateSummary);
+            dateInput.on('change', function () {
+                updateDateSummary();
+                loadSlotAvailability();
+            });
             updateDateSummary();
 
-            // --- Slot Checkboxes ---
-            function updateSlotSummary() {
-                const checked = $('.slot-checkbox:checked');
-                if (checked.length === 0) {
-                    $('#summary-slot').text('—');
-                } else {
-                    const names = [];
-                    checked.each(function () { names.push($(this).data('name')); });
-                    $('#summary-slot').html(names.join('<br/>'));
+            // ============================
+            // AJAX: Load Slot Availability
+            // ============================
+            function loadSlotAvailability() {
+                const courtId = courtSelect.val();
+                const dateVal = dateInput.val();
+
+                // Reset selection
+                clearSelection();
+
+                if (!courtId || !dateVal) {
+                    $('#slot-timeline-placeholder').show();
+                    $('#slot-timeline-loading').hide();
+                    $('#slot-timeline').hide();
+                    return;
                 }
+
+                // Show loading
+                $('#slot-timeline-placeholder').hide();
+                $('#slot-timeline-loading').show();
+                $('#slot-timeline').hide();
+
+                $.ajax({
+                    url: '/Booking/GetSlotAvailability',
+                    type: 'GET',
+                    data: { courtId: courtId, date: dateVal },
+                    success: function (response) {
+                        $('#slot-timeline-loading').hide();
+                        if (response.success && response.slots && response.slots.length > 0) {
+                            slotsData = response.slots;
+                            renderTimeline();
+                            $('#slot-timeline').show();
+                        } else {
+                            $('#slot-timeline-placeholder').show();
+                            $('#slot-timeline-placeholder').html(
+                                '<i class="bi bi-inbox text-sc-muted" style="font-size: 28px;"></i>' +
+                                '<p class="text-sc-muted mt-2 mb-0" style="font-size: 13px;">Không có khung giờ nào cho ngày này.</p>'
+                            );
+                        }
+                    },
+                    error: function () {
+                        $('#slot-timeline-loading').hide();
+                        $('#slot-timeline-placeholder').show().html(
+                            '<i class="bi bi-wifi-off text-sc-muted" style="font-size: 28px;"></i>' +
+                            '<p class="text-sc-muted mt-2 mb-0" style="font-size: 13px;">Không thể kết nối tới server. Vui lòng thử lại.</p>'
+                        );
+                    }
+                });
+            }
+
+            // ============================
+            // Render Timeline Bar
+            // ============================
+            function renderTimeline() {
+                const container = $('#slot-timeline');
+                container.empty();
+
+                const bar = $('<div class="slot-timeline-bar"></div>');
+
+                slotsData.forEach(function (slot) {
+                    const isAvailable = slot.status === 'Available';
+                    const isBooked = slot.status === 'Booked';
+                    const isMaintenance = slot.status === 'Maintenance';
+
+                    let statusClass = 'slot-available';
+                    let statusText = 'Trống';
+                    let statusBadgeStyle = 'background: rgba(16,185,129,0.12); color: #10B981;';
+
+                    if (isBooked) {
+                        statusClass = 'slot-booked';
+                        statusText = 'Đã đặt';
+                        statusBadgeStyle = 'background: rgba(239,68,68,0.15); color: #EF4444;';
+                    } else if (isMaintenance) {
+                        statusClass = 'slot-maintenance';
+                        statusText = 'Bảo trì';
+                        statusBadgeStyle = 'background: rgba(245,158,11,0.15); color: #F59E0B;';
+                    }
+
+                    const priceDisplay = isAvailable
+                        ? Number(slot.price).toLocaleString('vi-VN') + 'đ'
+                        : '';
+
+                    const segment = $(`
+                        <div class="slot-segment ${statusClass}"
+                             data-slot-id="${slot.slotId}"
+                             data-slot-name="${slot.slotName}"
+                             data-start-time="${slot.startTime}"
+                             data-end-time="${slot.endTime}"
+                             data-price="${slot.price}"
+                             data-status="${slot.status}">
+                            <div class="slot-time">${slot.startTime} - ${slot.endTime}</div>
+                            <div class="slot-name">${slot.slotName}</div>
+                            ${priceDisplay ? `<div class="slot-price">${priceDisplay}</div>` : ''}
+                            <span class="slot-status-badge" style="${statusBadgeStyle}">${statusText}</span>
+                        </div>
+                    `);
+
+                    // Click handler only for available slots
+                    if (isAvailable) {
+                        segment.on('click', function () {
+                            handleSlotClick(slot.slotId);
+                        });
+                    }
+
+                    bar.append(segment);
+                });
+
+                container.append(bar);
+            }
+
+            // ============================
+            // Slot Click Logic (Start / End)
+            // ============================
+            function handleSlotClick(clickedSlotId) {
+                const clickedIndex = slotsData.findIndex(s => s.slotId === clickedSlotId);
+                if (clickedIndex === -1) return;
+
+                // If nothing selected yet → set start
+                if (selectionStart === null) {
+                    selectionStart = clickedSlotId;
+                    selectionEnd = null;
+                    selectedSlotIds = [clickedSlotId];
+                    updateTimelineHighlights();
+                    updateHiddenInputs();
+                    updateSlotSummary();
+                    $('#slot-booked-warning').hide();
+                    return;
+                }
+
+                // If start is already set and clicking the same slot → select just that one
+                if (selectionStart === clickedSlotId && selectionEnd === null) {
+                    // Already selected as single slot, clicking again resets
+                    clearSelection();
+                    return;
+                }
+
+                // If both start and end are set → reset and start new selection
+                if (selectionEnd !== null) {
+                    selectionStart = clickedSlotId;
+                    selectionEnd = null;
+                    selectedSlotIds = [clickedSlotId];
+                    updateTimelineHighlights();
+                    updateHiddenInputs();
+                    updateSlotSummary();
+                    $('#slot-booked-warning').hide();
+                    return;
+                }
+
+                // Start is set, now setting end
+                const startIndex = slotsData.findIndex(s => s.slotId === selectionStart);
+                let fromIdx = Math.min(startIndex, clickedIndex);
+                let toIdx = Math.max(startIndex, clickedIndex);
+
+                // Check if any slot in the range is booked/maintenance
+                let hasBlocker = false;
+                for (let i = fromIdx; i <= toIdx; i++) {
+                    if (slotsData[i].status !== 'Available') {
+                        hasBlocker = true;
+                        break;
+                    }
+                }
+
+                if (hasBlocker) {
+                    // Show warning, don't select
+                    $('#slot-booked-warning').show();
+                    setTimeout(() => $('#slot-booked-warning').fadeOut(300), 3000);
+                    return;
+                }
+
+                // Valid range — select all in between
+                if (startIndex <= clickedIndex) {
+                    selectionStart = slotsData[fromIdx].slotId;
+                    selectionEnd = slotsData[toIdx].slotId;
+                } else {
+                    selectionStart = slotsData[fromIdx].slotId;
+                    selectionEnd = slotsData[toIdx].slotId;
+                }
+
+                selectedSlotIds = [];
+                for (let i = fromIdx; i <= toIdx; i++) {
+                    selectedSlotIds.push(slotsData[i].slotId);
+                }
+
+                updateTimelineHighlights();
+                updateHiddenInputs();
+                updateSlotSummary();
+                $('#slot-booked-warning').hide();
+            }
+
+            // ============================
+            // Clear Selection
+            // ============================
+            function clearSelection() {
+                selectionStart = null;
+                selectionEnd = null;
+                selectedSlotIds = [];
+                updateTimelineHighlights();
+                updateHiddenInputs();
+                updateSlotSummary();
+                $('#slot-booked-warning').hide();
+                $('#slot-selection-info').hide();
+            }
+
+            $('#btn-clear-slots').on('click', clearSelection);
+
+            // ============================
+            // Update Timeline Highlights
+            // ============================
+            function updateTimelineHighlights() {
+                $('.slot-segment').each(function () {
+                    const $el = $(this);
+                    const slotId = parseInt($el.data('slot-id'));
+                    const status = $el.data('status');
+
+                    // Remove selection classes
+                    $el.removeClass('slot-selected slot-in-range slot-start slot-end');
+
+                    if (status !== 'Available') return; // Don't touch booked/maintenance
+
+                    if (selectedSlotIds.includes(slotId)) {
+                        if (slotId === selectionStart && selectionEnd !== null) {
+                            $el.addClass('slot-selected slot-start');
+                        } else if (slotId === selectionEnd) {
+                            $el.addClass('slot-selected slot-end');
+                        } else if (slotId === selectionStart && selectionEnd === null) {
+                            $el.addClass('slot-selected slot-start');
+                        } else {
+                            $el.addClass('slot-in-range');
+                        }
+                    }
+                });
+            }
+
+            // ============================
+            // Hidden Inputs for form submit
+            // ============================
+            function updateHiddenInputs() {
+                const container = $('#slot-hidden-inputs');
+                container.empty();
+                selectedSlotIds.forEach(function (id) {
+                    container.append(`<input type="hidden" name="slotIds" value="${id}" />`);
+                });
+            }
+
+            // ============================
+            // Update Slot Summary (right panel)
+            // ============================
+            function updateSlotSummary() {
+                if (selectedSlotIds.length === 0) {
+                    $('#summary-slot').text('—');
+                    $('#slot-selection-info').hide();
+                    updateSummary();
+                    return;
+                }
+
+                // Build summary text
+                const selectedSlots = slotsData.filter(s => selectedSlotIds.includes(s.slotId));
+                if (selectedSlots.length === 1) {
+                    const s = selectedSlots[0];
+                    $('#summary-slot').html(`${s.startTime} - ${s.endTime}`);
+                    $('#slot-selection-text').text(`${s.slotName} (${s.startTime} - ${s.endTime})`);
+                } else {
+                    const first = selectedSlots[0];
+                    const last = selectedSlots[selectedSlots.length - 1];
+                    $('#summary-slot').html(`${first.startTime} → ${last.endTime} <small class="text-sc-muted">(${selectedSlots.length} slot)</small>`);
+                    $('#slot-selection-text').text(`${first.startTime} → ${last.endTime} (${selectedSlots.length} slot)`);
+                }
+
+                $('#slot-selection-info').show();
                 updateSummary();
             }
-            $(document).on('change', '.slot-checkbox', updateSlotSummary);
-            updateSlotSummary();
 
             // --- Service Quantity +/- Buttons ---
             $(document).on('click', '.service-qty-btn', function (e) {
@@ -365,10 +836,21 @@
                 });
                 $('#summary-service-price').text(serviceTotal > 0 ? serviceTotal.toLocaleString('vi-VN') + 'đ' : '0đ');
 
-                const courtPrice = parseFloat(courtSelect.find(':selected').data('price')) || 0;
-                const slotCount = $('.slot-checkbox:checked').length;
-                const courtTotal = courtPrice * Math.max(slotCount, 1);
-                $('#summary-court-price').text(courtTotal > 0 ? courtTotal.toLocaleString('vi-VN') + 'đ' + (slotCount > 1 ? ' (x' + slotCount + ' slot)' : '') : '—');
+                // Court price from selected slots
+                let courtTotal = 0;
+                const selectedSlots = slotsData.filter(s => selectedSlotIds.includes(s.slotId));
+                selectedSlots.forEach(function (s) {
+                    courtTotal += s.price;
+                });
+
+                if (courtTotal > 0) {
+                    let priceText = courtTotal.toLocaleString('vi-VN') + 'đ';
+                    if (selectedSlots.length > 1) priceText += ` (x${selectedSlots.length} slot)`;
+                    $('#summary-court-price').text(priceText);
+                } else {
+                    const courtPrice = parseFloat(courtSelect.find(':selected').data('price')) || 0;
+                    $('#summary-court-price').text(courtPrice > 0 ? courtPrice.toLocaleString('vi-VN') + 'đ' : '—');
+                }
 
                 const total = courtTotal + serviceTotal;
                 $('#summary-total').text(total > 0 ? total.toLocaleString('vi-VN') + 'đ' : '—');
@@ -378,8 +860,7 @@
 
             // --- Form Validation ---
             $('#booking-form').on('submit', function (e) {
-                const checked = $('.slot-checkbox:checked');
-                if (checked.length === 0) {
+                if (selectedSlotIds.length === 0) {
                     e.preventDefault();
                     $('#slot-error').show();
                     return false;
@@ -387,6 +868,11 @@
                 $('#slot-error').hide();
                 return true;
             });
+
+            // --- Auto-load slots if court and date are pre-selected ---
+            if (courtSelect.val() && dateInput.val()) {
+                loadSlotAvailability();
+            }
         });
     </script>
 }

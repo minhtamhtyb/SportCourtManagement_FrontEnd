@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SportCourtManagement_FrontEnd.Models.Bookings;
+using SportCourtManagement_FrontEnd.Models.Courts;
 using SportCourtManagement_FrontEnd.Models.ViewModels;
 using SportCourtManagement_FrontEnd.Services;
 
@@ -54,6 +55,58 @@ namespace SportCourtManagement_FrontEnd.Controllers
             };
 
             return View(viewModel);
+        }
+
+        // AJAX: /Booking/GetSlotAvailability?courtId=1&date=2026-07-12
+        [HttpGet]
+        public async Task<IActionResult> GetSlotAvailability(int courtId, string date)
+        {
+            if (!DateTime.TryParse(date, out var parsedDate))
+            {
+                return Json(new { success = false, message = "Ngày không hợp lệ." });
+            }
+
+            // Get all defined time slots
+            var allTimeSlots = await _apiService.GetTimeSlotsAsync();
+
+            // Get court-specific availability for this date
+            var availability = await _apiService.GetCourtAvailabilityAsync(courtId, parsedDate);
+
+            // Get court detail for pricing info
+            var court = await _apiService.GetCourtDetailAsync(courtId);
+
+            // Merge: start from allTimeSlots, overlay availability status
+            var result = allTimeSlots.Select(ts =>
+            {
+                var availSlot = availability?.Slots?.FirstOrDefault(s => s.SlotId == ts.SlotId);
+                var pricing = court?.Pricings?.FirstOrDefault(p => p.SlotId == ts.SlotId);
+
+                string status = "Available";
+                decimal price = 0;
+
+                if (availSlot != null)
+                {
+                    status = availSlot.Status; // Available | Booked | Maintenance
+                    price = availSlot.Price;
+                }
+                else if (pricing != null)
+                {
+                    var isWeekend = parsedDate.DayOfWeek == DayOfWeek.Saturday || parsedDate.DayOfWeek == DayOfWeek.Sunday;
+                    price = isWeekend ? pricing.Price * pricing.PeakMultiplier : pricing.Price;
+                }
+
+                return new
+                {
+                    slotId = ts.SlotId,
+                    slotName = ts.SlotName,
+                    startTime = ts.StartTime,
+                    endTime = ts.EndTime,
+                    price = price,
+                    status = status
+                };
+            }).ToList();
+
+            return Json(new { success = true, slots = result });
         }
 
         // POST: /Booking/Create
