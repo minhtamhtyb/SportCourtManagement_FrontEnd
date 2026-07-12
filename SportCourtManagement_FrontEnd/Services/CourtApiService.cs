@@ -816,4 +816,105 @@ public class CourtApiService : ICourtApiService
         }
         return "{}";
     }
+
+    public async Task<SingularBookingResponseDto?> CreateSingularBookingAsync(CreateBookingRequestDto request)
+    {
+        try
+        {
+            var req = new HttpRequestMessage(HttpMethod.Post, "api/Booking");
+            req.Content = JsonContent.Create(request, null, _jsonOptions);
+
+            var response = await _httpClient.SendAsync(req);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<SingularBookingResponseDto>(_jsonOptions);
+            }
+            else
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("CreateSingularBooking API failed: {Status} {Body}", response.StatusCode, err);
+
+                // Try to extract error message
+                try
+                {
+                    var errorObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.Nodes.JsonNode>(err);
+                    var msg = errorObj?["message"]?.ToString() ?? errorObj?["details"]?.ToString();
+                    if (!string.IsNullOrEmpty(msg))
+                    {
+                        throw new InvalidOperationException(msg);
+                    }
+                }
+                catch (System.Text.Json.JsonException) { }
+                catch (InvalidOperationException) { throw; }
+            }
+        }
+        catch (InvalidOperationException) { throw; }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating singular booking");
+        }
+        return null;
+    }
+
+    public async Task<(bool Success, string Message, SingularBookingResponseDto? Data)> SimulateSePayWebhookAsync(string bookingCode, decimal amount)
+    {
+        try
+        {
+            var req = new HttpRequestMessage(HttpMethod.Post, "api/SePay/webhook");
+            req.Headers.TryAddWithoutValidation("Authorization", "SePay_Secret_ApiKey_PRN232_SCM_Project");
+
+            var payload = new
+            {
+                id = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                gateway = "MBBank",
+                transactionDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                accountNumber = "113000045678",
+                subAccount = (string?)null,
+                code = (string?)null,
+                content = bookingCode,
+                transferType = "in",
+                transferAmount = amount,
+                accumulated = amount,
+                referenceCode = $"SIM-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}",
+                description = $"Thanh toan {bookingCode}"
+            };
+
+            req.Content = JsonContent.Create(payload, null, _jsonOptions);
+
+            var response = await _httpClient.SendAsync(req);
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                try
+                {
+                    var successObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.Nodes.JsonNode>(body);
+                    var msg = successObj?["message"]?.ToString() ?? "Thanh toán thành công.";
+                    return (true, msg, null);
+                }
+                catch
+                {
+                    return (true, "Thanh toán thành công.", null);
+                }
+            }
+            else
+            {
+                try
+                {
+                    var errorObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.Nodes.JsonNode>(body);
+                    var msg = errorObj?["message"]?.ToString() ?? $"Lỗi {response.StatusCode}";
+                    return (false, msg, null);
+                }
+                catch
+                {
+                    return (false, $"Lỗi {response.StatusCode}: {body}", null);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error simulating SePay webhook for {BookingCode}", bookingCode);
+            return (false, $"Lỗi kết nối: {ex.Message}", null);
+        }
+    }
 }
