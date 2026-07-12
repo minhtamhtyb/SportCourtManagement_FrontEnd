@@ -12,27 +12,15 @@
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
 </head>
 <body class="auth-body">
-    @if (TempData["Success"] is string successMsg)
-    {
-        <div class="container pt-3">
-            <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">
-                @successMsg
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    }
-    @if (TempData["Error"] is string errorMsg)
-    {
-        <div class="container pt-3">
-            <div class="alert alert-danger alert-dismissible fade show mb-0" role="alert">
-                @errorMsg
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    }
+    <div id="adminFlashData" 
+         data-success="@TempData["Success"]" 
+         data-error="@TempData["Error"]" 
+         style="display:none;"></div>
+
     @RenderBody()
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
