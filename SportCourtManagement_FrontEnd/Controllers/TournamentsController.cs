@@ -15,14 +15,12 @@ public class TournamentsController : Controller
     _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
   }
 
-  private string? GetToken() => Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
 
   // GET: /Tournaments/AdminIndex (Màn hình 3)
   [HttpGet]
   public async Task<IActionResult> AdminIndex(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int page = 1)
   {
-    var token = GetToken();
-    var pagedData = await _apiService.GetPagedAdminTournamentsAsync(keyword, fromDate, toDate, status, page, 10, token);
+    var pagedData = await _apiService.GetPagedAdminTournamentsAsync(keyword, fromDate, toDate, status, page, 10);
     var vm = new TournamentListViewModel
     {
       PagedData = pagedData,
@@ -39,8 +37,7 @@ public class TournamentsController : Controller
   [ValidateAntiForgeryToken]
   public async Task<IActionResult> UpdateStatus(int id, string status, string? cancelReason, string returnUrl)
   {
-    var token = GetToken();
-    var success = await _apiService.UpdateTournamentStatusAsync(id, status, cancelReason, token);
+    var success = await _apiService.UpdateTournamentStatusAsync(id, status, cancelReason);
     if (success) TempData["SuccessMessage"] = $"Cập nhật trạng thái giải đấu #{id} thành công!";
     else TempData["ErrorMessage"] = $"Lỗi khi cập nhật trạng thái giải đấu #{id}.";
 
@@ -52,8 +49,7 @@ public class TournamentsController : Controller
   [HttpGet]
   public async Task<IActionResult> AdminDetail(int id)
   {
-    var token = GetToken();
-    var tour = await _apiService.GetMyTournamentDetailAsync(id, token);
+    var tour = await _apiService.GetMyTournamentDetailAsync(id);
     if (tour == null)
     {
       TempData["ErrorMessage"] = "Không tìm thấy thông tin giải đấu hoặc bạn không có quyền truy cập.";
@@ -93,8 +89,7 @@ public class TournamentsController : Controller
   [HttpGet]
   public async Task<IActionResult> MyTournaments(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int page = 1)
   {
-    var token = GetToken();
-    var pagedData = await _apiService.GetPagedMyTournamentsAsync(keyword, fromDate, toDate, status, page, 10, token);
+    var pagedData = await _apiService.GetPagedMyTournamentsAsync(keyword, fromDate, toDate, status, page, 10);
     var vm = new TournamentListViewModel
     {
       PagedData = pagedData,
@@ -142,8 +137,7 @@ public class TournamentsController : Controller
       form.CourtSelections = form.CourtSelections.Where(c => c.SlotIds != null && c.SlotIds.Count > 0).ToList();
     }
 
-    var token = GetToken();
-    var (created, errMsg) = await _apiService.CreateTournamentResultAsync(form, token);
+    var (created, errMsg) = await _apiService.CreateTournamentResultAsync(form);
     if (created == null)
     {
       ModelState.AddModelError("", !string.IsNullOrWhiteSpace(errMsg) ? errMsg : "Đặt giải đấu thất bại. Khung giờ chọn có thể đã kín lịch.");
@@ -182,8 +176,7 @@ public class TournamentsController : Controller
       return BadRequest(new { success = false, message = "Vui lòng chọn ít nhất 1 sân và 1 khung giờ thi đấu!" });
     }
 
-    var token = GetToken();
-    var (created, errMsg) = await _apiService.CreateTournamentResultAsync(form, token);
+    var (created, errMsg) = await _apiService.CreateTournamentResultAsync(form);
     if (created == null)
     {
       return Conflict(new { success = false, message = !string.IsNullOrWhiteSpace(errMsg) ? errMsg : "Đặt giải đấu thất bại. Khung giờ chọn có thể đã kín lịch hoặc đang được giữ chỗ." });
@@ -196,8 +189,7 @@ public class TournamentsController : Controller
   [HttpGet]
   public async Task<IActionResult> Payment(int id)
   {
-    var token = GetToken();
-    var pagedData = await _apiService.GetPagedMyTournamentsAsync(null, null, null, null, 1, 100, token);
+    var pagedData = await _apiService.GetPagedMyTournamentsAsync(null, null, null, null, 1, 100);
     var tour = pagedData.Items.Find(t => t.TournamentId == id);
     if (tour == null)
     {
@@ -215,8 +207,7 @@ public class TournamentsController : Controller
   [HttpGet]
   public async Task<IActionResult> MyDetail(int id)
   {
-    var token = GetToken();
-    var tour = await _apiService.GetMyTournamentDetailAsync(id, token);
+    var tour = await _apiService.GetMyTournamentDetailAsync(id);
     if (tour == null)
     {
       TempData["ErrorMessage"] = "Không tìm thấy thông tin giải đấu hoặc bạn không có quyền truy cập.";

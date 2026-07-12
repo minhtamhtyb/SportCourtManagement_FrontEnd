@@ -413,14 +413,14 @@ public class CourtApiService : ICourtApiService
     }
 
     // Promotions
-    public async Task<PagedResult<PromotionDto>> GetPagedPromotionsAsync(string? keyword, bool? isActive, int pageNumber, int pageSize, string? token)
+    public async Task<PagedResult<PromotionDto>> GetPagedPromotionsAsync(string? keyword, bool? isActive, int pageNumber, int pageSize)
     {
         try
         {
             var url = $"api/promotions?PageNumber={pageNumber}&PageSize={pageSize}";
             if (!string.IsNullOrEmpty(keyword)) url += $"&Keyword={Uri.EscapeDataString(keyword)}";
             if (isActive.HasValue) url += $"&IsActive={isActive}";
-            var req = CreateAuthRequest(HttpMethod.Get, url, token);
+            var req = CreateAuthRequest(HttpMethod.Get, url);
             var res = await _httpClient.SendAsync(req);
             if (res.IsSuccessStatusCode)
             {
@@ -432,11 +432,11 @@ public class CourtApiService : ICourtApiService
         return new PagedResult<PromotionDto>();
     }
 
-    public async Task<PromotionDto?> CreatePromotionAsync(PromotionFormDto form, string? token)
+    public async Task<PromotionDto?> CreatePromotionAsync(PromotionFormDto form)
     {
         try
         {
-            var req = CreateAuthRequest(HttpMethod.Post, "api/promotions", token);
+            var req = CreateAuthRequest(HttpMethod.Post, "api/promotions");
             req.Content = JsonContent.Create(form, null, _jsonOptions);
             var res = await _httpClient.SendAsync(req);
             if (res.IsSuccessStatusCode)
@@ -449,11 +449,11 @@ public class CourtApiService : ICourtApiService
         return null;
     }
 
-    public async Task<PromotionDto?> UpdatePromotionAsync(int id, PromotionFormDto form, string? token)
+    public async Task<PromotionDto?> UpdatePromotionAsync(int id, PromotionFormDto form)
     {
         try
         {
-            var req = CreateAuthRequest(HttpMethod.Put, $"api/promotions/{id}", token);
+            var req = CreateAuthRequest(HttpMethod.Put, $"api/promotions/{id}");
             req.Content = JsonContent.Create(form, null, _jsonOptions);
             var res = await _httpClient.SendAsync(req);
             if (res.IsSuccessStatusCode)
@@ -466,11 +466,11 @@ public class CourtApiService : ICourtApiService
         return null;
     }
 
-    public async Task<bool> DeletePromotionAsync(int id, string? token)
+    public async Task<bool> DeletePromotionAsync(int id)
     {
         try
         {
-            var req = CreateAuthRequest(HttpMethod.Delete, $"api/promotions/{id}", token);
+            var req = CreateAuthRequest(HttpMethod.Delete, $"api/promotions/{id}");
             var res = await _httpClient.SendAsync(req);
             return res.IsSuccessStatusCode;
         }
@@ -496,13 +496,13 @@ public class CourtApiService : ICourtApiService
         return new PagedResult<BookingDetailDto>();
     }
 
-    public async Task<PagedResult<BookingDetailDto>> GetPagedAdminBookingsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, int? courtTypeId, string? status, int pageNumber, int pageSize, string? token)
+    public async Task<PagedResult<BookingDetailDto>> GetPagedAdminBookingsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, int? courtTypeId, string? status, int pageNumber, int pageSize)
     {
         try
         {
             var url = BuildFilterQuery("api/bookings/admin", keyword, fromDate, toDate, status, pageNumber, pageSize);
             if (courtTypeId.HasValue && courtTypeId.Value > 0) url += $"&CourtTypeId={courtTypeId.Value}";
-            var req = CreateAuthRequest(HttpMethod.Get, url, token);
+            var req = CreateAuthRequest(HttpMethod.Get, url);
             var res = await _httpClient.SendAsync(req);
             if (res.IsSuccessStatusCode)
             {
@@ -514,11 +514,11 @@ public class CourtApiService : ICourtApiService
         return new PagedResult<BookingDetailDto>();
     }
 
-    public async Task<bool> UpdateBookingStatusAsync(int id, string status, string? cancelReason, string? token)
+    public async Task<bool> UpdateBookingStatusAsync(int id, string status, string? cancelReason)
     {
         try
         {
-            var req = CreateAuthRequest(HttpMethod.Put, $"api/bookings/{id}/status", token);
+            var req = CreateAuthRequest(HttpMethod.Put, $"api/bookings/{id}/status");
             req.Content = JsonContent.Create(new { Status = status, CancelReason = cancelReason }, null, _jsonOptions);
             var res = await _httpClient.SendAsync(req);
             return res.IsSuccessStatusCode;
@@ -528,12 +528,12 @@ public class CourtApiService : ICourtApiService
     }
 
     // Tournaments
-    public async Task<PagedResult<TournamentDto>> GetPagedMyTournamentsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize, string? token)
+    public async Task<PagedResult<TournamentDto>> GetPagedMyTournamentsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize)
     {
         try
         {
             var url = BuildFilterQuery("api/bookings/tournament/my", keyword, fromDate, toDate, status, pageNumber, pageSize);
-            var req = CreateAuthRequest(HttpMethod.Get, url, token);
+            var req = CreateAuthRequest(HttpMethod.Get, url);
             var res = await _httpClient.SendAsync(req);
             if (res.IsSuccessStatusCode)
             {
@@ -545,12 +545,12 @@ public class CourtApiService : ICourtApiService
         return new PagedResult<TournamentDto>();
     }
 
-    public async Task<PagedResult<TournamentDto>> GetPagedAdminTournamentsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize, string? token)
+    public async Task<PagedResult<TournamentDto>> GetPagedAdminTournamentsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize)
     {
         try
         {
             var url = BuildFilterQuery("api/bookings/tournament/admin", keyword, fromDate, toDate, status, pageNumber, pageSize);
-            var req = CreateAuthRequest(HttpMethod.Get, url, token);
+            var req = CreateAuthRequest(HttpMethod.Get, url);
             var res = await _httpClient.SendAsync(req);
             if (res.IsSuccessStatusCode)
             {
@@ -579,17 +579,17 @@ public class CourtApiService : ICourtApiService
         return new PagedResult<TournamentPublicDto>();
     }
 
-    public async Task<TournamentDto?> CreateTournamentAsync(CreateTournamentFormDto form, string? token)
+    public async Task<TournamentDto?> CreateTournamentAsync(CreateTournamentFormDto form)
     {
-        var (data, _) = await CreateTournamentResultAsync(form, token);
+        var (data, _) = await CreateTournamentResultAsync(form);
         return data;
     }
 
-    public async Task<(TournamentDto? Data, string? ErrorMessage)> CreateTournamentResultAsync(CreateTournamentFormDto form, string? token)
+    public async Task<(TournamentDto? Data, string? ErrorMessage)> CreateTournamentResultAsync(CreateTournamentFormDto form)
     {
         try
         {
-            var req = CreateAuthRequest(HttpMethod.Post, "api/bookings/tournament", token);
+            var req = CreateAuthRequest(HttpMethod.Post, "api/bookings/tournament");
             req.Content = JsonContent.Create(form, null, _jsonOptions);
             var res = await _httpClient.SendAsync(req);
             if (res.IsSuccessStatusCode)
@@ -633,11 +633,11 @@ public class CourtApiService : ICourtApiService
         }
     }
 
-    public async Task<TournamentDto?> GetMyTournamentDetailAsync(int id, string? token)
+    public async Task<TournamentDto?> GetMyTournamentDetailAsync(int id)
     {
         try
         {
-            var req = CreateAuthRequest(HttpMethod.Get, $"api/bookings/tournament/{id}", token);
+            var req = CreateAuthRequest(HttpMethod.Get, $"api/bookings/tournament/{id}");
             var res = await _httpClient.SendAsync(req);
             if (res.IsSuccessStatusCode)
             {
@@ -649,11 +649,11 @@ public class CourtApiService : ICourtApiService
         return null;
     }
 
-    public async Task<bool> UpdateTournamentStatusAsync(int id, string status, string? cancelReason, string? token)
+    public async Task<bool> UpdateTournamentStatusAsync(int id, string status, string? cancelReason)
     {
         try
         {
-            var req = CreateAuthRequest(HttpMethod.Put, $"api/bookings/tournament/{id}/status", token);
+            var req = CreateAuthRequest(HttpMethod.Put, $"api/bookings/tournament/{id}/status");
             req.Content = JsonContent.Create(new { Status = status, CancelReason = cancelReason }, null, _jsonOptions);
             var res = await _httpClient.SendAsync(req);
             return res.IsSuccessStatusCode;
@@ -676,7 +676,7 @@ public class CourtApiService : ICourtApiService
         return null;
     }
 
-    private static HttpRequestMessage CreateAuthRequest(HttpMethod method, string url, string? token)
+    private static HttpRequestMessage CreateAuthRequest(HttpMethod method, string url, string? token = null)
     {
         var req = new HttpRequestMessage(method, url);
         if (!string.IsNullOrEmpty(token)) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
