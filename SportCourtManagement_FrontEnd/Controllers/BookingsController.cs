@@ -74,7 +74,7 @@ public class BookingsController : Controller
             }
         }
 
-        var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
+        var token = GetToken();
 
         var viewModel = new CreateBookingViewModel
         {
@@ -103,7 +103,7 @@ public class BookingsController : Controller
         string? endDate,
         List<int>? daysOfWeek)
     {
-        var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
+        var token = GetToken();
 
         if (isRecurring)
         {
@@ -362,7 +362,7 @@ public class BookingsController : Controller
     [HttpGet]
     public async Task<IActionResult> Payment(int bookingId)
     {
-        var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
+        var token = GetToken();
         
         // Try getting from API
         var booking = await _apiService.GetBookingDetailAsync(bookingId, token);
@@ -402,7 +402,7 @@ public class BookingsController : Controller
     [HttpGet]
     public async Task<IActionResult> PaymentSuccess(int bookingId, string paymentMethod)
     {
-        var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
+        var token = GetToken();
         var booking = await _apiService.GetBookingDetailAsync(bookingId, token);
 
         if (booking == null && TempData.TryGetValue($"MockBooking_{bookingId}", out var mockJsonObj))
@@ -435,7 +435,15 @@ public class BookingsController : Controller
         return View(booking);
     }
 
-    private string? GetToken() => Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"];
+    private string? GetToken()
+    {
+        var token = HttpContext.Session.GetString(Services.Api.JwtForwardingHandler.SessionTokenKey);
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            token = User.FindFirst(Services.Api.JwtForwardingHandler.AccessTokenClaimType)?.Value;
+        }
+        return token;
+    }
 
     // GET: /Bookings/MyBookings
     [HttpGet]
@@ -458,8 +466,7 @@ public class BookingsController : Controller
     [HttpGet]
     public async Task<IActionResult> AdminIndex(string? keyword, DateTime? fromDate, DateTime? toDate, int? courtTypeId, string? status, int page = 1)
     {
-        var token = GetToken();
-        var pagedData = await _apiService.GetPagedAdminBookingsAsync(keyword, fromDate, toDate, courtTypeId, status, page, 15, token);
+        var pagedData = await _apiService.GetPagedAdminBookingsAsync(keyword, fromDate, toDate, courtTypeId, status, page, 15);
         var courtTypes = await _apiService.GetCourtTypesAsync();
         ViewBag.CourtTypes = courtTypes;
 
@@ -480,8 +487,7 @@ public class BookingsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStatus(int id, string status, string? cancelReason, string returnUrl)
     {
-        var token = GetToken();
-        var success = await _apiService.UpdateBookingStatusAsync(id, status, cancelReason, token);
+        var success = await _apiService.UpdateBookingStatusAsync(id, status, cancelReason);
         if (success) TempData["SuccessMessage"] = $"Cập nhật trạng thái đơn đặt sân #{id} thành công!";
         else TempData["ErrorMessage"] = $"Lỗi khi cập nhật trạng thái đơn #{id}.";
 

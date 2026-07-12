@@ -119,8 +119,12 @@ public class CourtsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SubmitReview(int id, int bookingId, byte rating, string? comment)
     {
-        // Extract token from request cookie or header
-        var token = Request.Cookies["jwt"] ?? Request.Cookies["AccessToken"] ?? Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        // Extract token from session or claim
+        var token = HttpContext.Session.GetString(Services.Api.JwtForwardingHandler.SessionTokenKey);
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            token = User.FindFirst(Services.Api.JwtForwardingHandler.AccessTokenClaimType)?.Value;
+        }
 
         if (string.IsNullOrEmpty(token))
         {

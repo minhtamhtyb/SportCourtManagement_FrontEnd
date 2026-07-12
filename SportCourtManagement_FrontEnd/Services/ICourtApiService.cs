@@ -27,25 +27,25 @@ public interface ICourtApiService
     Task<BookingResponseDto?> GetBookingDetailAsync(int id, string? token);
 
     // Promotions
-    Task<PagedResult<PromotionDto>> GetPagedPromotionsAsync(string? keyword, bool? isActive, int pageNumber, int pageSize, string? token);
-    Task<PromotionDto?> CreatePromotionAsync(PromotionFormDto form, string? token);
-    Task<PromotionDto?> UpdatePromotionAsync(int id, PromotionFormDto form, string? token);
-    Task<bool> DeletePromotionAsync(int id, string? token);
+    Task<PagedResult<PromotionDto>> GetPagedPromotionsAsync(string? keyword, bool? isActive, int pageNumber, int pageSize);
+    Task<PromotionDto?> CreatePromotionAsync(PromotionFormDto form);
+    Task<PromotionDto?> UpdatePromotionAsync(int id, PromotionFormDto form);
+    Task<bool> DeletePromotionAsync(int id);
     Task<List<PromotionDto>> GetActivePromotionsAsync();
 
     // Bookings (Admin & Customer)
     Task<PagedResult<BookingDetailDto>> GetPagedMyBookingsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize, string? token);
-    Task<PagedResult<BookingDetailDto>> GetPagedAdminBookingsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, int? courtTypeId, string? status, int pageNumber, int pageSize, string? token);
-    Task<bool> UpdateBookingStatusAsync(int id, string status, string? cancelReason, string? token);
+    Task<PagedResult<BookingDetailDto>> GetPagedAdminBookingsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, int? courtTypeId, string? status, int pageNumber, int pageSize);
+    Task<bool> UpdateBookingStatusAsync(int id, string status, string? cancelReason);
 
     // Tournaments
-    Task<PagedResult<TournamentDto>> GetPagedMyTournamentsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize, string? token);
-    Task<PagedResult<TournamentDto>> GetPagedAdminTournamentsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize, string? token);
+    Task<PagedResult<TournamentDto>> GetPagedMyTournamentsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize);
+    Task<PagedResult<TournamentDto>> GetPagedAdminTournamentsAsync(string? keyword, DateTime? fromDate, DateTime? toDate, string? status, int pageNumber, int pageSize);
     Task<PagedResult<TournamentPublicDto>> GetPagedPublicTournamentsAsync(string? keyword, int pageNumber, int pageSize);
-    Task<TournamentDto?> CreateTournamentAsync(CreateTournamentFormDto form, string? token);
-    Task<(TournamentDto? Data, string? ErrorMessage)> CreateTournamentResultAsync(CreateTournamentFormDto form, string? token);
-    Task<TournamentDto?> GetMyTournamentDetailAsync(int id, string? token);
-    Task<bool> UpdateTournamentStatusAsync(int id, string status, string? cancelReason, string? token);
+    Task<TournamentDto?> CreateTournamentAsync(CreateTournamentFormDto form);
+    Task<(TournamentDto? Data, string? ErrorMessage)> CreateTournamentResultAsync(CreateTournamentFormDto form);
+    Task<TournamentDto?> GetMyTournamentDetailAsync(int id);
+    Task<bool> UpdateTournamentStatusAsync(int id, string status, string? cancelReason);
     Task<SePayQrCodeDto?> GetSePayQrCodeAsync(string bookingOrTournamentCode);
 
     // Auth

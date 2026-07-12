@@ -20,6 +20,7 @@ builder.Services.AddSingleton(new JsonSerializerOptions
 
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection(ApiSettings.SectionName));
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<JwtForwardingHandler>();
 
 var useMock = builder.Configuration.GetValue<bool>($"{ApiSettings.SectionName}:UseMockData", true);
 if (useMock)
@@ -115,7 +116,13 @@ builder.Services.AddHttpClient<ICourtApiService, CourtApiService>(client =>
         baseUrl += "/";
     }
     client.BaseAddress = new Uri(baseUrl);
-});
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    ServerCertificateCustomValidationCallback =
+        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+})
+.AddHttpMessageHandler<JwtForwardingHandler>();
 
 var app = builder.Build();
 
