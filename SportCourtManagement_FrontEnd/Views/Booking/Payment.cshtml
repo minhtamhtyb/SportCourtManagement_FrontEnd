@@ -123,15 +123,6 @@
 
                     <!-- Action Buttons -->
                     <div class="d-flex flex-column gap-3">
-                        <!-- Simulate Payment Button -->
-                        <form asp-controller="Booking" asp-action="SimulatePayment" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="bookingCodes" value="@bookingCodesStr" />
-                            <button type="submit" class="sc-btn w-100 py-3 font-outfit fw-bold d-flex align-items-center justify-content-center gap-2"
-                                    style="font-size: 16px; border-radius: 12px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; color: #fff;">
-                                <i class="bi bi-lightning-charge-fill"></i> Mô phỏng thanh toán thành công
-                            </button>
-                        </form>
 
                         <a asp-controller="Booking" asp-action="Index" class="sc-btn sc-btn-secondary w-100 py-3 font-outfit text-center d-block text-decoration-none" style="font-size: 14px; border-radius: 12px;">
                             <i class="bi bi-arrow-left me-1"></i> Quay lại đặt sân
