@@ -28,14 +28,15 @@ public class RegisterViewModel
     [Display(Name = "Email")]
     public string Email { get; set; } = "";
 
-    [Phone]
+    [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
+    [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
     [Display(Name = "Số điện thoại")]
     public string? Phone { get; set; }
 
     [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
-    [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự")]
     [DataType(DataType.Password)]
     [Display(Name = "Mật khẩu")]
+    [RegularExpression(@"^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$", ErrorMessage = "Mật khẩu phải dài tối thiểu 8 ký tự, chứa ít nhất 1 chữ cái in hoa và 1 ký tự đặc biệt.")]
     public string Password { get; set; } = "";
 
     [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu")]

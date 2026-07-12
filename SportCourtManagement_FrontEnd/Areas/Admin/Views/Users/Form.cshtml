@@ -1,0 +1,20 @@
+@model UserFormViewModel
+@{
+    var isEdit = Model.UserId.HasValue;
+    ViewData["Title"] = isEdit ? "Cập nhật người dùng" : "Thêm người dùng mới";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">@ViewData["Title"]</h1>
+                <p class="page-subtitle"><a asp-action="Index" class="text-success text-decoration-none"><i class="fa-solid fa-arrow-left"></i> Quay lại danh sách</a></p>
+            </div>
+        </div>
+
+        <div class="admin-card p-4">
+            <partial name="_UserFormModal" model="Model" />
+        </div>
+    </div>
+</div>

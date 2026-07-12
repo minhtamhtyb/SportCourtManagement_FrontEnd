@@ -7,11 +7,16 @@
     
     <!-- CSS Bootstrap for utility classes (optional but layout relies on custom css) -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/sportcourt.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 </head>
 <body>
+    <div id="adminFlashData" 
+         data-success="@TempData["Success"]" 
+         data-error="@TempData["Error"]" 
+         style="display:none;"></div>
     <!-- Premium Header Navbar -->
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #0D121F; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 16px 0;">
@@ -156,6 +161,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

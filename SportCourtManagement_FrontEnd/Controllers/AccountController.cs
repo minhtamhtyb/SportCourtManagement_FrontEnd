@@ -44,12 +44,12 @@ public class AccountController(IAuthService authService, IOptions<ApiSettings> a
         {
             if (result.RequiresEmailVerification)
             {
-                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Tài khoản chưa xác thực email.");
+                TempData["Error"] = result.ErrorMessage ?? "Tài khoản chưa xác thực email.";
                 TempData["VerifyEmail"] = model.Email;
             }
             else
             {
-                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Email hoặc mật khẩu không đúng.");
+                TempData["Error"] = result.ErrorMessage ?? "Email hoặc mật khẩu không chính xác.";
             }
             return View(model);
         }
@@ -99,12 +99,12 @@ public class AccountController(IAuthService authService, IOptions<ApiSettings> a
         }
         catch (InvalidOperationException ex)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
+            TempData["Error"] = ex.Message;
             return View(model);
         }
         catch (HttpRequestException)
         {
-            ModelState.AddModelError(string.Empty, "Không kết nối được API Backend. Hãy chạy Backend trước (port 5211).");
+            TempData["Error"] = "Không kết nối được API Backend. Hãy chạy Backend trước (port 5000).";
             return View(model);
         }
     }
@@ -139,12 +139,12 @@ public class AccountController(IAuthService authService, IOptions<ApiSettings> a
         }
         catch (InvalidOperationException ex)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
+            TempData["Error"] = ex.Message;
             return View(model);
         }
         catch (HttpRequestException)
         {
-            ModelState.AddModelError(string.Empty, "Không kết nối được API Backend. Hãy chạy Backend trước (port 5211).");
+            TempData["Error"] = "Không kết nối được API Backend. Hãy chạy Backend trước (port 5000).";
             return View(model);
         }
     }

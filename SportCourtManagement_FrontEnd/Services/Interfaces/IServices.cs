@@ -66,6 +66,9 @@ public interface IUserService
     Task UpdateUserRoleAsync(int id, string role);
     Task ToggleUserStatusAsync(int id, bool isActive);
     Task UpdateUserAccessAsync(int id, string role, bool isActive);
+    Task<UserDto> CreateUserAsync(UserDto dto, string password);
+    Task UpdateUserByAdminAsync(int id, UserDto dto);
+    Task DeleteUserAsync(int id);
 }
 
 public interface IRoleService
