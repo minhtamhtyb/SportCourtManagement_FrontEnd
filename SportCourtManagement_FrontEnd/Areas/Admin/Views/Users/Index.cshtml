@@ -8,6 +8,9 @@
         <h1 class="page-title">Quản lý người dùng</h1>
         <p class="page-subtitle">Danh sách tài khoản và phân vai trò — <a asp-area="Admin" asp-controller="Roles" asp-action="Index" class="text-success text-decoration-none">Xem ma trận phân quyền</a></p>
     </div>
+    <button type="button" class="btn-primary-custom" data-user-create>
+        <i class="fa-solid fa-plus"></i> Thêm người dùng mới
+    </button>
 </div>
 
 <form method="get" class="filter-bar">
@@ -42,6 +45,7 @@ else
                     <th>Vai trò</th>
                     <th>Hạng</th>
                     <th>Trạng thái</th>
+                    <th>Ngày tham gia</th>
                     <th class="text-end">Thao tác</th>
                 </tr>
             </thead>
@@ -67,19 +71,31 @@ else
                             else
                             { <span class="status-badge status-inactive">Vô hiệu</span> }
                         </td>
+                        <td class="text-secondary small">
+                            @(u.CreatedAt?.ToString("dd/MM/yyyy") ?? "—")
+                        </td>
                         <td class="text-end">
                             <a asp-action="Details" asp-route-id="@u.UserId" class="btn-ghost" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
-                            <button type="button" class="btn-ghost" title="Gán vai trò"
-                                    data-user-roles-edit data-user-id="@u.UserId">
-                                <i class="fa-solid fa-user-gear"></i>
+                            <button type="button" class="btn-ghost" title="Sửa người dùng"
+                                    data-user-edit data-user-id="@u.UserId">
+                                <i class="fa-solid fa-pen text-info"></i>
                             </button>
                             <button type="button" class="btn-ghost" title="@(u.IsActive ? "Vô hiệu hóa" : "Kích hoạt")"
                                     data-user-toggle-status
                                     data-user-id="@u.UserId"
                                     data-user-name="@u.FullName"
                                     data-is-active="@u.IsActive.ToString().ToLower()">
-                                <i class="fa-solid @(u.IsActive ? "fa-ban text-danger" : "fa-check text-success")"></i>
+                                <i class="fa-solid @(u.IsActive ? "fa-ban text-warning" : "fa-check text-success")"></i>
                             </button>
+                            @if (u.UserId != 1)
+                            {
+                                <button type="button" class="btn-ghost" title="Xóa người dùng"
+                                        data-user-delete
+                                        data-user-id="@u.UserId"
+                                        data-user-name="@u.FullName">
+                                    <i class="fa-solid fa-trash text-danger"></i>
+                                </button>
+                            }
                         </td>
                     </tr>
                 }
@@ -191,6 +207,10 @@ else
 </div>
 
 <form id="userToggleStatusForm" method="post" class="d-none">
+    @Html.AntiForgeryToken()
+</form>
+
+<form id="userDeleteForm" method="post" class="d-none">
     @Html.AntiForgeryToken()
 </form>
 

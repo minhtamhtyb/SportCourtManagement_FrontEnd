@@ -1,0 +1,112 @@
+@model UserFormViewModel
+@{
+    var isEdit = Model.UserId.HasValue;
+    var action = isEdit ? "Edit" : "Create";
+}
+
+<form asp-action="@action" asp-route-id="@Model.UserId" method="post" class="form-dark" id="userRolesForm">
+    @Html.AntiForgeryToken()
+    @if (isEdit)
+    {
+        <input type="hidden" asp-for="UserId" />
+    }
+
+    @if (Model.IsSelf)
+    {
+        <div class="alert alert-warning py-2 small mb-3">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i>Đây là tài khoản của bạn — bạn không thể tự hạ quyền Admin hoặc tự khóa.
+        </div>
+    }
+
+    <div class="mb-3">
+        <label asp-for="FullName" class="form-label">Họ và tên</label>
+        <input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" />
+        <span asp-validation-for="FullName" class="text-danger small field-error"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Email" class="form-label">Email</label>
+            <input asp-for="Email" class="form-control" placeholder="name@example.com" />
+            <span asp-validation-for="Email" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Phone" class="form-label">Số điện thoại</label>
+            <input asp-for="Phone" class="form-control" placeholder="0987654321" />
+            <span asp-validation-for="Phone" class="text-danger small field-error"></span>
+        </div>
+    </div>
+
+    @if (!isEdit)
+    {
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Password" class="form-label">Mật khẩu</label>
+                <input asp-for="Password" type="password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger small field-error"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                <input asp-for="ConfirmPassword" type="password" class="form-control" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger small field-error"></span>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Role" class="form-label">Vai trò</label>
+            <select asp-for="Role" class="form-select" disabled="@(Model.IsSelf)">
+                @foreach (var r in Model.RoleOptions)
+                {
+                    <option value="@r">@r</option>
+                }
+            </select>
+            @if (Model.IsSelf)
+            {
+                <input type="hidden" asp-for="Role" />
+            }
+            <span asp-validation-for="Role" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Gender" class="form-label">Giới tính</label>
+            <select asp-for="Gender" class="form-select">
+                @foreach (var g in Model.GenderOptions)
+                {
+                    <option value="@g">@g</option>
+                }
+            </select>
+            <span asp-validation-for="Gender" class="text-danger small field-error"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="SkillLevel" class="form-label">Trình độ</label>
+            <select asp-for="SkillLevel" class="form-select">
+                @foreach (var s in Model.SkillLevelOptions)
+                {
+                    <option value="@s">@s</option>
+                }
+            </select>
+            <span asp-validation-for="SkillLevel" class="text-danger small field-error"></span>
+        </div>
+        <div class="col-md-6 mb-3 d-flex align-items-end" style="padding-bottom: 12px;">
+            <div class="form-check mb-0">
+                <input asp-for="IsActive" class="form-check-input" id="userIsActive" disabled="@(Model.IsSelf)" />
+                <label asp-for="IsActive" class="form-check-label text-secondary">Tài khoản hoạt động</label>
+                @if (Model.IsSelf)
+                {
+                    <input type="hidden" asp-for="IsActive" />
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end mt-4 pt-3 border-top border-secondary">
+        <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn-primary-custom" id="userRolesFormSubmit">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+        </button>
+    </div>
+</form>

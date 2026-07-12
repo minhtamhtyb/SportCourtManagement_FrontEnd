@@ -9,10 +9,26 @@
     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     const baseUrl = '/Admin/Users';
 
-    document.querySelectorAll('[data-user-roles-edit]').forEach(function (btn) {
+    document.querySelectorAll('[data-user-create]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            openCreateModal();
+        });
+    });
+
+    document.querySelectorAll('[data-user-edit]').forEach(function (btn) {
         btn.addEventListener('click', function () {
             const id = btn.getAttribute('data-user-id');
-            if (id) openFormModal(id);
+            if (id) openEditModal(id);
+        });
+    });
+
+    document.querySelectorAll('[data-user-delete]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const id = btn.getAttribute('data-user-id');
+            const name = btn.getAttribute('data-user-name') || 'người dùng này';
+            if (!id) return;
+            if (!confirm('Bạn có chắc chắn muốn xóa vĩnh viễn người dùng "' + name + '"? Hợp đồng đặt sân và giải đấu của họ có thể bị ảnh hưởng.')) return;
+            deleteUser(id, name);
         });
     });
 
@@ -36,8 +52,8 @@
             '<span class="ms-2">Đang tải...</span></div>';
     });
 
-    async function openFormModal(userId) {
-        modalTitle.textContent = 'Gán vai trò';
+    async function openCreateModal() {
+        modalTitle.textContent = 'Thêm người dùng mới';
         modalBody.innerHTML =
             '<div class="text-center py-4 text-secondary">' +
             '<div class="spinner-border spinner-border-sm text-success" role="status"></div>' +
@@ -45,7 +61,7 @@
         modal.show();
 
         try {
-            const response = await fetch(baseUrl + '/EditRoles/' + userId, {
+            const response = await fetch(baseUrl + '/Create', {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             if (!response.ok) throw new Error('Không thể tải form. Vui lòng thử lại.');
@@ -54,6 +70,58 @@
         } catch (err) {
             modal.hide();
             showToast(err.message || 'Không thể tải form.', 'error');
+        }
+    }
+
+    async function openEditModal(userId) {
+        modalTitle.textContent = 'Cập nhật thông tin người dùng';
+        modalBody.innerHTML =
+            '<div class="text-center py-4 text-secondary">' +
+            '<div class="spinner-border spinner-border-sm text-success" role="status"></div>' +
+            '<span class="ms-2">Đang tải...</span></div>';
+        modal.show();
+
+        try {
+            const response = await fetch(baseUrl + '/Edit/' + userId, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) throw new Error('Không thể tải form. Vui lòng thử lại.');
+            modalBody.innerHTML = await response.text();
+            bindFormSubmit();
+        } catch (err) {
+            modal.hide();
+            showToast(err.message || 'Không thể tải form.', 'error');
+        }
+    }
+
+    async function deleteUser(userId, name) {
+        const deleteForm = document.getElementById('userDeleteForm');
+        if (!deleteForm) return;
+
+        const token = deleteForm.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        const formData = new FormData();
+        if (token) formData.append('__RequestVerificationToken', token);
+        formData.append('id', userId);
+
+        try {
+            const response = await fetch(baseUrl + '/Delete/' + userId, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            });
+
+            const result = await parseJsonResponse(response);
+
+            if (result.success) {
+                showToast(result.message, 'success');
+                setTimeout(function () {
+                    window.location.reload();
+                }, 600);
+            } else {
+                showToast(result.message || 'Không thể xóa người dùng.', 'error');
+            }
+        } catch (err) {
+            showToast(err.message || 'Không thể xóa người dùng. Vui lòng thử lại.', 'error');
         }
     }
 

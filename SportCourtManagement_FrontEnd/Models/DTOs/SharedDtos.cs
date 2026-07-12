@@ -11,6 +11,8 @@ public class UserDto
     public string? MembershipTier { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime? CreatedAt { get; set; }
+    public string? Gender { get; set; }
+    public string? SkillLevel { get; set; }
 }
 
 public class LoginRequest

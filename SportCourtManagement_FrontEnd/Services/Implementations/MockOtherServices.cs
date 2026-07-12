@@ -179,6 +179,64 @@ public class MockUserService(MockDataStore store) : IUserService
         return UpdateUserAccessAsync(id, user.Role, isActive);
     }
 
+    public Task<UserDto> CreateUserAsync(UserDto dto, string password)
+    {
+        if (store.Users.Any(u => u.Email.Equals(dto.Email, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Email này đã được đăng ký.");
+        if (!string.IsNullOrWhiteSpace(dto.Phone) && store.Users.Any(u => u.Phone == dto.Phone))
+            throw new InvalidOperationException("Số điện thoại này đã được đăng ký.");
+
+        dto.UserId = store.Users.Max(u => u.UserId) + 1;
+        dto.CreatedAt = DateTime.Now;
+        dto.MembershipTier = "Bronze";
+        store.Users.Add(dto);
+        RecountRoles();
+        return Task.FromResult(dto);
+    }
+
+    public Task UpdateUserByAdminAsync(int id, UserDto dto)
+    {
+        var user = store.Users.FirstOrDefault(u => u.UserId == id)
+            ?? throw new InvalidOperationException("Không tìm thấy người dùng.");
+
+        if (!user.Email.Equals(dto.Email, StringComparison.OrdinalIgnoreCase) &&
+            store.Users.Any(u => u.Email.Equals(dto.Email, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Email này đã được đăng ký bởi người dùng khác.");
+
+        if (!string.Equals(user.Phone, dto.Phone) && !string.IsNullOrWhiteSpace(dto.Phone) &&
+            store.Users.Any(u => u.Phone == dto.Phone))
+            throw new InvalidOperationException("Số điện thoại này đã được đăng ký bởi người dùng khác.");
+
+        ValidateAccessChange(user, dto.Role, dto.IsActive);
+
+        user.FullName = dto.FullName;
+        user.Email = dto.Email;
+        user.Phone = dto.Phone;
+        user.Role = dto.Role;
+        user.Gender = dto.Gender;
+        user.SkillLevel = dto.SkillLevel;
+        user.IsActive = dto.IsActive;
+        RecountRoles();
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteUserAsync(int id)
+    {
+        var user = store.Users.FirstOrDefault(u => u.UserId == id)
+            ?? throw new InvalidOperationException("Không tìm thấy người dùng.");
+
+        if (user.Role == "Admin")
+        {
+            var activeAdminCount = store.Users.Count(u => u.Role == "Admin" && u.IsActive);
+            if (activeAdminCount <= 1)
+                throw new InvalidOperationException("Không thể xóa Admin cuối cùng của hệ thống.");
+        }
+
+        store.Users.Remove(user);
+        RecountRoles();
+        return Task.CompletedTask;
+    }
+
     private void ValidateAccessChange(UserDto user, string role, bool isActive)
     {
         if (user.UserId == 1)

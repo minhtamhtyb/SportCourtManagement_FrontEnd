@@ -139,6 +139,43 @@ public class ApiUserService(ApiClient api) : IUserService
         await UpdateUserAccessAsync(id, user.Role, isActive);
     }
 
+    public async Task<UserDto> CreateUserAsync(UserDto dto, string password)
+    {
+        var payload = new
+        {
+            dto.FullName,
+            dto.Email,
+            dto.Phone,
+            password,
+            dto.Role,
+            Gender = dto.Gender ?? "Other",
+            SkillLevel = dto.SkillLevel ?? "Beginner",
+            dto.IsActive
+        };
+        var res = await api.PostDataAsync<UserSummaryApi>("api/users", payload);
+        return res != null ? MapUser(res) : throw new InvalidOperationException("Tạo tài khoản người dùng thất bại.");
+    }
+
+    public async Task UpdateUserByAdminAsync(int id, UserDto dto)
+    {
+        var payload = new
+        {
+            dto.FullName,
+            dto.Email,
+            dto.Phone,
+            dto.Role,
+            Gender = dto.Gender ?? "Other",
+            SkillLevel = dto.SkillLevel ?? "Beginner",
+            dto.IsActive
+        };
+        await api.PutDataAsync<UserSummaryApi>($"api/users/{id}", payload);
+    }
+
+    public async Task DeleteUserAsync(int id)
+    {
+        await api.DeleteAsync($"api/users/{id}");
+    }
+
     private static UserDto MapUser(UserSummaryApi u) => new()
     {
         UserId = u.UserId,
@@ -149,7 +186,9 @@ public class ApiUserService(ApiClient api) : IUserService
         Role = u.Role,
         MembershipTier = u.MembershipTierName,
         IsActive = u.IsActive,
-        CreatedAt = u.CreatedAt
+        CreatedAt = u.CreatedAt,
+        Gender = u.Gender,
+        SkillLevel = u.SkillLevel
     };
 
     private class PagedUsersApi
@@ -172,6 +211,8 @@ public class ApiUserService(ApiClient api) : IUserService
         public string? MembershipTierName { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? Gender { get; set; }
+        public string? SkillLevel { get; set; }
     }
 }
 

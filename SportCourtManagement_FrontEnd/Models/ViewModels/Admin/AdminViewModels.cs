@@ -253,3 +253,53 @@ public class RoleListViewModel
     public List<RoleDto> Roles { get; set; } = [];
     public List<PermissionMatrixRow> PermissionMatrix { get; set; } = [];
 }
+
+public class UserFormViewModel
+{
+    public int? UserId { get; set; }
+
+    [Required(ErrorMessage = "Họ và tên là bắt buộc")]
+    [Display(Name = "Họ và tên")]
+    public string FullName { get; set; } = "";
+
+    [Required(ErrorMessage = "Email là bắt buộc")]
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+    [Display(Name = "Email")]
+    public string Email { get; set; } = "";
+
+    [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
+    [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+    [Display(Name = "Số điện thoại")]
+    public string Phone { get; set; } = "";
+
+    [Display(Name = "Mật khẩu")]
+    [DataType(DataType.Password)]
+    [RegularExpression(@"^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$", ErrorMessage = "Mật khẩu phải dài tối thiểu 8 ký tự, chứa ít nhất 1 chữ cái in hoa và 1 ký tự đặc biệt.")]
+    public string? Password { get; set; }
+
+    [Display(Name = "Xác nhận mật khẩu")]
+    [DataType(DataType.Password)]
+    [Compare(nameof(Password), ErrorMessage = "Mật khẩu xác nhận không khớp")]
+    public string? ConfirmPassword { get; set; }
+
+    [Required(ErrorMessage = "Vui lòng chọn vai trò")]
+    [Display(Name = "Vai trò")]
+    public string Role { get; set; } = "Customer";
+
+    [Required(ErrorMessage = "Vui lòng chọn giới tính")]
+    [Display(Name = "Giới tính")]
+    public string Gender { get; set; } = "Other";
+
+    [Required(ErrorMessage = "Vui lòng chọn trình độ")]
+    [Display(Name = "Trình độ")]
+    public string SkillLevel { get; set; } = "Beginner";
+
+    [Display(Name = "Đang hoạt động")]
+    public bool IsActive { get; set; } = true;
+
+    public List<string> RoleOptions { get; set; } = ["Admin", "Staff", "Coach", "Customer"];
+    public List<string> GenderOptions { get; set; } = ["Male", "Female", "Other"];
+    public List<string> SkillLevelOptions { get; set; } = ["Beginner", "Intermediate", "Advanced", "Professional"];
+    
+    public bool IsSelf { get; set; }
+}

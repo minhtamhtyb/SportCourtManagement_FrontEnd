@@ -34,36 +34,85 @@ public class UsersController(IUserService userService, IRoleService roleService)
         return View(user);
     }
 
-    public async Task<IActionResult> EditRoles(int id)
+    public async Task<IActionResult> Create()
     {
-        var user = await userService.GetUserByIdAsync(id);
-        if (user == null) return NotFound();
-
-        var vm = new UserEditRolesViewModel
-        {
-            UserId = user.UserId,
-            FullName = user.FullName,
-            Email = user.Email,
-            Role = user.Role,
-            IsActive = user.IsActive,
-            RoleOptions = await GetRoleOptionsAsync(),
-            IsSelf = GetCurrentUserId() == user.UserId
-        };
-
-        if (IsAjaxRequest()) return PartialView("_UserEditRolesModal", vm);
-        return View(vm);
+        var vm = new UserFormViewModel();
+        if (IsAjaxRequest()) return PartialView("_UserFormModal", vm);
+        return View("Form", vm);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditRoles(int id, UserEditRolesViewModel model)
+    public async Task<IActionResult> Create(UserFormViewModel model)
+    {
+        if (string.IsNullOrWhiteSpace(model.Password))
+        {
+            ModelState.AddModelError(nameof(model.Password), "Mật khẩu là bắt buộc khi tạo mới người dùng.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            if (IsAjaxRequest()) return JsonValidationErrors();
+            return View("Form", model);
+        }
+
+        try
+        {
+            await userService.CreateUserAsync(new UserDto
+            {
+                FullName = model.FullName,
+                Email = model.Email,
+                Phone = model.Phone,
+                Role = model.Role,
+                Gender = model.Gender,
+                SkillLevel = model.SkillLevel,
+                IsActive = model.IsActive
+            }, model.Password!);
+
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Thêm người dùng mới thành công!" });
+            TempData["Success"] = "Thêm người dùng mới thành công!";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            if (IsAjaxRequest())
+                return StatusCode(400, new { success = false, message = ex.Message });
+            ModelState.AddModelError(string.Empty, ex.Message);
+            return View("Form", model);
+        }
+    }
+
+    public async Task<IActionResult> Edit(int id)
+    {
+        var user = await userService.GetUserByIdAsync(id);
+        if (user == null) return NotFound();
+
+        var vm = new UserFormViewModel
+        {
+            UserId = user.UserId,
+            FullName = user.FullName,
+            Email = user.Email,
+            Phone = user.Phone ?? "",
+            Role = user.Role,
+            Gender = user.Gender ?? "Other",
+            SkillLevel = user.SkillLevel ?? "Beginner",
+            IsActive = user.IsActive,
+            IsSelf = GetCurrentUserId() == user.UserId
+        };
+
+        if (IsAjaxRequest()) return PartialView("_UserFormModal", vm);
+        return View("Form", vm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, UserFormViewModel model)
     {
         if (!ModelState.IsValid)
         {
             if (IsAjaxRequest()) return JsonValidationErrors();
-            model.RoleOptions = await GetRoleOptionsAsync();
-            model.IsSelf = GetCurrentUserId() == id;
-            return View(model);
+            return View("Form", model);
         }
 
         try
@@ -73,11 +122,20 @@ public class UsersController(IUserService userService, IRoleService roleService)
             if (GetCurrentUserId() == id && !model.IsActive)
                 throw new InvalidOperationException("Bạn không thể tự vô hiệu hóa tài khoản của chính mình.");
 
-            await userService.UpdateUserAccessAsync(id, model.Role, model.IsActive);
+            await userService.UpdateUserByAdminAsync(id, new UserDto
+            {
+                FullName = model.FullName,
+                Email = model.Email,
+                Phone = model.Phone,
+                Role = model.Role,
+                Gender = model.Gender,
+                SkillLevel = model.SkillLevel,
+                IsActive = model.IsActive
+            });
 
             if (IsAjaxRequest())
-                return Json(new { success = true, message = "Cập nhật vai trò người dùng thành công!" });
-            TempData["Success"] = "Cập nhật vai trò người dùng thành công!";
+                return Json(new { success = true, message = "Cập nhật thông tin người dùng thành công!" });
+            TempData["Success"] = "Cập nhật thông tin người dùng thành công!";
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
@@ -85,10 +143,32 @@ public class UsersController(IUserService userService, IRoleService roleService)
             if (IsAjaxRequest())
                 return StatusCode(400, new { success = false, message = ex.Message });
             ModelState.AddModelError(string.Empty, ex.Message);
-            model.RoleOptions = await GetRoleOptionsAsync();
-            model.IsSelf = GetCurrentUserId() == id;
-            return View(model);
+            return View("Form", model);
         }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        try
+        {
+            if (GetCurrentUserId() == id)
+                throw new InvalidOperationException("Bạn không thể tự xóa tài khoản của chính mình.");
+
+            await userService.DeleteUserAsync(id);
+
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Xóa người dùng thành công!" });
+            TempData["Success"] = "Xóa người dùng thành công!";
+        }
+        catch (Exception ex)
+        {
+            if (IsAjaxRequest())
+                return Json(new { success = false, message = ex.Message });
+            TempData["Error"] = ex.Message;
+        }
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
