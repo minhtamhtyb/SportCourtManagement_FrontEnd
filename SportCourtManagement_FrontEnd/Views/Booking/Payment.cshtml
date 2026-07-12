@@ -149,4 +149,30 @@
             transform: none !important;
         }
     </style>
+
+    <script>
+        $(document).ready(function () {
+            var bookingCodes = '@bookingCodesStr';
+            if (bookingCodes) {
+                // Gửi request kiểm tra mỗi 3 giây
+                var checkInterval = setInterval(function () {
+                    $.ajax({
+                        url: '/Booking/CheckStatus',
+                        type: 'GET',
+                        data: { bookingCodes: bookingCodes },
+                        success: function (response) {
+                            if (response.success && response.allPaid) {
+                                clearInterval(checkInterval);
+                                // Chuyển hướng sang trang đặt sân thành công
+                                window.location.href = '/Booking/Success?bookingCodes=' + encodeURIComponent(bookingCodes);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Lỗi kiểm tra trạng thái:", error);
+                        }
+                    });
+                }, 3000); // 3 giây
+            }
+        });
+    </script>
 }

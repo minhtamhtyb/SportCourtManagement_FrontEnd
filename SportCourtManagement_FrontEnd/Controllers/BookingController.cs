@@ -281,5 +281,49 @@ namespace SportCourtManagement_FrontEnd.Controllers
             ViewBag.BookingCodeList = bookingCodes?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
             return View();
         }
+
+        // GET: /Booking/CheckStatus?bookingCodes=BK-001,BK-002
+        [HttpGet]
+        public async Task<IActionResult> CheckStatus(string bookingCodes)
+        {
+            if (string.IsNullOrEmpty(bookingCodes))
+            {
+                return Json(new { success = false, message = "Không tìm thấy mã đặt sân." });
+            }
+
+            var codes = bookingCodes.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var allPaid = true;
+
+            foreach (var code in codes)
+            {
+                try
+                {
+                    var jsonStr = await _apiService.GetRawJsonAsync($"api/SePay/status/{code.Trim()}");
+                    using var statusDoc = JsonDocument.Parse(jsonStr);
+                    if (statusDoc.RootElement.TryGetProperty("status", out var statusProp))
+                    {
+                        var status = statusProp.GetString();
+                        // If it is in DB, status will be "Confirmed" or "Paid" (indicating paid)
+                        if (status != "Confirmed" && status != "Paid")
+                        {
+                            allPaid = false;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        allPaid = false;
+                        break;
+                    }
+                }
+                catch
+                {
+                    allPaid = false;
+                    break;
+                }
+            }
+
+            return Json(new { success = true, allPaid = allPaid });
+        }
     }
 }
