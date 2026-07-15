@@ -63,6 +63,33 @@ public class AccountController(IAuthService authService, IOptions<ApiSettings> a
         return RedirectToRoleHome(result.Response.User.Role);
     }
 
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> GoogleLogin(string idToken, string? returnUrl = null)
+    {
+        if (string.IsNullOrWhiteSpace(idToken))
+        {
+            TempData["Error"] = "Token xác thực Google không hợp lệ.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        var result = await authService.GoogleLoginAsync(idToken);
+        if (!result.Succeeded)
+        {
+            TempData["Error"] = result.ErrorMessage ?? "Đăng nhập bằng Google thất bại.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        await SignInUserAsync(result.Response!.User, result.Response.AccessToken, result.Response.RefreshToken);
+        TempData["Success"] = $"Chào mừng {result.Response.User.FullName} quay trở lại!";
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            return Redirect(returnUrl);
+
+        return RedirectToRoleHome(result.Response.User.Role);
+    }
+
     [HttpGet]
     [AllowAnonymous]
     public IActionResult Register() => View(new RegisterViewModel());
@@ -187,8 +214,8 @@ public class AccountController(IAuthService authService, IOptions<ApiSettings> a
 
         var result = await authService.LoginAsync(new LoginRequest
         {
-            Email = "admin@sportscourtms.vn",
-            Password = "Admin@123"
+            Email = "admin@sportcourt.vn",
+            Password = "admin123"
         });
 
         if (!result.Succeeded)

@@ -591,7 +591,9 @@ public class CourtApiService : ICourtApiService
         {
             var req = CreateAuthRequest(HttpMethod.Post, "api/bookings/tournament");
             req.Content = JsonContent.Create(form, null, _jsonOptions);
+            System.Console.WriteLine($"[CreateTournamentResultAsync] Sending request to {req.RequestUri}...");
             var res = await _httpClient.SendAsync(req);
+            System.Console.WriteLine($"[CreateTournamentResultAsync] Response status: {res.StatusCode}");
             if (res.IsSuccessStatusCode)
             {
                 var body = await res.Content.ReadFromJsonAsync<ApiResponse<TournamentDto>>(_jsonOptions);

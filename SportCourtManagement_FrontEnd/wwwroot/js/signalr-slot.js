@@ -4,7 +4,7 @@ $(document).ready(function () {
 
     // Connect to backend SignalR Hub (Local base URL is resolved automatically as relative URL)
     const connection = new signalR.HubConnectionBuilder()
-        .withUrl("http://localhost:5000/hubs/slot-status") // Fallback to absolute if different port
+        .withUrl("https://localhost:7075/hubs/slot-status") // Fallback to absolute if different port
         .withAutomaticReconnect()
         .build();
 

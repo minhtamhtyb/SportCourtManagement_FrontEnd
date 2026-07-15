@@ -57,4 +57,33 @@ public class MockAuthService(MockDataStore store) : IAuthService
     public Task LogoutAsync() => Task.CompletedTask;
 
     public Task<UserDto?> GetCurrentUserAsync() => Task.FromResult<UserDto?>(null);
+
+    public Task<AuthLoginResult> GoogleLoginAsync(string idToken)
+    {
+        var mockEmail = "google-customer@sportcourtms.vn";
+        var user = store.Users.FirstOrDefault(u =>
+            u.Email.Equals(mockEmail, StringComparison.OrdinalIgnoreCase));
+        
+        if (user == null)
+        {
+            user = new UserDto
+            {
+                UserId = store.NextUserId(),
+                FullName = "Google Customer (Mock)",
+                Email = mockEmail,
+                Role = "Customer",
+                MembershipTier = "Bronze",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+            store.Users.Add(user);
+        }
+
+        return Task.FromResult(AuthLoginResult.Ok(new AuthResponse
+        {
+            AccessToken = $"mock-google-token-{user.UserId}",
+            RefreshToken = $"mock-google-refresh-{user.UserId}",
+            User = user
+        }));
+    }
 }
