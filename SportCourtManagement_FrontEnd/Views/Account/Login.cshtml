@@ -1,4 +1,5 @@
 @model LoginViewModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Đăng nhập";
     Layout = "_AuthLayout";
@@ -50,6 +51,38 @@
             </button>
         </form>
 
+        <!-- Google Login Section -->
+        <div class="position-relative my-4 text-center">
+            <hr class="border-secondary" />
+            <span class="position-absolute top-50 start-50 translate-middle bg-dark px-3 text-secondary small text-uppercase fw-semibold" style="font-size: 0.75rem; border-radius: 4px;">hoặc</span>
+        </div>
+
+        <div class="d-flex justify-content-center mb-3">
+            <div id="g_id_onload"
+                 data-client_id="@Configuration["GoogleSettings:ClientId"]"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin w-100"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="filled_black"
+                 data-text="signin_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 data-width="100%">
+            </div>
+        </div>
+
+        <!-- Hidden Form to POST token to Controller -->
+        <form id="googleLoginForm" asp-action="GoogleLogin" method="post" style="display:none;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="idToken" id="googleIdToken" />
+            <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+        </form>
+
         <div class="mt-4 pt-3 border-top border-secondary">
             <p class="text-center text-secondary small text-uppercase fw-semibold mb-2">Tài khoản thử nghiệm nhanh</p>
             <div class="row g-2">
@@ -80,10 +113,18 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         function fillLogin(email, password) {
             document.getElementById('Email').value = email;
             document.getElementById('Password').value = password;
+        }
+
+        function handleCredentialResponse(response) {
+            if (response && response.credential) {
+                document.getElementById('googleIdToken').value = response.credential;
+                document.getElementById('googleLoginForm').submit();
+            }
         }
     </script>
 }

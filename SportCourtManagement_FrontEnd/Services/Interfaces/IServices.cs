@@ -11,6 +11,7 @@ public interface IAuthService
     Task VerifyEmailAsync(VerifyEmailRequest request);
     Task LogoutAsync();
     Task<UserDto?> GetCurrentUserAsync();
+    Task<AuthLoginResult> GoogleLoginAsync(string idToken);
 }
 
 public interface ICourtService

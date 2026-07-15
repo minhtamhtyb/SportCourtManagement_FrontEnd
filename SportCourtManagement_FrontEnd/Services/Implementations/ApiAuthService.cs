@@ -46,4 +46,21 @@ public class ApiAuthService(ApiClient api) : IAuthService
 
     public Task<UserDto?> GetCurrentUserAsync() =>
         api.GetDataAsync<UserDto>("api/auth/me");
+
+    public async Task<AuthLoginResult> GoogleLoginAsync(string idToken)
+    {
+        try
+        {
+            var (data, error, statusCode) = await api.PostForResultAsync<AuthResponse>("api/auth/google", new { IdToken = idToken });
+
+            if (data is not null)
+                return AuthLoginResult.Ok(data);
+
+            return AuthLoginResult.Fail(error ?? "Đăng nhập bằng Google thất bại.");
+        }
+        catch (Exception ex)
+        {
+            return AuthLoginResult.Fail(ex.Message);
+        }
+    }
 }
