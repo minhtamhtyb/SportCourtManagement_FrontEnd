@@ -138,9 +138,9 @@ public class ApiClient(HttpClient http, IHttpContextAccessor httpContextAccessor
         }
         catch (HttpRequestException ex) when (ex.InnerException is System.Net.Sockets.SocketException)
         {
-            var baseUrl = http.BaseAddress?.ToString().TrimEnd('/') ?? "backend";
+            var baseUrl = http.BaseAddress?.ToString().TrimEnd('/') ?? "https://localhost:7075";
             throw new InvalidOperationException(
-                $"Không kết nối được API tại {baseUrl}. Hãy chạy SportCourtManagent_Server trước (dotnet run --launch-profile http).", ex);
+                $"Không kết nối được API tại {baseUrl}. Hãy chạy SportCourtManagent_Server trước (dotnet run --launch-profile https).", ex);
         }
     }
 
@@ -195,7 +195,7 @@ public class ApiClient(HttpClient http, IHttpContextAccessor httpContextAccessor
         {
             var msg = response.StatusCode == System.Net.HttpStatusCode.Unauthorized
                 ? "Backend từ chối yêu cầu (401). Token API không hợp lệ hoặc đã hết hạn — hãy đăng xuất và đăng nhập lại."
-                : $"API trả về phản hồi rỗng (HTTP {(int)response.StatusCode}). Kiểm tra Backend đang chạy tại http://localhost:5000.";
+                : $"API trả về phản hồi rỗng (HTTP {(int)response.StatusCode}). Kiểm tra Backend đang chạy tại https://localhost:7075.";
             return (null, msg);
         }
 
