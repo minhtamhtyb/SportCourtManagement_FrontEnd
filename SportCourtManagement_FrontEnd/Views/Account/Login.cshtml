@@ -3,6 +3,14 @@
 @{
     ViewData["Title"] = "Đăng nhập";
     Layout = "_AuthLayout";
+
+    var useMock = Configuration.GetValue<bool>("ApiSettings:UseMockData", true);
+    var customerEmail = useMock ? "customer@gmail.com" : "customer@sportcourt.vn";
+    var customerPwd = useMock ? "Customer@123" : "customer123";
+    var adminEmail = useMock ? "admin@sportscourtms.vn" : "admin@sportcourt.vn";
+    var adminPwd = useMock ? "Admin@123" : "admin123";
+    var staffEmail = useMock ? "staff@sportscourtms.vn" : "staff@sportcourt.vn";
+    var staffPwd = useMock ? "Staff@123" : "Staff@123";
 }
 
 <div class="auth-wrapper">
@@ -87,13 +95,13 @@
             <p class="text-center text-secondary small text-uppercase fw-semibold mb-2">Tài khoản thử nghiệm nhanh</p>
             <div class="row g-2">
                 <div class="col-4">
-                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="fillLogin('customer@gmail.com','Customer@123')">👤 Khách</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="fillLogin('@customerEmail','@customerPwd')">👤 Khách</button>
                 </div>
                 <div class="col-4">
-                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="fillLogin('admin@sportscourtms.vn','Admin@123')">🛡️ Admin</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="fillLogin('@adminEmail','@adminPwd')">🛡️ Admin</button>
                 </div>
                 <div class="col-4">
-                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="fillLogin('staff@sportscourtms.vn','Staff@123')">👷 NV</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="fillLogin('@staffEmail','@staffPwd')">👷 NV</button>
                 </div>
             </div>
             <form asp-action="DevLoginAdmin" method="post" class="mt-2">

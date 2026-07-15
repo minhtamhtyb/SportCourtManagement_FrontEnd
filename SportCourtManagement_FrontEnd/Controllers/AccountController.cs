@@ -214,8 +214,8 @@ public class AccountController(IAuthService authService, IOptions<ApiSettings> a
 
         var result = await authService.LoginAsync(new LoginRequest
         {
-            Email = "admin@sportscourtms.vn",
-            Password = "Admin@123"
+            Email = "admin@sportcourt.vn",
+            Password = "admin123"
         });
 
         if (!result.Succeeded)
