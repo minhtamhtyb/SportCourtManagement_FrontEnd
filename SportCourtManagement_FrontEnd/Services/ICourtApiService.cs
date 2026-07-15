@@ -55,6 +55,10 @@ public interface ICourtApiService
 
     // Raw JSON utility
     Task<string> GetRawJsonAsync(string relativeUrl);
+
+    // Singular Booking (BookingController - no auth, hardcoded userId)
+    Task<SingularBookingResponseDto?> CreateSingularBookingAsync(CreateBookingRequestDto request);
+    Task<(bool Success, string Message, SingularBookingResponseDto? Data)> SimulateSePayWebhookAsync(string bookingCode, decimal amount);
 }
 
 
