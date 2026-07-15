@@ -23,20 +23,24 @@ public class JwtForwardingHandler(IHttpContextAccessor httpContextAccessor) : De
                 System.Console.WriteLine($"[JwtForwardingHandler] Authorization header set to: Bearer {(token.Length > 15 ? token.Substring(0, 15) : token)}...");
                 try
                 {
-                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                    if (handler.CanReadToken(token))
+                    var parts = token.Split('.');
+                    if (parts.Length > 1)
                     {
-                        var jwtToken = handler.ReadJwtToken(token);
-                        System.Console.WriteLine($"[JwtForwardingHandler] JWT Decoded: Issuer={jwtToken.Issuer}, Audience={string.Join(",", jwtToken.Audiences)}, ValidTo={jwtToken.ValidTo}");
-                        foreach (var claim in jwtToken.Claims)
+                        var payload = parts[1];
+                        payload = payload.Replace('-', '+').Replace('_', '/');
+                        switch (payload.Length % 4)
                         {
-                            System.Console.WriteLine($"  Claim: {claim.Type} = {claim.Value}");
+                            case 2: payload += "=="; break;
+                            case 3: payload += "="; break;
                         }
+                        var decodedBytes = System.Convert.FromBase64String(payload);
+                        var json = System.Text.Encoding.UTF8.GetString(decodedBytes);
+                        System.Console.WriteLine($"[JwtForwardingHandler] JWT Decoded Payload JSON: {json}");
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    System.Console.WriteLine($"[JwtForwardingHandler] Failed to decode JWT: {ex.Message}");
+                    System.Console.WriteLine($"[JwtForwardingHandler] Failed to custom decode JWT: {ex.Message}");
                 }
             }
             else
