@@ -21,6 +21,23 @@ public class JwtForwardingHandler(IHttpContextAccessor httpContextAccessor) : De
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 System.Console.WriteLine($"[JwtForwardingHandler] Authorization header set to: Bearer {(token.Length > 15 ? token.Substring(0, 15) : token)}...");
+                try
+                {
+                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                    if (handler.CanReadToken(token))
+                    {
+                        var jwtToken = handler.ReadJwtToken(token);
+                        System.Console.WriteLine($"[JwtForwardingHandler] JWT Decoded: Issuer={jwtToken.Issuer}, Audience={string.Join(",", jwtToken.Audiences)}, ValidTo={jwtToken.ValidTo}");
+                        foreach (var claim in jwtToken.Claims)
+                        {
+                            System.Console.WriteLine($"  Claim: {claim.Type} = {claim.Value}");
+                        }
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    System.Console.WriteLine($"[JwtForwardingHandler] Failed to decode JWT: {ex.Message}");
+                }
             }
             else
             {
