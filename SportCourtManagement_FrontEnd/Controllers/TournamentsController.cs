@@ -189,12 +189,30 @@ public class TournamentsController : Controller
   [HttpGet]
   public async Task<IActionResult> Payment(int id)
   {
-    var pagedData = await _apiService.GetPagedMyTournamentsAsync(null, null, null, null, 1, 100);
-    var tour = pagedData.Items.Find(t => t.TournamentId == id);
+    var tour = await _apiService.GetMyTournamentDetailAsync(id);
     if (tour == null)
     {
       TempData["ErrorMessage"] = "Không tìm thấy giải đấu hoặc bạn không có quyền truy cập.";
       return RedirectToAction(nameof(MyTournaments));
+    }
+
+    if (string.Equals(tour.Status, "Paid", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(tour.Status, "Confirmed", StringComparison.OrdinalIgnoreCase))
+    {
+      TempData["SuccessMessage"] = $"Giải đấu #{tour.TournamentId} ({tour.TournamentName}) đã được thanh toán thành công!";
+      return RedirectToAction(nameof(MyDetail), new { id = tour.TournamentId });
+    }
+
+    if (string.Equals(tour.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+    {
+      TempData["ErrorMessage"] = $"Giải đấu #{tour.TournamentId} đã bị hủy, không thể tiếp tục thanh toán.";
+      return RedirectToAction(nameof(MyTournaments));
+    }
+
+    if (tour.ExpiredAt.HasValue && DateTime.SpecifyKind(tour.ExpiredAt.Value, DateTimeKind.Utc) < DateTime.UtcNow && string.Equals(tour.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+    {
+      TempData["ErrorMessage"] = $"Đơn đặt giải đấu #{tour.TournamentId} đã hết hạn giữ chỗ (10 phút). Vui lòng đặt lại giải đấu mới.";
+      return RedirectToAction(nameof(MyDetail), new { id = tour.TournamentId });
     }
 
     var qrCode = await _apiService.GetSePayQrCodeAsync($"TM-{id}");
@@ -202,6 +220,33 @@ public class TournamentsController : Controller
 
     return View(tour);
   }
+
+  // GET: /Tournaments/CheckPaymentStatus/5
+  [HttpGet]
+  public async Task<IActionResult> CheckPaymentStatus(int id)
+  {
+    var tour = await _apiService.GetMyTournamentDetailAsync(id);
+    if (tour == null)
+    {
+      return NotFound(new { success = false, message = "Không tìm thấy thông tin giải đấu." });
+    }
+
+    bool isPaid = string.Equals(tour.Status, "Paid", StringComparison.OrdinalIgnoreCase) ||
+                  string.Equals(tour.Status, "Confirmed", StringComparison.OrdinalIgnoreCase);
+    bool isCancelled = string.Equals(tour.Status, "Cancelled", StringComparison.OrdinalIgnoreCase);
+    bool isExpired = tour.ExpiredAt.HasValue && DateTime.SpecifyKind(tour.ExpiredAt.Value, DateTimeKind.Utc) < DateTime.UtcNow && string.Equals(tour.Status, "Pending", StringComparison.OrdinalIgnoreCase);
+
+    return Ok(new
+    {
+      success = true,
+      status = tour.Status,
+      isPaid = isPaid,
+      isCancelled = isCancelled,
+      isExpired = isExpired,
+      redirectUrl = Url.Action(nameof(MyDetail), "Tournaments", new { id = tour.TournamentId })
+    });
+  }
+
 
   // GET: /Tournaments/MyDetail/5 (Màn hình chi tiết giải đấu của tôi)
   [HttpGet]

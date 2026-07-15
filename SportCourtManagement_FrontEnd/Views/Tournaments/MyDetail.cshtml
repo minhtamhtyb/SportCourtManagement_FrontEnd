@@ -6,10 +6,10 @@
   bool isConfirmedOrPaid = Model.Status == "Confirmed" || Model.Status == "Paid";
   bool isCancelled = Model.Status == "Cancelled";
 
-  // TTL 10 phút tính từ CreatedAt
-  var expiredAt = Model.CreatedAt.AddMinutes(10);
-  var now = DateTime.UtcNow.AddHours(7); // Giả sử UTC+7 hoặc lấy theo thời gian thực JS
-  var remainingSeconds = (int)(expiredAt - now).TotalSeconds;
+  // TTL 10 phút tính từ ExpiredAt (UTC) hoặc CreatedAt + 10m
+  var expiredAt = Model.ExpiredAt ?? Model.CreatedAt.AddMinutes(10);
+  var nowUtc = DateTime.UtcNow;
+  var remainingSeconds = (int)(expiredAt - nowUtc).TotalSeconds;
 }
 
 <style>
@@ -145,7 +145,7 @@
           }
         </div>
         <h1 class="fw-bold mb-2 text-white">@Model.TournamentName</h1>
-        <p class="mb-0 text-white-50"><i class="bi bi-calendar-check me-2"></i>Ngày tạo: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+        <p class="mb-0 text-white-50"><i class="bi bi-calendar-check me-2"></i>Ngày tạo: @Model.CreatedAt.AddHours(7).ToString("dd/MM/yyyy HH:mm")</p>
         @if (!string.IsNullOrEmpty(Model.Description))
         {
           <p class="mt-2 mb-0 text-white-50"><i class="bi bi-info-circle me-2"></i>@Model.Description</p>
@@ -160,16 +160,16 @@
     </div>
   </div>
 
-  <!-- TTL Countdown Banner (Nếu đang Pending) -->
+  <!-- TTL Countdown / Expired Banner (Nếu đang Pending) -->
   @if (isPending)
   {
-    <div id="ttlBannerContainer" class="mb-5">
+    <div id="ttlBannerContainer" class="mb-5 @(remainingSeconds <= 0 ? "d-none" : "")">
       <div class="alert alert-warning border-0 rounded-4 shadow-sm p-4 ttl-alert d-flex align-items-center justify-content-between flex-wrap gap-3" role="alert">
         <div class="d-flex align-items-center gap-3">
           <div class="fs-1 text-warning"><i class="bi bi-hourglass-split"></i></div>
           <div>
             <h5 class="fw-bold mb-1 text-dark">Đơn Giải Đấu Đang Giữ Chỗ Thanh Toán (TTL 10 Phút)</h5>
-            <p class="mb-0 text-secondary">Để tránh giữ chỗ ảo gây ảnh hưởng lịch sân, vui lòng hoàn tất thanh toán trong: <strong id="ttlCountdownDisplay" class="text-danger fs-5">@remainingSeconds</strong></p>
+            <p class="mb-0 text-secondary">Để tránh giữ chỗ ảo gây ảnh hưởng lịch sân, vui lòng hoàn tất thanh toán trong: <strong id="ttlCountdownDisplay" class="text-danger fs-5"></strong></p>
           </div>
         </div>
         <div>
@@ -180,13 +180,20 @@
       </div>
     </div>
 
-    <!-- Banner khi hết giờ (Ẩn mặc định) -->
-    <div id="ttlExpiredBanner" class="alert alert-danger border-0 rounded-4 shadow-sm p-4 mb-5 d-none" role="alert">
-      <div class="d-flex align-items-center gap-3">
-        <i class="bi bi-exclamation-triangle-fill fs-1 text-danger"></i>
+    <!-- Banner khi hết giờ -->
+    <div id="ttlExpiredBanner" class="alert alert-danger border-0 rounded-4 shadow-sm p-4 mb-5 @(remainingSeconds > 0 ? "d-none" : "")" role="alert">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-exclamation-triangle-fill fs-1 text-danger"></i>
+          <div>
+            <h5 class="fw-bold mb-1 text-danger">Thời Gian Giữ Chỗ Đã Hết (TTL Expired)</h5>
+            <p class="mb-0 text-dark">Thời gian giữ chỗ 10 phút đã hết hạn. Các ca thi đấu của giải này hiện đã tự động mở lại cho khách hàng khác đặt đè. Vui lòng đặt lại giải đấu mới nếu bạn chưa chuyển khoản.</p>
+          </div>
+        </div>
         <div>
-          <h5 class="fw-bold mb-1">Thời Gian Giữ Chỗ Đã Hết (TTL Expired)</h5>
-          <p class="mb-0">Các ca thi đấu của giải này đã tự động mở lại cho khách hàng khác đặt. Anh/chị vẫn có thể bấm thanh toán nếu các ca chưa bị người khác tranh mất, hoặc tạo đơn giải đấu mới!</p>
+          <a asp-action="Create" class="btn btn-primary btn-lg px-4 rounded-pill fw-bold shadow-sm">
+            <i class="bi bi-plus-circle me-2"></i>Đặt Lại Giải Đấu Mới
+          </a>
         </div>
       </div>
     </div>
@@ -396,6 +403,14 @@
         return;
       }
 
+      const updateDisplay = () => {
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        displayEl.textContent = `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+      };
+
+      updateDisplay();
+
       const timer = setInterval(() => {
         remaining--;
         if (remaining <= 0) {
@@ -403,17 +418,15 @@
           containerEl.classList.add('d-none');
           expiredEl.classList.remove('d-none');
         } else {
-          const mins = Math.floor(remaining / 60);
-          const secs = remaining % 60;
-          displayEl.textContent = `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+          updateDisplay();
         }
       }, 1000);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Tính số giây từ server hoặc mặc định 600s
-      const remaining = @((int)(Model.CreatedAt.AddMinutes(10) - DateTime.UtcNow.AddHours(7)).TotalSeconds);
-      startDetailTtlCountdown(remaining > 0 ? remaining : 600);
+      // Lấy chính xác số giây thực tế từ server
+      const remaining = @((int)((Model.ExpiredAt ?? Model.CreatedAt.AddMinutes(10)) - DateTime.UtcNow).TotalSeconds);
+      startDetailTtlCountdown(remaining);
     });
   </script>
 }

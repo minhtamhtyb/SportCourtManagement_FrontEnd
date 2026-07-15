@@ -67,14 +67,25 @@
                             
                             <div class="mb-3">
                                 <div class="text-sc-muted small mb-1">Ngân hàng thụ hưởng</div>
-                                <div class="text-white fw-bold fs-6">MB BANK (Ngân hàng Quân Đội)</div>
+                                @{
+                                    string bankName = "MB BANK (Ngân hàng Quân Đội)";
+                                    if (qrCode?.BankBin == "970415") bankName = "VietinBank (NH TMCP Công Thương VN)";
+                                    else if (qrCode?.BankBin == "970436") bankName = "Vietcombank (NH TMCP Ngoại Thương VN)";
+                                    else if (qrCode?.BankBin == "970418") bankName = "BIDV (NH TMCP Đầu tư và Phát triển VN)";
+                                    else if (qrCode?.BankBin == "970405") bankName = "Agribank (NH NN&PTNT VN)";
+                                    else if (qrCode?.BankBin == "970403") bankName = "Sacombank (NH TMCP Sài Gòn Thương Tín)";
+                                    else if (qrCode?.BankBin == "970407") bankName = "Techcombank (NH TMCP Kỹ Thương VN)";
+                                    else if (qrCode?.BankBin == "970422") bankName = "MB BANK (Ngân hàng Quân Đội)";
+                                    else if (!string.IsNullOrEmpty(qrCode?.BankBin)) bankName = $"Ngân hàng (BIN: {qrCode.BankBin})";
+                                }
+                                <div class="text-white fw-bold fs-6">@bankName</div>
                             </div>
 
                             <div class="mb-3">
                                 <div class="text-sc-muted small mb-1">Số tài khoản</div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span class="text-sc-green font-monospace fw-bold fs-5">@(qrCode?.AccountNumber ?? "101830532104")</span>
-                                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-2 py-0" onclick="navigator.clipboard.writeText('@(qrCode?.AccountNumber ?? "101830532104")'); alert('Đã sao chép số tài khoản!');">
+                                    <span class="text-sc-green font-monospace fw-bold fs-5">@(qrCode?.AccountNumber ?? "101070204")</span>
+                                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-2 py-0" onclick="navigator.clipboard.writeText('@(qrCode?.AccountNumber ?? "101070204")'); alert('Đã sao chép số tài khoản!');">
                                         <i class="bi bi-clipboard small"></i> Sao chép
                                     </button>
                                 </div>
@@ -82,7 +93,7 @@
 
                             <div class="mb-3">
                                 <div class="text-sc-muted small mb-1">Tên người thụ hưởng</div>
-                                <div class="text-white fw-bold">@(qrCode?.AccountName ?? "NGUYEN VU KIM PHUOC")</div>
+                                <div class="text-white fw-bold">@(qrCode?.AccountName ?? "NGUYEN TRUONG AN")</div>
                             </div>
 
                             <div class="mb-3">
@@ -148,9 +159,9 @@
                     <a asp-action="MyTournaments" class="sc-btn sc-btn-outline font-outfit px-4 py-2">
                         <i class="bi bi-arrow-left me-1"></i> Trở về Quản lý Giải đấu
                     </a>
-                    <a asp-action="MyTournaments" class="sc-btn sc-btn-gradient font-outfit px-4 py-2">
+                    <button type="button" id="btnCheckPayment" class="sc-btn sc-btn-gradient font-outfit px-4 py-2" onclick="verifyManualPayment()">
                         <i class="bi bi-check2-circle me-1"></i> Tôi đã thanh toán xong
-                    </a>
+                    </button>
                 </div>
 
             </div>
@@ -160,15 +171,20 @@
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', initPaymentCountdown);
+        document.addEventListener('DOMContentLoaded', function () {
+            initPaymentCountdown();
+            initPaymentPolling();
+        });
+
+        let countdownIntervalId = null;
+        let pollingIntervalId = null;
 
         /**
          * Initializes the 10-minute TTL countdown timer.
          */
         function initPaymentCountdown() {
-            const createdAtStr = '@Model.CreatedAt.ToString("o")';
-            const createdAt = new Date(createdAtStr).getTime();
-            const expiredAt = createdAt + (10 * 60 * 1000); // 10 minutes TTL
+            const expiredAtStr = '@(Model.ExpiredAt.HasValue ? DateTime.SpecifyKind(Model.ExpiredAt.Value, DateTimeKind.Utc).ToString("yyyy-MM-ddTHH:mm:ss") + "Z" : DateTime.SpecifyKind(Model.CreatedAt.AddMinutes(10), DateTimeKind.Utc).ToString("yyyy-MM-ddTHH:mm:ss") + "Z")';
+            const expiredAt = new Date(expiredAtStr).getTime();
 
             const timerEl = document.getElementById('countdownTimer');
             const containerEl = document.getElementById('ttlCountdownContainer');
@@ -178,7 +194,8 @@
                 const distance = expiredAt - now;
 
                 if (distance < 0) {
-                    clearInterval(interval);
+                    if (countdownIntervalId) clearInterval(countdownIntervalId);
+                    if (pollingIntervalId) clearInterval(pollingIntervalId);
                     handleExpiredTtl(timerEl, containerEl);
                     return;
                 }
@@ -191,7 +208,74 @@
             }
 
             updateCountdown();
-            const interval = setInterval(updateCountdown, 1000);
+            countdownIntervalId = setInterval(updateCountdown, 1000);
+        }
+
+        /**
+         * Initializes automatic status polling every 5 seconds.
+         */
+        function initPaymentPolling() {
+            const checkUrl = '@Url.Action("CheckPaymentStatus", "Tournaments", new { id = Model.TournamentId })';
+            pollingIntervalId = setInterval(async function () {
+                await fetchAndVerifyPayment(checkUrl, false);
+            }, 5000);
+        }
+
+        /**
+         * Fetches current status from API and handles redirect on paid.
+         * @@param {string} url Endpoint URL to check.
+         * @@param {boolean} isManual True if triggered by user button click.
+         */
+        async function fetchAndVerifyPayment(url, isManual) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    if (isManual) alert('Không kiểm tra được trạng thái thanh toán. Vui lòng thử lại!');
+                    return;
+                }
+
+                const data = await response.json();
+                if (data && data.success && data.isPaid) {
+                    if (countdownIntervalId) clearInterval(countdownIntervalId);
+                    if (pollingIntervalId) clearInterval(pollingIntervalId);
+
+                    alert('🎉 Thanh toán thành công! Hệ thống đã tự động xác nhận giải đấu của bạn.');
+                    window.location.href = data.redirectUrl || '@Url.Action("MyDetail", "Tournaments", new { id = Model.TournamentId })';
+                } else if (data && data.success && (data.isCancelled || data.isExpired)) {
+                    if (countdownIntervalId) clearInterval(countdownIntervalId);
+                    if (pollingIntervalId) clearInterval(pollingIntervalId);
+
+                    alert('⚠️ Đơn đặt giải đấu đã bị hủy hoặc hết hạn giữ chỗ (TTL 10 phút).');
+                    window.location.href = data.redirectUrl || '@Url.Action("MyDetail", "Tournaments", new { id = Model.TournamentId })';
+                } else if (isManual) {
+                    alert('⏳ Hệ thống chưa ghi nhận được khoản thanh toán từ ngân hàng (thường mất 5-30 giây). Vui lòng đợi trong giây lát hoặc kiểm tra lại!');
+                }
+            } catch (error) {
+                console.error('Lỗi khi kiểm tra trạng thái thanh toán:', error);
+                if (isManual) {
+                    alert('Lỗi kết nối khi kiểm tra trạng thái thanh toán.');
+                }
+            }
+        }
+
+        /**
+         * Verifies payment immediately when user clicks button.
+         */
+        async function verifyManualPayment() {
+            const btn = document.getElementById('btnCheckPayment');
+            const originalText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang kiểm tra...';
+            }
+
+            const checkUrl = '@Url.Action("CheckPaymentStatus", "Tournaments", new { id = Model.TournamentId })';
+            await fetchAndVerifyPayment(checkUrl, true);
+
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         }
 
         /**

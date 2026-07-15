@@ -18,6 +18,7 @@ public class TournamentDto
   public decimal TotalAmount { get; set; }
   public string Status { get; set; } = string.Empty;
   public DateTime CreatedAt { get; set; }
+  public DateTime? ExpiredAt { get; set; }
   public List<TournamentBookingItemDto> Bookings { get; set; } = new();
 }
 
