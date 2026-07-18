@@ -1,0 +1,90 @@
+@model SportCourtManagement_FrontEnd.Models.Tournaments.TournamentDto
+
+@{
+    ViewData["Title"] = "Thanh toán giải đấu thành công - #" + Model.TournamentId;
+}
+
+<main class="sc-container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="sc-card p-4" style="background-color: #0D121F; border: 1px solid rgba(16, 185, 129, 0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+                
+                <!-- Animated Success Checkmark -->
+                <div class="text-center pb-4 mb-4 border-bottom" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-sc-green rounded-circle mb-3 pulse-success-icon" style="width: 72px; height: 72px; font-size: 36px;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <h3 class="text-white font-outfit fw-black mb-1" style="font-weight: 800; letter-spacing: -0.5px;">Thanh Toán Thành Công!</h3>
+                    <p class="text-sc-muted mb-0 small">Giải đấu <strong class="text-white">@Model.TournamentName</strong> đã được xác nhận.</p>
+                </div>
+
+                <!-- Ticket Receipt Details -->
+                <div class="sc-ticket-receipt mb-4">
+                    <div class="sc-ticket-header p-3 text-center" style="background-color: #141B2D; border: 1px solid var(--sc-border); border-bottom: 1px dashed rgba(255,255,255,0.1); border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                        <span class="text-sc-muted text-xs uppercase font-inter fw-bold">MÃ GIẢI ĐẤU (TOURNAMENT ID)</span>
+                        <h4 class="font-outfit text-white fw-bold mt-1 mb-0">#@Model.TournamentId</h4>
+                    </div>
+                    <div class="sc-ticket-body p-3" style="background-color: #141B2D; border: 1px solid var(--sc-border); border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; font-size: 13.5px;">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-sc-muted">Tên giải đấu:</span>
+                            <span class="text-white fw-bold">@Model.TournamentName</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-sc-muted">Số lượng lịch thi đấu:</span>
+                            <span class="text-white fw-semibold">@Model.Bookings.Count lịch</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-sc-muted">Trạng thái:</span>
+                            <span class="sc-badge sc-badge-green" style="background-color: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.4);"><i class="bi bi-check-circle me-1"></i> Đã thanh toán</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-sc-muted">Hình thức:</span>
+                            <span class="text-white fw-semibold">Chuyển khoản VietQR</span>
+                        </div>
+                        <hr style="border-color: rgba(255,255,255,0.05); margin: 12px 0;" />
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <span class="text-white fw-bold">Tổng tiền đã thanh toán:</span>
+                            <span class="font-outfit text-sc-green fw-black" style="font-size: 20px; font-weight: 800;">@Model.TotalAmount.ToString("N0")đ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer message -->
+                <div class="p-3 mb-4 rounded text-center" style="background-color: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.15); font-size: 12.5px; line-height: 1.6;">
+                    <span class="text-sc-green fw-bold d-block mb-1"><i class="bi bi-info-circle-fill me-1"></i> Thông tin thêm</span>
+                    <span class="text-sc-muted">Cảm ơn bạn đã đặt giải đấu. Bạn có thể xem chi tiết các lịch thi đấu trong phần Quản lý Giải Đấu của tôi.</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex flex-column gap-2">
+                    <a asp-controller="Tournaments" asp-action="MyDetail" asp-route-id="@Model.TournamentId" class="sc-btn sc-btn-primary w-100 py-3 font-outfit text-center text-decoration-none" style="font-size: 15px; font-weight: 700; border-radius: 12px;">
+                        <i class="bi bi-eye me-1"></i> Xem chi tiết giải đấu
+                    </a>
+                    <a asp-controller="Tournaments" asp-action="MyTournaments" class="btn btn-outline-light w-100 py-3 font-outfit text-center text-decoration-none" style="font-size: 15px; font-weight: 700; border-radius: 12px;">
+                        <i class="bi bi-list me-1"></i> Danh sách giải đấu của tôi
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <style>
+        .pulse-success-icon {
+            animation: pulse-green 2s infinite;
+        }
+
+        @@keyframes pulse-green {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+    </style>
+}

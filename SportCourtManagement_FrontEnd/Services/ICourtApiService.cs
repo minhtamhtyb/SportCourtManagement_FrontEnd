@@ -8,6 +8,7 @@ using SportCourtManagement_FrontEnd.Models.Bookings;
 using SportCourtManagement_FrontEnd.Models.Promotions;
 using SportCourtManagement_FrontEnd.Models.Tournaments;
 using SportCourtManagement_FrontEnd.Models.Services;
+using ComplexCourtTypeServiceDto = SportCourtManagement_FrontEnd.Models.DTOs.ComplexCourtTypeServiceDto;
 
 namespace SportCourtManagement_FrontEnd.Services;
 
@@ -19,6 +20,7 @@ public interface ICourtApiService
     Task<PagedResult<ReviewDto>> GetCourtReviewsAsync(int courtId, int pageNumber, int pageSize);
     Task<List<CourtTypeDto>> GetCourtTypesAsync();
     Task<List<ServiceDto>> GetServicesAsync();
+    Task<List<ComplexCourtTypeServiceDto>> GetComplexServicesAsync(int complexId);
     Task<List<TimeSlotDto>> GetTimeSlotsAsync();
     Task<(bool success, string message)> SubmitReviewAsync(int courtId, int bookingId, byte rating, string? comment, string? token);
     Task<BookingResponseDto?> CreateBookingAsync(BookingRequestDto request, string? token);
