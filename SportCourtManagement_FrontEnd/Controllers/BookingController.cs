@@ -217,6 +217,48 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 }
             }
 
+            if (bookings.Count == 0 && !string.IsNullOrEmpty(bookingCodes))
+            {
+                var codes = bookingCodes.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim()).ToList();
+                var token = GetToken();
+                var allMyBookings = await _apiService.GetPagedMyBookingsAsync(null, null, null, null, 1, 100, token);
+                if (allMyBookings?.Items != null)
+                {
+                    foreach (var code in codes)
+                    {
+                        var matched = allMyBookings.Items.FirstOrDefault(b => string.Equals(b.BookingCode, code, StringComparison.OrdinalIgnoreCase));
+                        if (matched != null)
+                        {
+                            bookings.Add(new SingularBookingResponseDto
+                            {
+                                BookingId = matched.BookingId,
+                                BookingCode = matched.BookingCode,
+                                UserId = matched.UserId,
+                                CourtId = matched.CourtId,
+                                CourtName = matched.CourtName,
+                                SlotId = matched.SlotId,
+                                SlotName = matched.SlotName,
+                                BookingDate = matched.BookingDate,
+                                StartTime = TimeSpan.Parse(matched.StartTime),
+                                EndTime = TimeSpan.Parse(matched.EndTime),
+                                SubTotal = matched.SubTotal,
+                                DiscountAmount = matched.DiscountAmount,
+                                TotalAmount = matched.TotalAmount,
+                                Status = matched.Status,
+                                BookingServices = matched.Services.Select(s => new SingularBookingServiceResponseDto
+                                {
+                                    ServiceId = s.ServiceId,
+                                    ServiceName = s.ServiceName,
+                                    Quantity = s.Quantity,
+                                    Price = s.UnitPrice,
+                                    TotalPrice = s.TotalPrice
+                                }).ToList()
+                            });
+                        }
+                    }
+                }
+            }
+
             if (bookings.Count == 0)
             {
                 TempData["ErrorMessage"] = "Không tìm thấy thông tin đặt sân. Phiên có thể đã hết hạn.";
@@ -324,6 +366,16 @@ namespace SportCourtManagement_FrontEnd.Controllers
             }
 
             return Json(new { success = true, allPaid = allPaid });
+        }
+
+        private string? GetToken()
+        {
+            var token = HttpContext.Session.GetString(Services.Api.JwtForwardingHandler.SessionTokenKey);
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                token = User.FindFirst(Services.Api.JwtForwardingHandler.AccessTokenClaimType)?.Value;
+            }
+            return token;
         }
     }
 }

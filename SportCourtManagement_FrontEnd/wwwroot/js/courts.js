@@ -43,32 +43,7 @@ $(document).ready(function () {
 
   // === 3. Slot Selection (Chọn ô giờ đặt sân) ===
   function bindSlotSelection() {
-    var $selectableSlots = $(".sc-slot-btn").not(
-      ".sc-slot-booked, .sc-slot-maintenance",
-    );
-
-    $selectableSlots.on("click", function () {
-      // Gỡ bỏ chọn ở các ô khác
-      $selectableSlots.removeClass("sc-slot-selected");
-
-      // Chọn ô hiện tại
-      $(this).addClass("sc-slot-selected");
-
-      // Lấy thông tin từ data attributes
-      var slotId = $(this).data("slot-id");
-      var slotName = $(this).data("slot-name");
-      var price = $(this).data("price");
-
-      // Cập nhật lên giao diện và thẻ ẩn input
-      $("#selected-slot-id").val(slotId);
-      $("#selected-slot-label").text(slotName);
-
-      if (price) {
-        $("#booking-price").text(
-          parseFloat(price).toLocaleString("vi-VN") + "đ",
-        );
-      }
-    });
+    // Disable slot selection on detail page
   }
   bindSlotSelection(); // Gọi lần đầu khi vừa load trang xong
 
@@ -127,24 +102,34 @@ $(document).ready(function () {
 
   // === 6. Book Now Button Click Handler (Xử lý khi click Đặt sân ngay) ===
   $("#btn-book-now").on("click", function () {
-    var isLoggedIn = $(this).data("logged-in") === true;
-    // if (!isLoggedIn) {
-    //     alert("Bạn cần đăng nhập trước khi thực hiện đặt sân!");
-    //     return;
-    // }
-
-    var slotId = $("#selected-slot-id").val();
     var date = $("#booking-date").val();
     var courtId = $("#court-id").val();
 
-    if (!slotId) {
-      alert("Vui lòng chọn một khung giờ còn trống trước khi đặt sân!");
+    if (!date) {
+      alert("Vui lòng chọn ngày chơi!");
+      return;
+    }
+
+    var $slotsContainer = $("#slots-container");
+    if ($slotsContainer.text().indexOf("Đang tải") !== -1) {
+      alert("Vui lòng đợi tải lịch trống!");
+      return;
+    }
+
+    if ($slotsContainer.text().indexOf("Lỗi tải lịch trống") !== -1) {
+      alert("Không thể tải lịch trống. Vui lòng làm mới trang hoặc thử lại!");
+      return;
+    }
+
+    var hasAvailableSlot = $slotsContainer.find(".sc-slot-available").length > 0;
+    if (!hasAvailableSlot) {
+      alert("Không có khung giờ trống nào trong ngày đã chọn để đặt sân!");
       return;
     }
 
     // Navigate to booking creation page (singular Booking flow)
     window.location.href =
-      "/Booking?courtId=" + courtId + "&date=" + date + "&slotId=" + slotId;
+      "/Booking?courtId=" + courtId + "&date=" + date;
   });
 });
 

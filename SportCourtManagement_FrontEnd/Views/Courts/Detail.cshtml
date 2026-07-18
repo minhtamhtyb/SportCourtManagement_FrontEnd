@@ -2,6 +2,15 @@
     ViewData["Title"] = "Chi tiết sân đấu";
 }
 
+<style>
+    .sc-slot-grid .sc-slot-btn {
+        cursor: default !important;
+    }
+    .sc-slot-grid .sc-slot-available:hover {
+        background-color: rgba(16, 185, 129, 0.08) !important;
+    }
+</style>
+
 <main class="sc-container py-4">
     <!-- Breadcrumb -->
     <nav class="sc-breadcrumb">
@@ -207,10 +216,6 @@
 
                     <!-- Booking Selection Display Info -->
                     <div class="p-3 mb-4 rounded" style="background-color: #141B2D; font-size: 13px; border: 1px solid var(--sc-border);">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-sc-muted">Khung giờ đã chọn:</span>
-                            <span id="selected-slot-label" class="text-white fw-bold">-- Chưa chọn --</span>
-                        </div>
                         <div class="d-flex justify-content-between">
                             <span class="text-sc-muted">Chính sách trả sân:</span>
                             <span class="text-sc-red fw-bold">Không hỗ trợ hủy/hoàn tiền</span>

@@ -1,0 +1,698 @@
+@model SportCourtManagement_FrontEnd.Models.ViewModels.MyBookingsPageViewModel
+@{
+    ViewData["Title"] = "Lịch sử đặt sân của tôi";
+}
+
+<div class="container py-5 font-outfit text-white" style="background-color: #0B0F19; min-height: 100vh;">
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-3 border-bottom pb-4" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
+        <div>
+            <h1 class="fw-extrabold text-white mb-2" style="font-size: 2.5rem; letter-spacing: -1px; background: linear-gradient(135deg, #FFF 0%, #A5B4FC 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                <i class="bi bi-collection-play-fill text-indigo-500 me-2"></i> Lịch Sử Đặt Sân
+            </h1>
+            <p class="text-secondary mb-0">Quản lý, đổi sân, đặt thêm dịch vụ tiện ích và đánh giá trải nghiệm của bạn</p>
+        </div>
+        <a asp-controller="Courts" asp-action="Index" class="btn text-white px-4 py-2.5 rounded-pill shadow-lg hover-scale transition-all" style="background: linear-gradient(135deg, #4F6EF7 0%, #3B82F6 100%); font-weight: 600; border: none;">
+            <i class="bi bi-plus-circle-fill me-2"></i> Đặt Sân Mới
+        </a>
+    </div>
+
+    <!-- Feedback Alerts -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 rounded-4 shadow-lg mb-4 bg-opacity-10 bg-success text-success" role="alert" style="border-left: 5px solid #10B981 !important;">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+                <div>
+                    <strong class="d-block">Thành công!</strong>
+                    <span>@TempData["SuccessMessage"]</span>
+                </div>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 rounded-4 shadow-lg mb-4 bg-opacity-10 bg-danger text-danger" role="alert" style="border-left: 5px solid #EF4444 !important;">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                <div>
+                    <strong class="d-block">Lỗi hệ thống!</strong>
+                    <span>@TempData["ErrorMessage"]</span>
+                </div>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Filter Form -->
+    <div class="card sc-card border-0 rounded-4 p-4 mb-5 shadow-lg" style="background-color: #111827; border: 1px solid rgba(255,255,255,0.05) !important;">
+        <form method="get" asp-action="Index" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label text-secondary fw-semibold small uppercase-tracking">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text border-0 text-secondary" style="background-color: #1F2937;"><i class="bi bi-search"></i></span>
+                    <input type="text" name="keyword" value="@Model.Keyword" class="form-control border-0 text-white placeholder-secondary rounded-end-3" placeholder="Mã đặt sân, tên sân..." style="background-color: #1F2937;" />
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-secondary fw-semibold small uppercase-tracking">Từ Ngày</label>
+                <input type="date" name="fromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control border-0 text-white" style="background-color: #1F2937;" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-secondary fw-semibold small uppercase-tracking">Đến Ngày</label>
+                <input type="date" name="toDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" class="form-control border-0 text-white" style="background-color: #1F2937;" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-secondary fw-semibold small uppercase-tracking">Trạng Thái</label>
+                <select name="status" class="form-select border-0 text-white" style="background-color: #1F2937;">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="Pending" selected="@(Model.Status == "Pending")">Chờ thanh toán</option>
+                    <option value="Confirmed" selected="@(Model.Status == "Confirmed")">Đã xác nhận</option>
+                    <option value="Paid" selected="@(Model.Status == "Paid")">Đã thanh toán</option>
+                    <option value="Completed" selected="@(Model.Status == "Completed")">Đã hoàn thành</option>
+                    <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Đã hủy</option>
+                </select>
+            </div>
+            <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+                <a asp-action="Index" class="btn px-4 py-2 rounded-3 text-secondary hover-light" style="background-color: rgba(255,255,255,0.05); font-weight: 500;">Đặt lại</a>
+                <button type="submit" class="btn btn-indigo px-5 py-2 rounded-3 text-white shadow-sm" style="background-color: #4F6EF7; font-weight: 600;">Áp dụng</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Booking Cards Container -->
+    @if (Model.PagedData.Items != null && Model.PagedData.Items.Count > 0)
+    {
+        <div class="row g-4">
+            @foreach (var item in Model.PagedData.Items)
+            {
+                var isCompleted = item.Status.Equals("Completed", StringComparison.OrdinalIgnoreCase) || item.Status.Equals("Paid", StringComparison.OrdinalIgnoreCase);
+                var isPending = item.Status.Equals("Pending", StringComparison.OrdinalIgnoreCase);
+                var isCancelled = item.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase);
+
+                <div class="col-lg-6 col-xl-4">
+                    <div class="card sc-card h-100 border-0 rounded-4 overflow-hidden shadow-lg transition-transform hover-translate-y" style="background-color: #111827; border: 1px solid rgba(255,255,255,0.05) !important;">
+                        <!-- Card Header Info -->
+                        <div class="p-4 border-bottom d-flex justify-content-between align-items-center" style="border-bottom-color: rgba(255,255,255,0.05) !important;">
+                            <div>
+                                <span class="text-secondary small d-block">Mã đơn đặt sân</span>
+                                <span class="fw-bold text-white fs-5">#@item.BookingCode</span>
+                            </div>
+                            <!-- Status Badge -->
+                            <div>
+                                @switch (item.Status)
+                                {
+                                    case "Completed":
+                                        <span class="badge bg-opacity-10 bg-success text-success px-3 py-2 rounded-pill"><i class="bi bi-check2-all me-1"></i>Hoàn thành</span>
+                                        break;
+                                    case "Paid":
+                                    case "Confirmed":
+                                        <span class="sc-badge sc-badge-blue px-3 py-2"><i class="bi bi-shield-check me-1"></i>Đã xác nhận</span>
+                                        break;
+                                    case "Pending":
+                                        <span class="badge bg-opacity-10 bg-warning text-warning px-3 py-2 rounded-pill"><i class="bi bi-clock-history me-1"></i>Chờ xử lý</span>
+                                        break;
+                                    case "Cancelled":
+                                        <span class="badge bg-opacity-10 bg-danger text-danger px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i>Đã hủy</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-opacity-10 bg-secondary text-secondary px-3 py-2 rounded-pill">@item.Status</span>
+                                        break;
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Card Body Details -->
+                        <div class="p-4 flex-grow-1">
+                            <h5 class="fw-bold text-white mb-3 d-flex align-items-center">
+                                <span style="background: rgba(79,110,247,0.1); width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 10px;"><i class="bi bi-geo-fill text-indigo-500"></i></span>
+                                @item.CourtName
+                            </h5>
+
+                            <div class="d-flex flex-column gap-2 text-secondary mb-4">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-calendar3 me-2 fs-6 text-indigo-400"></i>
+                                    <span>Ngày đặt: <strong>@item.BookingDate.ToString("dd/MM/yyyy")</strong></span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-alarm me-2 fs-6 text-indigo-400"></i>
+                                    <span>Khung giờ: <strong class="text-white">@item.SlotName (@item.StartTime - @item.EndTime)</strong></span>
+                                </div>
+                                <div class="d-flex align-items-start mt-1">
+                                    <i class="bi bi-sticky me-2 fs-6 text-indigo-400 mt-1"></i>
+                                    <span class="small text-truncate-2">Ghi chú: @(string.IsNullOrEmpty(item.Note) ? "-" : item.Note)</span>
+                                </div>
+                            </div>
+
+                            @if (item.Services != null && item.Services.Any())
+                            {
+                                <div class="mb-4 p-3 rounded-3" style="background-color: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                                    <span class="text-white fw-bold small d-block mb-2"><i class="bi bi-cart-check-fill me-1 text-indigo-400"></i>Dịch vụ đặt thêm:</span>
+                                    <div class="d-flex flex-column gap-1" style="font-size: 0.85rem;">
+                                        @foreach (var svc in item.Services)
+                                        {
+                                            <div class="d-flex justify-content-between text-secondary">
+                                                <span>• @svc.ServiceName x@svc.Quantity</span>
+                                                <span class="fw-medium text-white">@svc.TotalPrice.ToString("N0")đ</span>
+                                            </div>
+                                        }
+                                        <div class="d-flex justify-content-between text-secondary border-top pt-2 mt-2" style="border-top-style: dashed; border-top-color: rgba(255,255,255,0.05) !important;">
+                                            <span class="fw-semibold">Tổng tiền dịch vụ:</span>
+                                            <span class="fw-bold text-success">@item.Services.Sum(s => s.TotalPrice).ToString("N0")đ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background-color: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                                <span class="text-secondary small">Tổng thanh toán:</span>
+                                <span class="fs-4 fw-extrabold text-danger">@item.TotalAmount.ToString("N0")đ</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer Actions -->
+                        <div class="p-4 border-top d-flex flex-wrap gap-2 justify-content-between bg-black bg-opacity-20" style="border-top-color: rgba(255,255,255,0.05) !important;">
+                            <div class="d-flex gap-2 w-100">
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-3 flex-grow-1 py-2 text-white" style="border-color: rgba(255,255,255,0.15);" onclick="showCourtDetail(@item.CourtId)">
+                                    <i class="bi bi-info-circle me-1"></i> Chi tiết sân
+                                </button>
+                                
+                                @if (isCompleted)
+                                {
+                                    <button type="button" class="btn btn-indigo btn-sm rounded-3 flex-grow-1 py-2 text-white" style="background-color: #4F6EF7;" onclick="openReviewModal(@item.BookingId, @item.CourtId, '@item.CourtName')">
+                                        <i class="bi bi-star-fill text-warning me-1"></i> Đánh giá
+                                    </button>
+                                }
+                                @if (isPending)
+                                {
+                                    <a asp-controller="Booking" asp-action="Payment" asp-route-bookingCodes="@item.BookingCode" class="btn btn-danger btn-sm rounded-3 flex-grow-1 py-2 text-white fw-bold">
+                                        <i class="bi bi-wallet2 me-1"></i> Thanh toán
+                                    </a>
+                                }
+                            </div>
+
+                            @if (!isCancelled && !isCompleted)
+                            {
+                                <div class="d-flex gap-2 w-100 mt-2">
+                                    <button type="button" class="btn btn-outline-indigo btn-sm rounded-3 flex-grow-1 py-2 text-indigo-400" style="border-color: rgba(79,110,247,0.3); background-color: rgba(79,110,247,0.05);" onclick="openChangeCourtModal(@item.BookingId)">
+                                        <i class="bi bi-arrow-left-right me-1"></i> Đổi sân
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success btn-sm rounded-3 flex-grow-1 py-2 text-success" style="border-color: rgba(16,185,129,0.3); background-color: rgba(16,185,129,0.05);" onclick="openAddServicesModal(@item.BookingId)">
+                                        <i class="bi bi-cart-plus me-1"></i> Mua thêm DV
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.PagedData.TotalPages > 1)
+        {
+            <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top" style="border-top-color: rgba(255,255,255,0.05) !important;">
+                <span class="text-secondary small">Hiển thị trang @Model.PagedData.PageNumber / @Model.PagedData.TotalPages</span>
+                <nav>
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(Model.PagedData.PageNumber <= 1 ? "disabled" : "")">
+                            <a class="page-link border-0 text-white rounded-3 me-1 bg-dark bg-opacity-50" asp-action="Index" asp-route-page="@(Model.PagedData.PageNumber - 1)" asp-route-keyword="@Model.Keyword" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status">Trước</a>
+                        </li>
+                        @for (int i = 1; i <= Model.PagedData.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PagedData.PageNumber ? "active" : "")">
+                                <a class="page-link border-0 rounded-3 me-1 @(i == Model.PagedData.PageNumber ? "bg-indigo-600 text-white fw-bold" : "text-white bg-dark bg-opacity-50")" asp-action="Index" asp-route-page="@i" asp-route-keyword="@Model.Keyword" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.PagedData.PageNumber >= Model.PagedData.TotalPages ? "disabled" : "")">
+                            <a class="page-link border-0 text-white rounded-3 bg-dark bg-opacity-50" asp-action="Index" asp-route-page="@(Model.PagedData.PageNumber + 1)" asp-route-keyword="@Model.Keyword" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="card sc-card border-0 rounded-4 text-center py-5 shadow-lg" style="background-color: #111827;">
+            <div class="card-body py-5">
+                <i class="bi bi-calendar-x-fill text-secondary mb-4" style="font-size: 5rem; opacity: 0.3;"></i>
+                <h3 class="fw-bold text-white mb-2">Không tìm thấy đơn đặt sân</h3>
+                <p class="text-secondary mb-4">Bạn chưa có đơn đặt sân nào phù hợp với bộ lọc hiện tại.</p>
+                <a asp-controller="Courts" asp-action="Index" class="btn text-white px-5 py-2.5 rounded-pill shadow-lg" style="background: linear-gradient(135deg, #4F6EF7 0%, #3B82F6 100%); font-weight: 600; border: none;">Đặt Sân Ngay</a>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- 1. Modal Chi Tiết Sân -->
+<div class="modal fade" id="courtDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content text-white rounded-4 border-0 shadow-2xl" style="background-color: #111827; border: 1px solid rgba(255,255,255,0.05) !important;">
+            <div class="modal-header border-bottom-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="modal-title fw-bold fs-4" id="detailCourtName">Chi Tiết Sân Đấu</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-5">
+                        <img id="detailCourtImage" class="img-fluid rounded-3 object-fit-cover w-100 shadow-md" style="height: 250px;" src="https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4" alt="Court Image" />
+                    </div>
+                    <div class="col-md-7 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="mb-3">
+                                <span id="detailCourtType" class="badge bg-indigo-600 bg-opacity-20 text-indigo-400 px-3 py-1.5 rounded-pill fs-7">Pickleball</span>
+                                <span id="detailCourtStatus" class="badge bg-success bg-opacity-20 text-success px-3 py-1.5 rounded-pill fs-7 ms-2">Hoạt động</span>
+                            </div>
+                            <p class="text-secondary mb-3 fs-6" id="detailCourtDesc">Thông tin chi tiết về sân thi đấu và các điều kiện sân chơi thể thao.</p>
+                            
+                            <table class="table table-dark table-borderless table-sm small">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-secondary py-1 w-35">Vị trí:</td>
+                                        <td class="text-white py-1 fw-medium" id="detailCourtLocation">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-secondary py-1">Bề mặt sân:</td>
+                                        <td class="text-white py-1 fw-medium" id="detailCourtSurface">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-secondary py-1">Kích thước:</td>
+                                        <td class="text-white py-1 fw-medium" id="detailCourtSize">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-secondary py-1">Sức chứa tối đa:</td>
+                                        <td class="text-white py-1 fw-medium" id="detailCourtCapacity">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-secondary py-1">Khung giờ mở cửa:</td>
+                                        <td class="text-white py-1 fw-medium" id="detailCourtHours">06:00 - 22:00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background-color: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                            <span class="text-secondary small">Giá cơ bản:</span>
+                            <span class="fs-4 fw-extrabold text-danger" id="detailCourtPrice">0đ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Modal Đổi Sân -->
+<div class="modal fade" id="changeCourtModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-white rounded-4 border-0 shadow-2xl" style="background-color: #111827; border: 1px solid rgba(255,255,255,0.05) !important;">
+            <div class="modal-header border-bottom-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="modal-title fw-bold fs-4">Đổi Sang Sân Đấu Trống</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="changeCourtForm" method="post" asp-action="ChangeCourt">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="bookingId" id="changeBookingId" />
+                <input type="hidden" name="newCourtId" id="selectedNewCourtId" />
+                <input type="hidden" name="newCourtName" id="selectedNewCourtName" />
+
+                <div class="modal-body p-4">
+                    <p class="text-secondary mb-3 small">Hệ thống tìm kiếm các sân cùng loại và còn trống đúng trong khung giờ thuê của bạn.</p>
+                    
+                    <div id="alternativeCourtsLoader" class="text-center py-4">
+                        <div class="spinner-border text-indigo-500" role="status"></div>
+                        <p class="text-secondary small mt-2">Đang quét tìm sân trống...</p>
+                    </div>
+
+                    <div id="alternativeCourtsContainer" class="d-flex flex-column gap-3" style="display:none !important;">
+                        <!-- List of alternative courts loaded via JS -->
+                    </div>
+
+                    <div id="noAlternativeCourts" class="text-center py-4" style="display:none !important;">
+                        <i class="bi bi-exclamation-circle text-warning fs-1 mb-2"></i>
+                        <p class="text-white fw-semibold mb-1">Rất tiếc, đã hết sân trống!</p>
+                        <p class="text-secondary small">Không có sân cùng loại nào trống trong khung giờ này.</p>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 p-4 pt-0">
+                    <button type="button" class="btn text-secondary rounded-3 px-4" data-bs-dismiss="modal" style="background-color: rgba(255,255,255,0.05);">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-indigo text-white rounded-3 px-5" id="btnConfirmChangeCourt" style="background-color: #4F6EF7;" disabled>Xác nhận đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Modal Dịch Vụ Đặt Thêm -->
+<div class="modal fade" id="addServicesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-white rounded-4 border-0 shadow-2xl" style="background-color: #111827; border: 1px solid rgba(255,255,255,0.05) !important;">
+            <div class="modal-header border-bottom-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="modal-title fw-bold fs-4">Đặt Thêm Dịch Vụ Tiện Ích</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addServicesForm" method="post" asp-action="AddServices">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="bookingId" id="servicesBookingId" />
+
+                <div class="modal-body p-4">
+                    <p class="text-secondary mb-4 small">Mua thêm nước uống, thuê dụng cụ (vợt, bóng) để được chuẩn bị sẵn ngoài sân đấu.</p>
+
+                    <div id="servicesLoader" class="text-center py-4">
+                        <div class="spinner-border text-success" role="status"></div>
+                        <p class="text-secondary small mt-2">Đang tải danh mục dịch vụ...</p>
+                    </div>
+
+                    <div id="servicesListContainer" class="d-flex flex-column gap-3" style="display:none !important;">
+                        <!-- Services loaded via AJAX -->
+                    </div>
+
+                    <!-- Order Total -->
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded-3 mt-4" style="background-color: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                        <span class="text-secondary small fw-medium">Tổng tiền dịch vụ thêm:</span>
+                        <span class="fs-4 fw-extrabold text-danger" id="servicesTotalPrice">0đ</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 p-4 pt-0">
+                    <button type="button" class="btn text-secondary rounded-3 px-4" data-bs-dismiss="modal" style="background-color: rgba(255,255,255,0.05);">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-success text-white rounded-3 px-5" id="btnConfirmAddServices" style="background-color: #10B981; border: none;" disabled>Thanh Toán Thêm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Modal Đánh Giá Sân -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-white rounded-4 border-0 shadow-2xl" style="background-color: #111827; border: 1px solid rgba(255,255,255,0.05) !important;">
+            <div class="modal-header border-bottom-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="modal-title fw-bold fs-4">Gửi Đánh Giá Trải Nghiệm</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-action="SubmitReview">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="bookingId" id="reviewBookingId" />
+                <input type="hidden" name="courtId" id="reviewCourtId" />
+
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <span class="text-secondary small d-block mb-1">Bạn đang đánh giá sân</span>
+                        <h6 class="fw-bold text-white fs-5" id="reviewCourtNameDisplay">Sân đấu thể thao</h6>
+                    </div>
+
+                    <!-- Star Picker -->
+                    <div class="mb-4">
+                        <label class="form-label text-secondary fw-semibold small uppercase-tracking d-block text-center mb-2">Điểm đánh giá (1-5 sao)</label>
+                        <div class="d-flex justify-content-center gap-3 fs-1 text-secondary" id="starPickerContainer">
+                            <i class="bi bi-star-fill star-item cursor-pointer text-secondary" data-val="1"></i>
+                            <i class="bi bi-star-fill star-item cursor-pointer text-secondary" data-val="2"></i>
+                            <i class="bi bi-star-fill star-item cursor-pointer text-secondary" data-val="3"></i>
+                            <i class="bi bi-star-fill star-item cursor-pointer text-secondary" data-val="4"></i>
+                            <i class="bi bi-star-fill star-item cursor-pointer text-secondary" data-val="5"></i>
+                        </div>
+                        <input type="hidden" name="rating" id="reviewRatingVal" value="5" />
+                    </div>
+
+                    <!-- Comment -->
+                    <div class="mb-3">
+                        <label class="form-label text-secondary fw-semibold small uppercase-tracking">Bình luận của bạn</label>
+                        <textarea class="form-control border-0 text-white placeholder-secondary rounded-3" name="comment" rows="4" placeholder="Chia sẻ trải nghiệm chơi của bạn (chất lượng mặt sân, ánh sáng, dịch vụ hỗ trợ...)" style="background-color: #1F2937;" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 p-4 pt-0">
+                    <button type="button" class="btn text-secondary rounded-3 px-4" data-bs-dismiss="modal" style="background-color: rgba(255,255,255,0.05);">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-indigo text-white rounded-3 px-5" style="background-color: #4F6EF7;">Gửi đánh giá</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Modal instances
+        let detailModal, changeModal, servicesModal, reviewModalInstance;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            detailModal = new bootstrap.Modal(document.getElementById('courtDetailModal'));
+            changeModal = new bootstrap.Modal(document.getElementById('changeCourtModal'));
+            servicesModal = new bootstrap.Modal(document.getElementById('addServicesModal'));
+            reviewModalInstance = new bootstrap.Modal(document.getElementById('reviewModal'));
+
+            // Star Rating Picker Interactive Logic
+            const stars = document.querySelectorAll('#starPickerContainer .star-item');
+            const ratingInput = document.getElementById('reviewRatingVal');
+
+            stars.forEach(star => {
+                // Initial highlight
+                const defaultVal = parseInt(ratingInput.value);
+                highlightStars(defaultVal);
+
+                star.addEventListener('click', function () {
+                    const val = parseInt(this.getAttribute('data-val'));
+                    ratingInput.value = val;
+                    highlightStars(val);
+                });
+
+                star.addEventListener('mouseenter', function () {
+                    const val = parseInt(this.getAttribute('data-val'));
+                    highlightStars(val);
+                });
+
+                star.addEventListener('mouseleave', function () {
+                    const currentVal = parseInt(ratingInput.value);
+                    highlightStars(currentVal);
+                });
+            });
+
+            function highlightStars(val) {
+                stars.forEach(s => {
+                    const starVal = parseInt(s.getAttribute('data-val'));
+                    if (starVal <= val) {
+                        s.classList.remove('text-secondary');
+                        s.classList.add('text-warning');
+                    } else {
+                        s.classList.remove('text-warning');
+                        s.classList.add('text-secondary');
+                    }
+                });
+            }
+        });
+
+        // 1. Show Court Detail Modal
+        async function showCourtDetail(courtId) {
+            try {
+                const response = await fetch(`/Courts/GetCourtDetailJson/${courtId}`);
+                const court = await response.json();
+
+                if (court) {
+                    document.getElementById('detailCourtName').textContent = court.courtName;
+                    document.getElementById('detailCourtDesc').textContent = court.description || "Không có mô tả.";
+                    document.getElementById('detailCourtLocation').textContent = court.location || "-";
+                    document.getElementById('detailCourtSurface').textContent = court.surface || "-";
+                    document.getElementById('detailCourtSize').textContent = court.courtSize || "-";
+                    document.getElementById('detailCourtCapacity').textContent = court.capacity ? `${court.capacity} người` : "-";
+                    document.getElementById('detailCourtHours').textContent = `${court.openTime?.substring(0, 5)} - ${court.closeTime?.substring(0, 5)}`;
+                    document.getElementById('detailCourtPrice').textContent = `${parseFloat(court.pricePerHour).toLocaleString('vi-VN')}đ/giờ`;
+                    
+                    if (court.imageUrl) {
+                        document.getElementById('detailCourtImage').src = court.imageUrl;
+                    }
+
+                    const statusBadge = document.getElementById('detailCourtStatus');
+                    if (court.status === "Active" || court.status === "Available") {
+                        statusBadge.className = "badge bg-success bg-opacity-20 text-success px-3 py-1.5 rounded-pill fs-7 ms-2";
+                        statusBadge.textContent = "Hoạt động";
+                    } else {
+                        statusBadge.className = "badge bg-danger bg-opacity-20 text-danger px-3 py-1.5 rounded-pill fs-7 ms-2";
+                        statusBadge.textContent = court.status;
+                    }
+
+                    detailModal.show();
+                }
+            } catch (error) {
+                console.error("Error fetching court detail:", error);
+                alert("Không thể tải thông tin sân đấu lúc này.");
+            }
+        }
+
+        // 2. Open Change Court Modal
+        async function openChangeCourtModal(bookingId) {
+            document.getElementById('changeBookingId').value = bookingId;
+            document.getElementById('btnConfirmChangeCourt').disabled = true;
+
+            const loader = document.getElementById('alternativeCourtsLoader');
+            const container = document.getElementById('alternativeCourtsContainer');
+            const emptyMsg = document.getElementById('noAlternativeCourts');
+
+            loader.style.setProperty('display', 'block', 'important');
+            container.style.setProperty('display', 'none', 'important');
+            emptyMsg.style.setProperty('display', 'none', 'important');
+
+            changeModal.show();
+
+            try {
+                const response = await fetch(`/MyBookings/GetAlternativeCourts?bookingId=${bookingId}`);
+                const data = await response.json();
+
+                loader.style.setProperty('display', 'none', 'important');
+
+                if (data.success && data.courts && data.courts.length > 0) {
+                    container.innerHTML = '';
+                    
+                    data.courts.forEach(court => {
+                        const card = document.createElement('div');
+                        card.className = 'd-flex align-items-center p-3 rounded-3 cursor-pointer transition-all border border-dark hover-border-indigo';
+                        card.style.backgroundColor = '#1F2937';
+                        card.setAttribute('data-id', court.courtId);
+                        card.setAttribute('data-name', court.courtName);
+                        
+                        card.innerHTML = `
+                            <div class="me-3">
+                                <img src="${court.imageUrl || 'https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4'}" class="rounded object-fit-cover" style="width: 60px; height: 60px;" />
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1 text-white">${court.courtName}</h6>
+                                <span class="text-secondary small"><i class="bi bi-geo-alt me-1"></i>${court.location || "Khu thể thao"}</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="d-block text-danger fw-bold fs-6">${parseFloat(court.price).toLocaleString('vi-VN')}đ</span>
+                                <input type="radio" name="courtSelection" class="form-check-input mt-1" value="${court.courtId}" />
+                            </div>
+                        `;
+
+                        card.addEventListener('click', function() {
+                            // Clear all selections
+                            container.querySelectorAll('.d-flex').forEach(c => {
+                                c.style.borderColor = 'transparent';
+                                c.querySelector('input[type="radio"]').checked = false;
+                            });
+                            
+                            // Set this selection
+                            this.style.borderColor = '#4F6EF7';
+                            const radio = this.querySelector('input[type="radio"]');
+                            radio.checked = true;
+
+                            document.getElementById('selectedNewCourtId').value = this.getAttribute('data-id');
+                            document.getElementById('selectedNewCourtName').value = this.getAttribute('data-name');
+                            document.getElementById('btnConfirmChangeCourt').disabled = false;
+                        });
+
+                        container.appendChild(card);
+                    });
+
+                    container.style.setProperty('display', 'flex', 'important');
+                } else {
+                    emptyMsg.style.setProperty('display', 'block', 'important');
+                }
+            } catch (error) {
+                console.error("Error scanning alternative courts:", error);
+                loader.style.setProperty('display', 'none', 'important');
+                emptyMsg.style.setProperty('display', 'block', 'important');
+            }
+        }
+
+        // 3. Open Add Services Modal
+        let activeServices = [];
+        async function openAddServicesModal(bookingId) {
+            document.getElementById('servicesBookingId').value = bookingId;
+            document.getElementById('servicesTotalPrice').textContent = "0đ";
+            document.getElementById('btnConfirmAddServices').disabled = true;
+
+            const loader = document.getElementById('servicesLoader');
+            const container = document.getElementById('servicesListContainer');
+
+            loader.style.setProperty('display', 'block', 'important');
+            container.style.setProperty('display', 'none', 'important');
+
+            servicesModal.show();
+
+            try {
+                const response = await fetch('/MyBookings/GetServices');
+                activeServices = await response.json();
+
+                loader.style.setProperty('display', 'none', 'important');
+
+                if (activeServices && activeServices.length > 0) {
+                    container.innerHTML = '';
+                    
+                    activeServices.forEach(service => {
+                        // Ignore coaching or events, focus on equipments & drinks for booking addition
+                        if (service.category === "Coach" || service.category === "Event") return;
+
+                        const item = document.createElement('div');
+                        item.className = 'd-flex align-items-center justify-content-between p-3 rounded-3';
+                        item.style.backgroundColor = '#1F2937';
+                        
+                        item.innerHTML = `
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1 text-white">${service.serviceName}</h6>
+                                <span class="text-secondary small">Giá: <strong class="text-danger">${parseFloat(service.price).toLocaleString('vi-VN')}đ</strong> / ${service.unit || "phần"}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle px-2 py-1" onclick="updateQty(${service.serviceId}, -1)">-</button>
+                                <input type="number" name="serviceQuantities[${service.serviceId}]" id="qty-${service.serviceId}" class="form-control text-center border-0 text-white p-0" value="0" min="0" style="width: 40px; background: transparent; font-weight: bold;" readonly />
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle px-2 py-1" onclick="updateQty(${service.serviceId}, 1)">+</button>
+                            </div>
+                        `;
+
+                        container.appendChild(item);
+                    });
+
+                    container.style.setProperty('display', 'flex', 'important');
+                }
+            } catch (error) {
+                console.error("Error loading services catalog:", error);
+                loader.style.setProperty('display', 'none', 'important');
+            }
+        }
+
+        function updateQty(serviceId, change) {
+            const input = document.getElementById(`qty-${serviceId}`);
+            if (input) {
+                let val = parseInt(input.value) + change;
+                if (val < 0) val = 0;
+                input.value = val;
+
+                // Recalculate total services price
+                recalculateServicesTotal();
+            }
+        }
+
+        function recalculateServicesTotal() {
+            let total = 0;
+            activeServices.forEach(service => {
+                const input = document.getElementById(`qty-${service.serviceId}`);
+                if (input) {
+                    const qty = parseInt(input.value);
+                    total += qty * parseFloat(service.price);
+                }
+            });
+
+            document.getElementById('servicesTotalPrice').textContent = `${total.toLocaleString('vi-VN')}đ`;
+            document.getElementById('btnConfirmAddServices').disabled = (total <= 0);
+        }
+
+        // 4. Open Review Modal
+        function openReviewModal(bookingId, courtId, courtName) {
+            document.getElementById('reviewBookingId').value = bookingId;
+            document.getElementById('reviewCourtId').value = courtId;
+            document.getElementById('reviewCourtNameDisplay').textContent = courtName;
+            
+            // Reset star to 5
+            document.getElementById('reviewRatingVal').value = 5;
+            const stars = document.querySelectorAll('#starPickerContainer .star-item');
+            stars.forEach(s => {
+                s.classList.remove('text-secondary');
+                s.classList.add('text-warning');
+            });
+
+            reviewModalInstance.show();
+        }
+    </script>
+}
