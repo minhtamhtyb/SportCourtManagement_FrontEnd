@@ -61,6 +61,7 @@ public interface ICourtApiService
     // Singular Booking (BookingController - no auth, hardcoded userId)
     Task<SingularBookingResponseDto?> CreateSingularBookingAsync(CreateBookingRequestDto request);
     Task<(bool Success, string Message, SingularBookingResponseDto? Data)> SimulateSePayWebhookAsync(string bookingCode, decimal amount);
+    Task<(bool Success, string Message)> AddServicesToBookingAsync(int bookingId, Dictionary<int, int> serviceQuantities, string? token);
 }
 
 

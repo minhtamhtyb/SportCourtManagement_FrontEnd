@@ -1,11 +1,13 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SportCourtManagement_FrontEnd.Models.Tournaments;
 using SportCourtManagement_FrontEnd.Services;
 
 namespace SportCourtManagement_FrontEnd.Controllers;
 
+[Authorize]
 public class TournamentsController : Controller
 {
   private readonly ICourtApiService _apiService;
@@ -60,6 +62,7 @@ public class TournamentsController : Controller
 
   // GET: /Tournaments/PublicIndex (Màn hình 4)
   [HttpGet]
+  [AllowAnonymous]
   public async Task<IActionResult> PublicIndex(string? keyword, int page = 1)
   {
     var pagedData = await _apiService.GetPagedPublicTournamentsAsync(keyword, page, 12);
@@ -73,6 +76,7 @@ public class TournamentsController : Controller
 
   // GET: /Tournaments/PublicDetail/5 (Màn hình 4)
   [HttpGet]
+  [AllowAnonymous]
   public async Task<IActionResult> PublicDetail(int id)
   {
     var pagedData = await _apiService.GetPagedPublicTournamentsAsync(null, 1, 100);

@@ -16,8 +16,41 @@ public class JwtForwardingHandler(IHttpContextAccessor httpContextAccessor) : De
         if (httpContext is not null)
         {
             var token = await ResolveAccessTokenAsync(httpContext, cancellationToken);
+            System.Console.WriteLine($"[JwtForwardingHandler] Resolving token for request {request.RequestUri}. Token exists: {!string.IsNullOrWhiteSpace(token)}");
             if (!string.IsNullOrWhiteSpace(token))
+            {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                System.Console.WriteLine($"[JwtForwardingHandler] Authorization header set to: Bearer {(token.Length > 15 ? token.Substring(0, 15) : token)}...");
+                try
+                {
+                    var parts = token.Split('.');
+                    if (parts.Length > 1)
+                    {
+                        var payload = parts[1];
+                        payload = payload.Replace('-', '+').Replace('_', '/');
+                        switch (payload.Length % 4)
+                        {
+                            case 2: payload += "=="; break;
+                            case 3: payload += "="; break;
+                        }
+                        var decodedBytes = System.Convert.FromBase64String(payload);
+                        var json = System.Text.Encoding.UTF8.GetString(decodedBytes);
+                        System.Console.WriteLine($"[JwtForwardingHandler] JWT Decoded Payload JSON: {json}");
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    System.Console.WriteLine($"[JwtForwardingHandler] Failed to custom decode JWT: {ex.Message}");
+                }
+            }
+            else
+            {
+                System.Console.WriteLine($"[JwtForwardingHandler] Token is empty or null!");
+            }
+        }
+        else
+        {
+            System.Console.WriteLine($"[JwtForwardingHandler] HttpContext is null!");
         }
 
         return await base.SendAsync(request, cancellationToken);

@@ -4,7 +4,7 @@ $(document).ready(function () {
 
     // Connect to backend SignalR Hub (Local base URL is resolved automatically as relative URL)
     const connection = new signalR.HubConnectionBuilder()
-        .withUrl("http://localhost:5000/hubs/slot-status") // Fallback to absolute if different port
+        .withUrl("https://localhost:7075/hubs/slot-status") // Fallback to absolute if different port
         .withAutomaticReconnect()
         .build();
 
@@ -42,22 +42,12 @@ $(document).ready(function () {
 
         if (newStatus === "Available") {
             $slotBtn.addClass('sc-slot-available');
-            $slotBtn.attr('title', 'Bấm để chọn đặt');
+            $slotBtn.attr('title', 'Còn trống');
             if (originalPrice) {
                 $priceLabel.text(parseFloat(originalPrice).toLocaleString('vi-VN') + "đ");
             } else {
                 $priceLabel.text("Còn trống");
             }
-            // Bind click again since we removed booked/maintenance behavior
-            $slotBtn.off('click').on('click', function () {
-                $('.sc-slot-btn').not('.sc-slot-booked, .sc-slot-maintenance').removeClass('sc-slot-selected');
-                $(this).addClass('sc-slot-selected');
-                $('#selected-slot-id').val(slotId);
-                $('#selected-slot-label').text($(this).data('slot-name'));
-                if (originalPrice) {
-                    $('#booking-price').text(parseFloat(originalPrice).toLocaleString('vi-VN') + "đ");
-                }
-            });
         } else if (newStatus === "Booked") {
             $slotBtn.addClass('sc-slot-booked');
             $slotBtn.attr('title', 'Đã đặt');

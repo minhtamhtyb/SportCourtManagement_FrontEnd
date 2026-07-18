@@ -485,3 +485,73 @@ a:hover {
 .sc-indicator-completed .small {
     color: var(--sc-green) !important;
 }
+
+/* Custom Styles for Customer Bookings */
+.fw-extrabold { font-weight: 800 !important; }
+.fw-boldest { font-weight: 900 !important; }
+.text-indigo-400 { color: #818CF8 !important; }
+.text-indigo-500 { color: #6366F1 !important; }
+.bg-indigo-600 { background-color: #4F46E5 !important; }
+
+.hover-scale {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hover-scale:hover {
+    transform: scale(1.03);
+}
+
+.hover-translate-y {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hover-translate-y:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.5) !important;
+    border-color: rgba(79, 110, 247, 0.3) !important;
+}
+
+.uppercase-tracking {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.cursor-pointer {
+    cursor: pointer !important;
+}
+
+.hover-border-indigo {
+    transition: border-color 0.2s ease;
+}
+.hover-border-indigo:hover {
+    border-color: #4F6EF7 !important;
+}
+
+.star-item {
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+.star-item:hover {
+    transform: scale(1.25);
+}
+
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;  
+    overflow: hidden;
+}
+
+/* Custom Modal Glassmorphism and Styling */
+.modal-content {
+    background-color: #111827 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+}
+.modal-header {
+    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+.modal-footer {
+    border-top-color: rgba(255, 255, 255, 0.05) !important;
+}
+.btn-close-white {
+    filter: invert(1) grayscale(1) brightness(2);
+}
+

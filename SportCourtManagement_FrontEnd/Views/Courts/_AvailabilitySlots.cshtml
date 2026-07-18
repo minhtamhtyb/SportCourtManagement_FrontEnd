@@ -22,7 +22,7 @@ else
              data-slot-id="@slot.SlotId" 
              data-slot-name="@slot.SlotName (@slot.StartTime.ToString("hh\\:mm") - @slot.EndTime.ToString("hh\\:mm"))"
              data-price="@slot.Price"
-             title="@(isAvailable ? "Bấm để chọn đặt" : slot.Status)">
+             title="@(isAvailable ? "Còn trống" : (isBooked ? "Đã đặt" : (isMaintenance ? "Bảo trì" : slot.Status)))">
             <div>@slot.StartTime.ToString("hh\\:mm") - @slot.EndTime.ToString("hh\\:mm")</div>
             <div style="font-size: 10px; opacity: 0.8; margin-top: 2px;">
                 @if (isAvailable)
