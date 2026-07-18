@@ -109,7 +109,19 @@ public class TournamentsController : Controller
     ViewBag.Courts = courtsSearch.Items;
     ViewBag.CourtTypes = await _apiService.GetCourtTypesAsync();
     ViewBag.TimeSlots = await _apiService.GetTimeSlotsAsync();
-    ViewBag.Services = await _apiService.GetServicesAsync();
+    
+    var complexServices = new List<SportCourtManagement_FrontEnd.Models.DTOs.ComplexCourtTypeServiceDto>();
+    if (courtsSearch.Items != null)
+    {
+      var complexIds = new List<int> { 1 };
+      foreach (var cid in complexIds)
+      {
+        var svcs = await _apiService.GetComplexServicesAsync(cid);
+        complexServices.AddRange(svcs);
+      }
+    }
+    ViewBag.ComplexServices = complexServices;
+    
     return View(new CreateTournamentFormDto());
   }
 
@@ -124,17 +136,32 @@ public class TournamentsController : Controller
       ViewBag.Courts = courtsSearch.Items;
       ViewBag.CourtTypes = await _apiService.GetCourtTypesAsync();
       ViewBag.TimeSlots = await _apiService.GetTimeSlotsAsync();
-      ViewBag.Services = await _apiService.GetServicesAsync();
+      
+      var complexServices = new List<SportCourtManagement_FrontEnd.Models.DTOs.ComplexCourtTypeServiceDto>();
+      if (courtsSearch.Items != null)
+      {
+        var complexIds = new List<int> { 1 };
+        foreach (var cid in complexIds)
+        {
+          var svcs = await _apiService.GetComplexServicesAsync(cid);
+          complexServices.AddRange(svcs);
+        }
+      }
+      ViewBag.ComplexServices = complexServices;
+      
       return View(form);
     }
 
-    if (form.Services != null)
-    {
-      form.Services = form.Services.Where(s => s.Quantity > 0).ToList();
-    }
     if (form.CourtSelections != null)
     {
       form.CourtSelections = form.CourtSelections.Where(c => c.SlotIds != null && c.SlotIds.Count > 0).ToList();
+      foreach (var sel in form.CourtSelections)
+      {
+         if (sel.Services != null)
+         {
+             sel.Services = sel.Services.Where(s => s.Quantity > 0).ToList();
+         }
+      }
     }
 
     var (created, errMsg) = await _apiService.CreateTournamentResultAsync(form);
@@ -145,7 +172,19 @@ public class TournamentsController : Controller
       ViewBag.Courts = courtsSearch.Items;
       ViewBag.CourtTypes = await _apiService.GetCourtTypesAsync();
       ViewBag.TimeSlots = await _apiService.GetTimeSlotsAsync();
-      ViewBag.Services = await _apiService.GetServicesAsync();
+      
+      var complexServices = new List<SportCourtManagement_FrontEnd.Models.DTOs.ComplexCourtTypeServiceDto>();
+      if (courtsSearch.Items != null)
+      {
+        var complexIds = new List<int> { 1 };
+        foreach (var cid in complexIds)
+        {
+          var svcs = await _apiService.GetComplexServicesAsync(cid);
+          complexServices.AddRange(svcs);
+        }
+      }
+      ViewBag.ComplexServices = complexServices;
+      
       return View(form);
     }
 
@@ -162,13 +201,16 @@ public class TournamentsController : Controller
       return BadRequest(new { success = false, message = "Dữ liệu gửi lên không hợp lệ. Vui lòng kiểm tra lại thông tin giải đấu." });
     }
 
-    if (form.Services != null)
-    {
-      form.Services = form.Services.Where(s => s.Quantity > 0).ToList();
-    }
     if (form.CourtSelections != null)
     {
       form.CourtSelections = form.CourtSelections.Where(c => c.SlotIds != null && c.SlotIds.Count > 0).ToList();
+      foreach (var sel in form.CourtSelections)
+      {
+         if (sel.Services != null)
+         {
+             sel.Services = sel.Services.Where(s => s.Quantity > 0).ToList();
+         }
+      }
     }
 
     if (form.CourtSelections == null || !form.CourtSelections.Any())
@@ -199,8 +241,7 @@ public class TournamentsController : Controller
     if (string.Equals(tour.Status, "Paid", StringComparison.OrdinalIgnoreCase) ||
         string.Equals(tour.Status, "Confirmed", StringComparison.OrdinalIgnoreCase))
     {
-      TempData["SuccessMessage"] = $"Giải đấu #{tour.TournamentId} ({tour.TournamentName}) đã được thanh toán thành công!";
-      return RedirectToAction(nameof(MyDetail), new { id = tour.TournamentId });
+      return RedirectToAction(nameof(PaymentSuccess), new { id = tour.TournamentId });
     }
 
     if (string.Equals(tour.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
@@ -243,10 +284,23 @@ public class TournamentsController : Controller
       isPaid = isPaid,
       isCancelled = isCancelled,
       isExpired = isExpired,
-      redirectUrl = Url.Action(nameof(MyDetail), "Tournaments", new { id = tour.TournamentId })
+      redirectUrl = isPaid ? Url.Action(nameof(PaymentSuccess), "Tournaments", new { id = tour.TournamentId }) : Url.Action(nameof(MyDetail), "Tournaments", new { id = tour.TournamentId })
     });
   }
 
+  // GET: /Tournaments/PaymentSuccess/5
+  [HttpGet]
+  public async Task<IActionResult> PaymentSuccess(int id)
+  {
+    var tour = await _apiService.GetMyTournamentDetailAsync(id);
+    if (tour == null)
+    {
+      TempData["ErrorMessage"] = "Không tìm thấy thông tin giải đấu.";
+      return RedirectToAction(nameof(MyTournaments));
+    }
+
+    return View(tour);
+  }
 
   // GET: /Tournaments/MyDetail/5 (Màn hình chi tiết giải đấu của tôi)
   [HttpGet]

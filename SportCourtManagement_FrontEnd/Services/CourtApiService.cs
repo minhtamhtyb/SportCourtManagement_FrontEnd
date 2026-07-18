@@ -15,6 +15,7 @@ using SportCourtManagement_FrontEnd.Models.Bookings;
 using SportCourtManagement_FrontEnd.Models.Promotions;
 using SportCourtManagement_FrontEnd.Models.Tournaments;
 using SportCourtManagement_FrontEnd.Models.Services;
+using ComplexCourtTypeServiceDto = SportCourtManagement_FrontEnd.Models.DTOs.ComplexCourtTypeServiceDto;
 
 namespace SportCourtManagement_FrontEnd.Services;
 
@@ -170,6 +171,23 @@ public class CourtApiService : ICourtApiService
             _logger.LogError(ex, "Error calling GetServices API");
         }
         return new List<ServiceDto>();
+    }
+
+    public async Task<List<ComplexCourtTypeServiceDto>> GetComplexServicesAsync(int complexId)
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ComplexCourtTypeServiceDto>>>($"api/complexes/{complexId}/services");
+            if (response != null && (response.Success || response.Data != null))
+            {
+                return response.Data ?? new List<ComplexCourtTypeServiceDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling GetComplexServices API for complex {ComplexId}", complexId);
+        }
+        return new List<ComplexCourtTypeServiceDto>();
     }
 
     public async Task<List<TimeSlotDto>> GetTimeSlotsAsync()

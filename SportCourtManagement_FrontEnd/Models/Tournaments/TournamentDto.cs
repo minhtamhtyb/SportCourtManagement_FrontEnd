@@ -82,17 +82,12 @@ public class CreateTournamentFormDto
 
   public string? Description { get; set; }
 
-  [Required(ErrorMessage = "Vui lòng chọn ngày tổ chức")]
-  public DateTime BookingDate { get; set; } = DateTime.Today.AddDays(7);
-
   public string? PromotionCode { get; set; }
   public string? Note { get; set; }
 
   [Required(ErrorMessage = "Vui lòng chọn ít nhất một sân")]
   [MinLength(1, ErrorMessage = "Vui lòng chọn ít nhất một sân")]
   public List<TournamentCourtSelectionDto> CourtSelections { get; set; } = new();
-
-  public List<TournamentServiceSelectionDto>? Services { get; set; } = new();
 }
 
 public class TournamentCourtSelectionDto
@@ -100,9 +95,14 @@ public class TournamentCourtSelectionDto
   [Range(1, int.MaxValue, ErrorMessage = "ID sân không hợp lệ")]
   public int CourtId { get; set; }
 
+  [Required(ErrorMessage = "Vui lòng chọn ngày thi đấu")]
+  public DateTime BookingDate { get; set; } = DateTime.Today.AddDays(7);
+
   [Required]
   [MinLength(1, ErrorMessage = "Vui lòng chọn ít nhất một khung giờ")]
   public List<int> SlotIds { get; set; } = new();
+
+  public List<TournamentServiceSelectionDto>? Services { get; set; } = new();
 }
 
 public class TournamentServiceSelectionDto
