@@ -30,6 +30,16 @@ public class BookingDetailDto
   public string? Note { get; set; }
   public string? CancelReason { get; set; }
   public DateTime CreatedAt { get; set; }
+  public List<BookingServiceItemDto> Services { get; set; } = new();
+}
+
+public class BookingServiceItemDto
+{
+  public int ServiceId { get; set; }
+  public string ServiceName { get; set; } = string.Empty;
+  public int Quantity { get; set; }
+  public decimal UnitPrice { get; set; }
+  public decimal TotalPrice { get; set; }
 }
 
 /// <summary>
