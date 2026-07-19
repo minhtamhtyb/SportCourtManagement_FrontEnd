@@ -572,5 +572,32 @@
                 deleteModal.show();
             }
         });
+
+        // Form submit validation for Start/End Datetime
+        document.getElementById('createMaintenanceForm').addEventListener('submit', function (e) {
+            const startVal = document.getElementById('createStartDateTime').value;
+            const endVal = document.getElementById('createEndDateTime').value;
+            if (startVal && endVal) {
+                const startDate = new Date(startVal);
+                const endDate = new Date(endVal);
+                if (startDate >= endDate) {
+                    e.preventDefault();
+                    showToast('Thời gian bắt đầu phải trước thời gian kết thúc.', 'error');
+                }
+            }
+        });
+
+        document.getElementById('editMaintenanceForm').addEventListener('submit', function (e) {
+            const startVal = document.getElementById('editStartDateTime').value;
+            const endVal = document.getElementById('editEndDateTime').value;
+            if (startVal && endVal) {
+                const startDate = new Date(startVal);
+                const endDate = new Date(endVal);
+                if (startDate >= endDate) {
+                    e.preventDefault();
+                    showToast('Thời gian bắt đầu phải trước thời gian kết thúc.', 'error');
+                }
+            }
+        });
     </script>
 }

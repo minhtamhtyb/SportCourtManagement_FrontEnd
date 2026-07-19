@@ -109,6 +109,12 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 return RedirectToAction(nameof(Maintenance));
             }
 
+            if (model.StartDateTime >= model.EndDateTime)
+            {
+                TempData["ErrorMessage"] = "Thời gian bắt đầu phải trước thời gian kết thúc.";
+                return RedirectToAction(nameof(Maintenance));
+            }
+
             var json = JsonSerializer.Serialize(model, _jsonOpts);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _client.PostAsync(_apiBase + "/maintenance", content);
@@ -150,6 +156,12 @@ namespace SportCourtManagement_FrontEnd.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
+                return RedirectToAction(nameof(Maintenance));
+            }
+
+            if (model.StartDateTime >= model.EndDateTime)
+            {
+                TempData["ErrorMessage"] = "Thời gian bắt đầu phải trước thời gian kết thúc.";
                 return RedirectToAction(nameof(Maintenance));
             }
 
