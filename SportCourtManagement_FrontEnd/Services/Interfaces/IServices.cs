@@ -55,6 +55,7 @@ public interface IComplexServiceOfferingService
 public interface IReportService
 {
     Task<DashboardSummaryDto> GetDashboardAsync();
+    Task<AdminDashboardDto> GetAdminDashboardAsync();
     Task<List<RevenueDataPointDto>> GetRevenueReportAsync(string period);
     Task<List<CourtUsageDto>> GetCourtUsageAsync();
     Task<ComplexStatsDto> GetComplexStatsAsync();

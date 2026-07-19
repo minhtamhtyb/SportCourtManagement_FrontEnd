@@ -68,6 +68,10 @@ public class ApiReportService(ApiClient api) : IReportService
         await api.GetDataAsync<DashboardSummaryDto>("api/reports/dashboard")
             ?? new DashboardSummaryDto();
 
+    public async Task<AdminDashboardDto> GetAdminDashboardAsync() =>
+        await api.GetDataAsync<AdminDashboardDto>("api/staff-dashboard/admin-dashboard")
+            ?? new AdminDashboardDto();
+
     public async Task<List<RevenueDataPointDto>> GetRevenueReportAsync(string period)
     {
         var data = await api.GetDataAsync<List<RevenueDataPointDto>>(

@@ -14,8 +14,16 @@ public class DashboardController(IReportService reportService) : Controller
         var vm = new DashboardViewModel
         {
             Summary = await reportService.GetDashboardAsync(),
-            CourtStats = await reportService.GetComplexStatsAsync()
+            CourtStats = await reportService.GetComplexStatsAsync(),
+            Data = await reportService.GetAdminDashboardAsync()
         };
         return View(vm);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetData()
+    {
+        var data = await reportService.GetAdminDashboardAsync();
+        return Json(new { success = true, data });
     }
 }

@@ -53,6 +53,62 @@ public class MockServiceCatalogService(MockDataStore store) : IServiceCatalogSer
 
 public class MockReportService(MockDataStore store) : IReportService
 {
+    public Task<AdminDashboardDto> GetAdminDashboardAsync() =>
+        Task.FromResult(new AdminDashboardDto
+        {
+            Kpis = new AdminDashboardKpiDto
+            {
+                TodayRevenue = 4_500_000,
+                MonthRevenue = 85_000_000,
+                TodayBookings = 12,
+                PendingBookings = 2,
+                OccupancyRate = 75.0,
+                ActiveCustomers = 45,
+                ActiveCoaches = 6,
+                TotalCourts = 8,
+                AvailableCourts = 5,
+                MaintenanceCourts = 1,
+                InactiveCourts = 0,
+                LowStockServices = 3
+            },
+            RevenueChart =
+            [
+                new() { Date = "13/07", Revenue = 3200000, Bookings = 8 },
+                new() { Date = "14/07", Revenue = 4100000, Bookings = 10 },
+                new() { Date = "15/07", Revenue = 3800000, Bookings = 9 },
+                new() { Date = "16/07", Revenue = 5200000, Bookings = 14 },
+                new() { Date = "17/07", Revenue = 6100000, Bookings = 16 },
+                new() { Date = "18/07", Revenue = 7400000, Bookings = 19 },
+                new() { Date = "19/07", Revenue = 4500000, Bookings = 12 }
+            ],
+            RecentBookings =
+            [
+                new() { BookingId = 101, BookingCode = "BK20260719-01", CustomerName = "Nguyễn Văn A", CourtName = "Sân Cầu Lông A1", CourtTypeName = "Sân Cầu Lông", BookingDate = "19/07/2026", SlotName = "Ca Sáng 1 (07:00 - 09:00)", TotalAmount = 240000, Status = "Confirmed" },
+                new() { BookingId = 102, BookingCode = "BK20260719-02", CustomerName = "Trần Thị B", CourtName = "Sân Tennis T1", CourtTypeName = "Sân Tennis", BookingDate = "19/07/2026", SlotName = "Ca Chiều (14:00 - 17:00)", TotalAmount = 500000, Status = "Pending" },
+                new() { BookingId = 103, BookingCode = "BK20260719-03", CustomerName = "Lê Hoàng C", CourtName = "Sân Pickleball P1", CourtTypeName = "Sân Pickleball", BookingDate = "19/07/2026", SlotName = "Ca Tối Vàng (17:30 - 21:00)", TotalAmount = 450000, Status = "Confirmed" }
+            ],
+            CourtGrid =
+            [
+                new() { CourtId = 1, CourtName = "Sân Cầu Lông A1 (VIP)", CourtCode = "CL-A1", CourtType = "Sân Cầu Lông", Status = "Available", PricePerHour = 120000 },
+                new() { CourtId = 2, CourtName = "Sân Cầu Lông A2", CourtCode = "CL-A2", CourtType = "Sân Cầu Lông", Status = "Available", PricePerHour = 100000 },
+                new() { CourtId = 3, CourtName = "Sân Tennis Trung Tâm T1", CourtCode = "TN-T1", CourtType = "Sân Tennis", Status = "Maintenance", PricePerHour = 250000 },
+                new() { CourtId = 4, CourtName = "Sân Pickleball P1", CourtCode = "PK-P1", CourtType = "Sân Pickleball", Status = "Available", PricePerHour = 150000 },
+                new() { CourtId = 5, CourtName = "Sân Bóng Đá Mini S1", CourtCode = "BD-S1", CourtType = "Sân Bóng Đá", Status = "Available", PricePerHour = 400000 }
+            ],
+            Alerts =
+            [
+                new() { Type = "warning", Icon = "fa-clock", Message = "2 booking đang chờ xác nhận" },
+                new() { Type = "warning", Icon = "fa-box-open", Message = "3 dịch vụ tồn kho dưới 10 đơn vị" },
+                new() { Type = "info", Icon = "fa-wrench", Message = "1 sân đang trong chế độ bảo trì" }
+            ],
+            TopCustomers =
+            [
+                new() { UserId = 1, FullName = "Nguyễn Văn A", TotalSpend = 1450000, BookingCount = 5 },
+                new() { UserId = 2, FullName = "Trần Thị B", TotalSpend = 1100000, BookingCount = 3 },
+                new() { UserId = 3, FullName = "Lê Hoàng C", TotalSpend = 950000, BookingCount = 4 }
+            ]
+        });
+
     public Task<DashboardSummaryDto> GetDashboardAsync() =>
         Task.FromResult(new DashboardSummaryDto
         {

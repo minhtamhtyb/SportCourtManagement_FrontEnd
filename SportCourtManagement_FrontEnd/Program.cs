@@ -22,7 +22,13 @@ builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection(ApiSett
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<JwtForwardingHandler>();
 
-var useMock = builder.Configuration.GetValue<bool>($"{ApiSettings.SectionName}:UseMockData", true);
+// Allow [ValidateAntiForgeryToken] to read token from custom header for AJAX/JSON requests
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "RequestVerificationToken";
+});
+
+var useMock = builder.Configuration.GetValue<bool>($"{ApiSettings.SectionName}:UseMockData", false);
 if (useMock)
 {
     builder.Services.AddSingleton<MockDataStore>();

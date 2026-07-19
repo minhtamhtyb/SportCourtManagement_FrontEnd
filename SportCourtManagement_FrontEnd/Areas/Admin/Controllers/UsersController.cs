@@ -13,18 +13,37 @@ public class UsersController(IUserService userService, IRoleService roleService)
 {
     public async Task<IActionResult> Index(string? search, string? role, int page = 1)
     {
-        var result = await userService.GetUsersAsync(search, role, page, 10);
-        var vm = new UserListViewModel
+        try
         {
-            Users = result.Items,
-            Search = search,
-            Role = role,
-            Page = page,
-            TotalCount = result.TotalCount,
-            TotalPages = result.TotalPages,
-            RoleOptions = (await roleService.GetRolesAsync()).Select(r => r.RoleName).ToList()
-        };
-        return View(vm);
+            var result = await userService.GetUsersAsync(search, role, page, 10);
+            var roles = (await roleService.GetRolesAsync()).Select(r => r.RoleName).ToList();
+
+            var vm = new UserListViewModel
+            {
+                Users = result.Items,
+                Search = search,
+                Role = role,
+                Page = page,
+                TotalCount = result.TotalCount,
+                TotalPages = result.TotalPages,
+                RoleOptions = roles
+            };
+            return View(vm);
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = ex.Message;
+            return View(new UserListViewModel
+            {
+                Users = [],
+                Search = search,
+                Role = role,
+                Page = page,
+                TotalCount = 0,
+                TotalPages = 0,
+                RoleOptions = []
+            });
+        }
     }
 
     public async Task<IActionResult> Details(int id)

@@ -189,3 +189,75 @@ public class PermissionMatrixRow
     public bool Coach { get; set; }
     public bool Customer { get; set; }
 }
+
+public class AdminDashboardKpiDto
+{
+    public decimal TodayRevenue { get; set; }
+    public decimal MonthRevenue { get; set; }
+    public int TodayBookings { get; set; }
+    public int PendingBookings { get; set; }
+    public double OccupancyRate { get; set; }
+    public int ActiveCustomers { get; set; }
+    public int ActiveCoaches { get; set; }
+    public int TotalCourts { get; set; }
+    public int AvailableCourts { get; set; }
+    public int MaintenanceCourts { get; set; }
+    public int InactiveCourts { get; set; }
+    public int LowStockServices { get; set; }
+}
+
+public class RevenueChartPointDto
+{
+    public string Date { get; set; } = "";
+    public decimal Revenue { get; set; }
+    public int Bookings { get; set; }
+}
+
+public class RecentBookingDto
+{
+    public int BookingId { get; set; }
+    public string BookingCode { get; set; } = "";
+    public string CustomerName { get; set; } = "";
+    public string CourtName { get; set; } = "";
+    public string CourtTypeName { get; set; } = "";
+    public string BookingDate { get; set; } = "";
+    public string SlotName { get; set; } = "";
+    public decimal TotalAmount { get; set; }
+    public string Status { get; set; } = "";
+}
+
+public class CourtStatusItemDto
+{
+    public int CourtId { get; set; }
+    public string CourtName { get; set; } = "";
+    public string CourtCode { get; set; } = "";
+    public string CourtType { get; set; } = "";
+    public string Status { get; set; } = "";
+    public decimal PricePerHour { get; set; }
+}
+
+public class DashboardAlertDto
+{
+    public string Type { get; set; } = "";
+    public string Icon { get; set; } = "";
+    public string Message { get; set; } = "";
+}
+
+public class TopCustomerDto
+{
+    public int UserId { get; set; }
+    public string FullName { get; set; } = "";
+    public decimal TotalSpend { get; set; }
+    public int BookingCount { get; set; }
+}
+
+public class AdminDashboardDto
+{
+    public AdminDashboardKpiDto Kpis { get; set; } = new();
+    public List<RevenueChartPointDto> RevenueChart { get; set; } = [];
+    public List<RecentBookingDto> RecentBookings { get; set; } = [];
+    public List<CourtStatusItemDto> CourtGrid { get; set; } = [];
+    public List<DashboardAlertDto> Alerts { get; set; } = [];
+    public List<TopCustomerDto> TopCustomers { get; set; } = [];
+}
+

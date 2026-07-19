@@ -207,6 +207,7 @@ public class DashboardViewModel
 {
     public DashboardSummaryDto Summary { get; set; } = new();
     public ComplexStatsDto CourtStats { get; set; } = new();
+    public AdminDashboardDto Data { get; set; } = new();
 }
 
 public class RevenueReportViewModel

@@ -1,161 +1,609 @@
 @model ServiceListViewModel
 @{
     ViewData["Title"] = "Dịch vụ & Kho";
+    var categories = new[] { "Equipment", "Drink", "Coach", "Event" };
+    var catLabels = new Dictionary<string, (string label, string css)>
+    {
+        ["Equipment"] = ("Dụng cụ", "type-badge" + " badge-equipment"),
+        ["Drink"]     = ("Đồ uống", "type-badge" + " badge-drink"),
+        ["Coach"]     = ("HLV", "type-badge" + " badge-coach"),
+        ["Event"]     = ("Sự kiện", "type-badge" + " badge-event"),
+    };
 }
 
+@* ───── Toast Container ───── *@
+<div id="toastContainer" style="position:fixed;top:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;min-width:320px;pointer-events:none;"></div>
+
+@* ───── Page Header ───── *@
 <div class="page-header">
     <div>
-        <h1 class="page-title">Quản lý dịch vụ & Kho</h1>
-        <p class="page-subtitle">Dụng cụ, đồ uống, huấn luyện viên và dịch vụ sự kiện</p>
+        <h1 class="page-title">Quản lý dịch vụ &amp; Kho</h1>
+        <p class="page-subtitle">
+            Dụng cụ, đồ uống, huấn luyện viên và dịch vụ sự kiện —
+            <strong class="text-white">@Model.TotalItems</strong> dịch vụ
+        </p>
     </div>
-    <a asp-action="Create" class="btn-primary-custom"><i class="fa-solid fa-plus"></i> Thêm dịch vụ</a>
+    <button type="button" id="btnAddService" class="btn-primary-custom">
+        <i class="fa-solid fa-plus"></i> Thêm dịch vụ
+    </button>
 </div>
 
-<form method="get" class="filter-bar">
-    <input type="hidden" name="category" value="@Model.Category" />
+@* ───── Filter Bar ───── *@
+<form method="get" class="filter-bar" id="filterForm">
     <div class="filter-search">
         <i class="fa-solid fa-magnifying-glass text-secondary"></i>
-        <input type="text" name="search" value="@Model.Search" placeholder="Tìm tên dịch vụ..." />
+        <input type="text" name="search" id="searchInput" value="@Model.Search" placeholder="Tìm tên dịch vụ..." />
     </div>
     <a asp-action="Index" class="filter-chip @(string.IsNullOrEmpty(Model.Category) ? "active" : "")">Tất cả</a>
-    @foreach (var cat in new[] { "Equipment", "Drink", "Coach", "Event" })
+    @foreach (var cat in categories)
     {
-        var (label, _) = DisplayHelpers.GetServiceCategory(cat);
+        var label = catLabels.ContainsKey(cat) ? catLabels[cat].label : cat;
         <a asp-action="Index" asp-route-category="@cat" asp-route-search="@Model.Search"
            class="filter-chip @(Model.Category == cat ? "active" : "")">@label</a>
     }
 </form>
 
-<div class="admin-card">
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Dịch vụ</th>
-                <th>Loại</th>
-                <th>Giá</th>
-                <th>Tồn kho</th>
-                <th>Trạng thái</th>
-                <th class="text-end">Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var s in Model.Services)
-            {
-                var (catLabel, catCss) = DisplayHelpers.GetServiceCategory(s.Category);
-                <tr class="@(!s.IsActive ? "opacity-50" : "")">
-                    <td>
-                        <div class="fw-semibold text-white">@s.ServiceName</div>
-                        <div class="text-secondary small">@s.Description</div>
-                    </td>
-                    <td><span class="@catCss small fw-semibold">@catLabel</span></td>
-                    <td>@DisplayHelpers.FormatCurrency(s.Price)<span class="text-secondary small">/@s.Unit</span></td>
-                    <td>
-                        <span class="fw-semibold @(s.StockQty < 10 ? "text-warning" : "")">@s.StockQty</span>
-                    </td>
-                    <td>
-                        @if (s.IsActive)
-                        { <span class="status-badge status-available">Hoạt động</span> }
-                        else
-                        { <span class="status-badge status-inactive">Ngưng</span> }
-                    </td>
-                    <td class="text-end">
-                        <a asp-action="Details" asp-route-id="@s.ServiceId" class="btn-ghost"><i class="fa-solid fa-eye"></i></a>
-                        <a asp-action="Edit" asp-route-id="@s.ServiceId" class="btn-ghost"><i class="fa-solid fa-pen"></i></a>
-                        @if (s.IsActive)
-                        {
-                            <form asp-action="Delete" asp-route-id="@s.ServiceId" method="post" class="d-inline" onsubmit="return confirm('Vô hiệu hóa dịch vụ?')">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn-ghost text-danger"><i class="fa-solid fa-ban"></i></button>
-                            </form>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
-
-@if (Model.TotalPages > 1)
+@* ───── Table ───── *@
+@if (!Model.Services.Any())
 {
-    <div class="pagination-custom">
-        @* Nút Trang trước *@
-        @if (Model.PageNumber > 1)
-        {
-            <a asp-action="Index" 
-               asp-route-page="@(Model.PageNumber - 1)" 
-               asp-route-search="@Model.Search" 
-               asp-route-category="@Model.Category"
-               title="Trang trước">
-                <i class="fa-solid fa-chevron-left"></i>
-            </a>
-        }
-        else
-        {
-            <span class="disabled"><i class="fa-solid fa-chevron-left"></i></span>
-        }
+    <div class="empty-state py-5">
+        <i class="fa-solid fa-box-open d-block"></i>
+        <p class="text-secondary">Không tìm thấy dịch vụ phù hợp.</p>
+    </div>
+}
+else
+{
+    <div class="admin-card">
+        <table class="admin-table" id="servicesTable">
+            <thead>
+                <tr>
+                    <th>Dịch vụ</th>
+                    <th>Loại</th>
+                    <th>Giá</th>
+                    <th>Tồn kho</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model.Services)
+                {
+                    var catInfo = catLabels.ContainsKey(s.Category) ? catLabels[s.Category] : ("Khác", "type-badge");
+                    <tr class="@(!s.IsActive ? "opacity-50" : "")">
+                        <td>
+                            <div class="fw-semibold text-white">@s.ServiceName</div>
+                            <div class="text-secondary small">@s.Description</div>
+                        </td>
+                        <td><span class="@catInfo.Item2 small fw-semibold">@catInfo.Item1</span></td>
+                        <td>
+                            @s.Price.ToString("N0")<span class="text-secondary">đ</span>
+                            <span class="text-secondary small">/@s.Unit</span>
+                        </td>
+                        <td>
+                            <span class="fw-semibold @(s.StockQty < 10 ? "text-warning" : "")">@s.StockQty</span>
+                        </td>
+                        <td>
+                            @if (s.IsActive)
+                            { <span class="status-badge status-available">Hoạt động</span> }
+                            else
+                            { <span class="status-badge status-inactive">Ngưng</span> }
+                        </td>
+                        <td class="text-end">
+                            <button type="button" class="btn-ghost btn-view-service"
+                                    data-id="@s.ServiceId" title="Xem chi tiết">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                            <button type="button" class="btn-ghost btn-edit-service"
+                                    data-id="@s.ServiceId" title="Chỉnh sửa">
+                                <i class="fa-solid fa-pen text-info"></i>
+                            </button>
+                            @if (s.IsActive)
+                            {
+                                <button type="button" class="btn-ghost btn-delete-service"
+                                        data-id="@s.ServiceId"
+                                        data-name="@s.ServiceName"
+                                        title="Vô hiệu hóa">
+                                    <i class="fa-solid fa-ban text-danger"></i>
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 
-        @* Tính toán khoảng trang hiển thị *@
-        @{
-            int startPage = Math.Max(1, Model.PageNumber - 2);
-            int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
-
-            if (Model.PageNumber <= 3)
+    @* ───── Pagination ───── *@
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pagination-custom">
+            @if (Model.PageNumber > 1)
             {
-                endPage = Math.Min(Model.TotalPages, 5);
-            }
-            if (Model.PageNumber >= Model.TotalPages - 2)
-            {
-                startPage = Math.Max(1, Model.TotalPages - 4);
-            }
-        }
-
-        @* Trang đầu và dấu ba chấm bên trái *@
-        @if (startPage > 1)
-        {
-            <a asp-action="Index" asp-route-page="1" asp-route-search="@Model.Search" asp-route-category="@Model.Category">1</a>
-            @if (startPage > 2)
-            {
-                <span class="dots">...</span>
-            }
-        }
-
-        @* Các trang ở giữa *@
-        @for (int i = startPage; i <= endPage; i++)
-        {
-            if (i == Model.PageNumber)
-            {
-                <span class="active">@i</span>
+                <a asp-action="Index" asp-route-page="@(Model.PageNumber - 1)"
+                   asp-route-search="@Model.Search" asp-route-category="@Model.Category"
+                   title="Trang trước"><i class="fa-solid fa-chevron-left"></i></a>
             }
             else
             {
-                <a asp-action="Index" asp-route-page="@i" asp-route-search="@Model.Search" asp-route-category="@Model.Category">@i</a>
+                <span class="disabled"><i class="fa-solid fa-chevron-left"></i></span>
             }
-        }
 
-        @* Trang cuối và dấu ba chấm bên phải *@
-        @if (endPage < Model.TotalPages)
-        {
-            @if (endPage < Model.TotalPages - 1)
+            @{
+                int startPage = Math.Max(1, Model.PageNumber - 2);
+                int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                if (Model.PageNumber <= 3) endPage = Math.Min(Model.TotalPages, 5);
+                if (Model.PageNumber >= Model.TotalPages - 2) startPage = Math.Max(1, Model.TotalPages - 4);
+            }
+            @if (startPage > 1)
             {
-                <span class="dots">...</span>
+                <a asp-action="Index" asp-route-page="1" asp-route-search="@Model.Search" asp-route-category="@Model.Category">1</a>
+                @if (startPage > 2) { <span class="dots">...</span> }
             }
-            <a asp-action="Index" asp-route-page="@Model.TotalPages" asp-route-search="@Model.Search" asp-route-category="@Model.Category">@Model.TotalPages</a>
-        }
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                if (i == Model.PageNumber)
+                { <span class="active">@i</span> }
+                else
+                { <a asp-action="Index" asp-route-page="@i" asp-route-search="@Model.Search" asp-route-category="@Model.Category">@i</a> }
+            }
+            @if (endPage < Model.TotalPages)
+            {
+                @if (endPage < Model.TotalPages - 1) { <span class="dots">...</span> }
+                <a asp-action="Index" asp-route-page="@Model.TotalPages" asp-route-search="@Model.Search" asp-route-category="@Model.Category">@Model.TotalPages</a>
+            }
+            @if (Model.PageNumber < Model.TotalPages)
+            {
+                <a asp-action="Index" asp-route-page="@(Model.PageNumber + 1)"
+                   asp-route-search="@Model.Search" asp-route-category="@Model.Category"
+                   title="Trang sau"><i class="fa-solid fa-chevron-right"></i></a>
+            }
+            else
+            {
+                <span class="disabled"><i class="fa-solid fa-chevron-right"></i></span>
+            }
+        </div>
+    }
+}
 
-        @* Nút Trang sau *@
-        @if (Model.PageNumber < Model.TotalPages)
-        {
-            <a asp-action="Index" 
-               asp-route-page="@(Model.PageNumber + 1)" 
-               asp-route-search="@Model.Search" 
-               asp-route-category="@Model.Category"
-               title="Trang sau">
-                <i class="fa-solid fa-chevron-right"></i>
-            </a>
-        }
-        else
-        {
-            <span class="disabled"><i class="fa-solid fa-chevron-right"></i></span>
-        }
+@* ─────────────── CREATE / EDIT MODAL ─────────────── *@
+<div class="modal fade" id="serviceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:560px">
+        <div class="modal-content admin-modal">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-white fw-bold" id="serviceModalTitle">Thêm dịch vụ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="serviceForm" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="editServiceId" value="" />
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Tên dịch vụ <span class="text-danger">*</span></label>
+                        <input type="text" id="fServiceName" class="form-control" maxlength="100"
+                               placeholder="VD: Thuê vợt cầu lông" />
+                        <div class="invalid-feedback" id="errServiceName"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Loại dịch vụ <span class="text-danger">*</span></label>
+                        <select id="fCategory" class="form-select">
+                            <option value="Equipment">🏸 Dụng cụ</option>
+                            <option value="Drink">🥤 Đồ uống</option>
+                            <option value="Coach">🎽 Huấn luyện viên</option>
+                            <option value="Event">🏆 Sự kiện</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-secondary small">Giá (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" id="fPrice" class="form-control" min="0" max="100000000" step="1000"
+                                   placeholder="0" />
+                            <div class="invalid-feedback" id="errPrice"></div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-secondary small">Đơn vị <span class="text-danger">*</span></label>
+                            <input type="text" id="fUnit" class="form-control" maxlength="30"
+                                   placeholder="Giờ, Chai, Cây..." />
+                            <div class="invalid-feedback" id="errUnit"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Tồn kho</label>
+                        <input type="number" id="fStockQty" class="form-control" min="0" max="100000"
+                               placeholder="0" value="0" />
+                        <div class="invalid-feedback" id="errStockQty"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Mô tả</label>
+                        <textarea id="fDescription" class="form-control" rows="2" maxlength="500"
+                                  placeholder="Mô tả ngắn về dịch vụ..."></textarea>
+                        <div class="text-secondary small mt-1"><span id="descCount">0</span>/500 ký tự</div>
+                    </div>
+
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="fIsActive" checked />
+                        <label class="form-check-label text-secondary" for="fIsActive">Đang hoạt động</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="btnSaveService" class="btn-primary-custom">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu
+                </button>
+            </div>
+        </div>
     </div>
+</div>
+
+@* ─────────────── VIEW DETAIL MODAL ─────────────── *@
+<div class="modal fade" id="serviceDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:480px">
+        <div class="modal-content admin-modal">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-white fw-bold">Chi tiết dịch vụ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="serviceDetailBody">
+                <div class="text-center py-3 text-secondary">
+                    <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                    <span class="ms-2">Đang tải...</span>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ─────────────── DELETE CONFIRM MODAL ─────────────── *@
+<div class="modal fade" id="deleteServiceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content admin-modal">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-white fw-bold">Xác nhận vô hiệu hóa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-secondary">
+                <p>Bạn có chắc muốn vô hiệu hóa dịch vụ <strong class="text-white" id="deleteServiceName"></strong>?</p>
+                <p class="small">Dịch vụ sẽ không còn hiển thị cho khách hàng nhưng vẫn lưu trong hệ thống.</p>
+                <input type="hidden" id="deleteServiceId" />
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="btnConfirmDelete" class="btn btn-danger px-4 fw-semibold" style="border-radius:8px">
+                    <i class="fa-solid fa-ban"></i> Vô hiệu hóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ─────────────── Hidden AntiForgery form for DELETE ─────────────── *@
+<form id="deleteServiceForm" method="post" class="d-none">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+<style>
+/* ── Toast ── */
+.toast-item {
+    pointer-events: all;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border-left: 4px solid;
+    font-size: 14px;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    animation: toastIn .35s cubic-bezier(.175,.885,.32,1.275);
+    transition: opacity .35s, transform .35s;
+    max-width: 360px;
+}
+.toast-item.success { background: rgba(16,185,129,.15); border-color: #10b981; color: #6ee7b7; }
+.toast-item.error   { background: rgba(239,68,68,.15);  border-color: #ef4444; color: #fca5a5; }
+.toast-item .toast-icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+.toast-item.success .toast-icon { color: #10b981; }
+.toast-item.error   .toast-icon { color: #ef4444; }
+.toast-close { margin-left: auto; background: none; border: none; color: inherit; opacity: .6; cursor: pointer; font-size: 16px; }
+.toast-close:hover { opacity: 1; }
+@@keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+
+/* ── Modal dark inputs ── */
+#serviceModal .form-control,
+#serviceModal .form-select {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    color: #fff;
+    border-radius: 8px;
+}
+#serviceModal .form-control:focus,
+#serviceModal .form-select:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,.2);
+    background: rgba(255,255,255,.09);
+}
+#serviceModal .form-control::placeholder { color: rgba(255,255,255,.3); }
+#serviceModal .form-select option { background: #1a2332; color: #fff; }
+#serviceModal .invalid-feedback { display: block; color: #f87171; font-size: 12px; margin-top: 4px; }
+.is-invalid { border-color: #ef4444 !important; }
+
+/* Detail rows */
+.detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.detail-row:last-child { border-bottom: none; }
+.detail-label { color: rgba(255,255,255,.5); font-size: 13px; }
+.detail-value { color: #fff; font-weight: 500; font-size: 13px; text-align: right; }
+</style>
+
+<script>
+(function () {
+    'use strict';
+
+    // ── Antiforgery token ──
+    const getToken = () => document.querySelector('[name=__RequestVerificationToken]')?.value ?? '';
+
+    // ── Toast ──
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+        const el = document.createElement('div');
+        el.className = `toast-item ${type}`;
+        el.innerHTML = `
+            <i class="fa-solid ${icon} toast-icon"></i>
+            <span>${message}</span>
+            <button class="toast-close" onclick="this.parentElement.remove()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>`;
+        container.appendChild(el);
+        setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(40px)';
+            setTimeout(() => el.remove(), 380);
+        }, 4500);
+    }
+
+    // ── Validation ──
+    function clearErrors() {
+        ['fServiceName','fPrice','fUnit','fStockQty'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('is-invalid');
+        });
+    }
+
+    function validate() {
+        let valid = true;
+        const name = document.getElementById('fServiceName').value.trim();
+        const price = parseFloat(document.getElementById('fPrice').value);
+        const unit = document.getElementById('fUnit').value.trim();
+        const stock = parseInt(document.getElementById('fStockQty').value);
+
+        clearErrors();
+
+        if (!name || name.length < 2) {
+            setError('fServiceName', 'errServiceName', 'Tên dịch vụ phải từ 2 đến 100 ký tự');
+            valid = false;
+        }
+        if (name.length > 100) {
+            setError('fServiceName', 'errServiceName', 'Tên dịch vụ không được vượt quá 100 ký tự');
+            valid = false;
+        }
+        if (isNaN(price) || price < 0) {
+            setError('fPrice', 'errPrice', 'Giá phải là số không âm');
+            valid = false;
+        }
+        if (price > 100_000_000) {
+            setError('fPrice', 'errPrice', 'Giá không được vượt quá 100,000,000đ');
+            valid = false;
+        }
+        if (!unit) {
+            setError('fUnit', 'errUnit', 'Đơn vị không được để trống');
+            valid = false;
+        }
+        if (isNaN(stock) || stock < 0) {
+            setError('fStockQty', 'errStockQty', 'Tồn kho phải là số không âm');
+            valid = false;
+        }
+        return valid;
+    }
+
+    function setError(inputId, errId, msg) {
+        const input = document.getElementById(inputId);
+        const err = document.getElementById(errId);
+        if (input) input.classList.add('is-invalid');
+        if (err) err.textContent = msg;
+    }
+
+    // ── Get form data ──
+    function getFormData() {
+        return {
+            serviceName: document.getElementById('fServiceName').value.trim(),
+            category: document.getElementById('fCategory').value,
+            price: parseFloat(document.getElementById('fPrice').value) || 0,
+            unit: document.getElementById('fUnit').value.trim(),
+            stockQty: parseInt(document.getElementById('fStockQty').value) || 0,
+            description: document.getElementById('fDescription').value.trim(),
+            isActive: document.getElementById('fIsActive').checked
+        };
+    }
+
+    // ── Reset form ──
+    function resetForm() {
+        document.getElementById('editServiceId').value = '';
+        document.getElementById('fServiceName').value = '';
+        document.getElementById('fCategory').value = 'Equipment';
+        document.getElementById('fPrice').value = '';
+        document.getElementById('fUnit').value = '';
+        document.getElementById('fStockQty').value = '0';
+        document.getElementById('fDescription').value = '';
+        document.getElementById('fIsActive').checked = true;
+        document.getElementById('descCount').textContent = '0';
+        clearErrors();
+    }
+
+    // ── Description counter ──
+    document.getElementById('fDescription').addEventListener('input', function () {
+        document.getElementById('descCount').textContent = this.value.length;
+    });
+
+    // ── Open create modal ──
+    document.getElementById('btnAddService').addEventListener('click', function () {
+        resetForm();
+        document.getElementById('serviceModalTitle').textContent = 'Thêm dịch vụ mới';
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('serviceModal')).show();
+    });
+
+    // ── Open edit modal ──
+    document.querySelectorAll('.btn-edit-service').forEach(btn => {
+        btn.addEventListener('click', async function () {
+            const id = this.dataset.id;
+            resetForm();
+            document.getElementById('serviceModalTitle').textContent = 'Chỉnh sửa dịch vụ';
+
+            try {
+                const res = await fetch(`/Admin/Services/GetById/${id}`);
+                const json = await res.json();
+                if (!json.success) { showToast(json.message, 'error'); return; }
+                const s = json.data;
+                document.getElementById('editServiceId').value = s.serviceId;
+                document.getElementById('fServiceName').value = s.serviceName ?? '';
+                document.getElementById('fCategory').value = s.category ?? 'Equipment';
+                document.getElementById('fPrice').value = s.price ?? 0;
+                document.getElementById('fUnit').value = s.unit ?? '';
+                document.getElementById('fStockQty').value = s.stockQty ?? 0;
+                document.getElementById('fDescription').value = s.description ?? '';
+                document.getElementById('fIsActive').checked = !!s.isActive;
+                document.getElementById('descCount').textContent = (s.description ?? '').length;
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('serviceModal')).show();
+            } catch (e) {
+                showToast('Không tải được thông tin dịch vụ.', 'error');
+            }
+        });
+    });
+
+    // ── Open view modal ──
+    document.querySelectorAll('.btn-view-service').forEach(btn => {
+        btn.addEventListener('click', async function () {
+            const id = this.dataset.id;
+            document.getElementById('serviceDetailBody').innerHTML =
+                `<div class="text-center py-3 text-secondary"><div class="spinner-border spinner-border-sm text-success"></div><span class="ms-2">Đang tải...</span></div>`;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('serviceDetailModal')).show();
+
+            try {
+                const res = await fetch(`/Admin/Services/GetById/${id}`);
+                const json = await res.json();
+                if (!json.success) {
+                    document.getElementById('serviceDetailBody').innerHTML = `<p class="text-danger">${json.message}</p>`;
+                    return;
+                }
+                const s = json.data;
+                const catMap = { Equipment: '🏸 Dụng cụ', Drink: '🥤 Đồ uống', Coach: '🎽 Huấn luyện viên', Event: '🏆 Sự kiện' };
+                document.getElementById('serviceDetailBody').innerHTML = `
+                    <div class="detail-row"><span class="detail-label">Tên dịch vụ</span><span class="detail-value">${s.serviceName}</span></div>
+                    <div class="detail-row"><span class="detail-label">Loại</span><span class="detail-value">${catMap[s.category] ?? s.category}</span></div>
+                    <div class="detail-row"><span class="detail-label">Giá</span><span class="detail-value">${Number(s.price).toLocaleString('vi-VN')}đ / ${s.unit}</span></div>
+                    <div class="detail-row"><span class="detail-label">Tồn kho</span><span class="detail-value ${s.stockQty < 10 ? 'text-warning' : ''}">${s.stockQty}</span></div>
+                    <div class="detail-row"><span class="detail-label">Mô tả</span><span class="detail-value">${s.description ?? '—'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Trạng thái</span><span class="detail-value">${s.isActive ? '<span class="status-badge status-available">Hoạt động</span>' : '<span class="status-badge status-inactive">Ngưng</span>'}</span></div>`;
+            } catch (e) {
+                document.getElementById('serviceDetailBody').innerHTML = `<p class="text-danger">Lỗi tải dữ liệu.</p>`;
+            }
+        });
+    });
+
+    // ── Save (Create / Edit) ──
+    document.getElementById('btnSaveService').addEventListener('click', async function () {
+        if (!validate()) return;
+
+        const editId = document.getElementById('editServiceId').value;
+        const isEdit = !!editId;
+        const url = isEdit ? `/Admin/Services/Edit/${editId}` : '/Admin/Services/Create';
+        const body = getFormData();
+
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang lưu...';
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getToken()
+                },
+                body: JSON.stringify(body)
+            });
+            const json = await res.json();
+
+            if (json.success) {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('serviceModal')).hide();
+                showToast(json.message, 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                showToast(json.message ?? 'Thao tác thất bại.', 'error');
+            }
+        } catch (e) {
+            showToast('Không kết nối được máy chủ.', 'error');
+        } finally {
+            this.disabled = false;
+            this.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu';
+        }
+    });
+
+    // ── Open delete confirm modal ──
+    document.querySelectorAll('.btn-delete-service').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.getElementById('deleteServiceId').value = this.dataset.id;
+            document.getElementById('deleteServiceName').textContent = this.dataset.name;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteServiceModal')).show();
+        });
+    });
+
+    // ── Confirm delete ──
+    document.getElementById('btnConfirmDelete').addEventListener('click', async function () {
+        const id = document.getElementById('deleteServiceId').value;
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...';
+
+        try {
+            const form = document.getElementById('deleteServiceForm');
+            const token = form.querySelector('[name=__RequestVerificationToken]').value;
+            const res = await fetch(`/Admin/Services/Delete/${id}`, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token, 'Content-Type': 'application/json' }
+            });
+            const json = await res.json();
+
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteServiceModal')).hide();
+            if (json.success) {
+                showToast(json.message, 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                showToast(json.message ?? 'Vô hiệu hóa thất bại.', 'error');
+            }
+        } catch (e) {
+            showToast('Không kết nối được máy chủ.', 'error');
+        } finally {
+            this.disabled = false;
+            this.innerHTML = '<i class="fa-solid fa-ban"></i> Vô hiệu hóa';
+        }
+    });
+
+    // ── Show TempData toast if any ──
+    @if (TempData["Success"] != null)
+    {
+        <text>showToast('@Html.Raw(TempData["Success"])', 'success');</text>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <text>showToast('@Html.Raw(TempData["Error"])', 'error');</text>
+    }
+})();
+</script>
 }

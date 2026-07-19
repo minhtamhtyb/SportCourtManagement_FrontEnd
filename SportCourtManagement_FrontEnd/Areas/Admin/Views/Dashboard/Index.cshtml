@@ -1,102 +1,623 @@
 @model DashboardViewModel
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Dashboard Quản trị";
+    var kpi = Model.Data.Kpis;
+    var totalAlertsCount = Model.Data.Alerts.Count(a => a.Type != "success");
 }
 
-<div class="page-header">
+<style>
+    /* Custom Modern Dashboard Styles */
+    .kpi-card {
+        background: rgba(30, 41, 59, 0.75);
+        border: 1px solid rgba(51, 65, 85, 0.7);
+        border-radius: 1rem;
+        padding: 1.25rem;
+        backdrop-filter: blur(12px);
+        transition: all 0.2s ease-in-out;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 130px;
+    }
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(99, 102, 241, 0.4);
+        box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.5);
+    }
+    .kpi-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+    .kpi-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin: 0;
+    }
+    .kpi-icon-box {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.125rem;
+        flex-shrink: 0;
+    }
+    .kpi-value {
+        font-size: 1.625rem;
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.375rem;
+    }
+    .kpi-footer {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    .kpi-footer strong {
+        font-weight: 700;
+    }
+
+    /* Icon Theme Variations */
+    .icon-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25); }
+    .icon-indigo  { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.25); }
+    .icon-amber   { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.25); }
+    .icon-purple  { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.25); }
+    .icon-cyan    { background: rgba(6, 182, 212, 0.15);  color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.25); }
+    .icon-orange  { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.25); }
+    .icon-rose    { background: rgba(244, 63, 94, 0.15);   color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.25); }
+
+    .court-chip {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(51, 65, 85, 0.6);
+        border-radius: 0.75rem;
+        padding: 0.75rem;
+        text-align: center;
+        transition: all 0.2s;
+    }
+    .court-chip:hover {
+        border-color: rgba(99, 102, 241, 0.4);
+        background: rgba(30, 41, 59, 0.9);
+    }
+</style>
+
+@* ───── Header ───── *@
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">Tổng quan hoạt động hệ thống quản lý sân thể thao</p>
+        <h1 class="page-title d-flex align-items-center gap-2">
+            <i class="fa-solid fa-chart-line text-success"></i> Dashboard Quản Trị Hệ Thống
+        </h1>
+        <p class="page-subtitle mb-0">
+            Tổng quan thời gian thực toàn bộ 6 khối nghiệp vụ hệ thống quản lý sân thể thao
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-dark border border-secondary text-secondary px-3 py-2 fw-medium">
+            <i class="fa-regular fa-clock me-1 text-info"></i> <span id="clockNow">@DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")</span>
+        </span>
+        <button type="button" id="btnRefreshDashboard" class="btn-secondary-custom">
+            <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+        </button>
     </div>
 </div>
 
-<div class="stat-grid">
-    <div class="stat-card emerald">
-        <div><i class="fa-solid fa-sack-dollar fa-lg text-success"></i></div>
-        <div>
-            <div class="stat-label">Tổng doanh thu</div>
-            <div class="stat-value text-success">@DisplayHelpers.FormatCurrency(Model.Summary.TotalRevenue)</div>
-        </div>
-    </div>
-    <div class="stat-card indigo">
-        <div><i class="fa-solid fa-calendar-check fa-lg" style="color:#818cf8"></i></div>
-        <div>
-            <div class="stat-label">Tổng booking</div>
-            <div class="stat-value" style="color:#a5b4fc">@Model.Summary.TotalBookings</div>
-        </div>
-    </div>
-    <div class="stat-card amber">
-        <div><i class="fa-solid fa-percent fa-lg text-warning"></i></div>
-        <div>
-            <div class="stat-label">Tỷ lệ lấp đầy</div>
-            <div class="stat-value text-warning">@Model.Summary.OccupancyRate%</div>
-        </div>
-    </div>
-    <div class="stat-card slate">
-        <div><i class="fa-solid fa-users fa-lg text-secondary"></i></div>
-        <div>
-            <div class="stat-label">Khách hàng active</div>
-            <div class="stat-value">@Model.Summary.ActiveCustomersCount</div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4">
-    <div class="col-lg-8">
-        <div class="admin-card p-4">
-            <h2 class="h6 text-white mb-3"><i class="fa-solid fa-building me-2"></i>Thống kê sân</h2>
-            <div class="row g-3">
-                <div class="col-6 col-md-4">
-                    <div class="stat-card indigo p-3">
-                        <div class="stat-label">Tổ hợp sân</div>
-                        <div class="stat-value" style="color:#818cf8">@Model.CourtStats.TotalComplexes</div>
-                    </div>
+@* ───── 8 KPI Cards Grid ───── *@
+<div class="row g-3 mb-4">
+    @* Card 1: Doanh thu hôm nay *@
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Doanh thu hôm nay</span>
+                <div class="kpi-icon-box icon-emerald">
+                    <i class="fa-solid fa-sack-dollar"></i>
                 </div>
-                <div class="col-6 col-md-4">
-                    <div class="stat-card slate p-3">
-                        <div class="stat-label">Tổng số sân</div>
-                        <div class="stat-value">@Model.CourtStats.TotalCourts</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4">
-                    <div class="stat-card emerald p-3">
-                        <div class="stat-label">Đang hoạt động</div>
-                        <div class="stat-value text-success">@Model.CourtStats.ActiveCourts</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4">
-                    <div class="stat-card amber p-3">
-                        <div class="stat-label">Bảo trì</div>
-                        <div class="stat-value text-warning">@Model.CourtStats.MaintenanceCourts</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4">
-                    <div class="stat-card slate p-3">
-                        <div class="stat-label">Ngưng hoạt động</div>
-                        <div class="stat-value text-secondary">@Model.CourtStats.InactiveCourts</div>
-                    </div>
-                </div>
+            </div>
+            <div class="kpi-value text-success">
+                @kpi.TodayRevenue.ToString("N0")<span class="fs-6 fw-normal ms-1 text-secondary">đ</span>
+            </div>
+            <div class="kpi-footer">
+                <span>Tháng này:</span>
+                <strong class="text-white">@kpi.MonthRevenue.ToString("N0")đ</strong>
             </div>
         </div>
     </div>
+
+    @* Card 2: Booking hôm nay *@
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Booking hôm nay</span>
+                <div class="kpi-icon-box icon-indigo">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+            </div>
+            <div class="kpi-value text-info">
+                @kpi.TodayBookings <span class="fs-6 fw-normal text-secondary">đơn</span>
+            </div>
+            <div class="kpi-footer">
+                <span>Chờ xác nhận:</span>
+                <strong class="@(kpi.PendingBookings > 0 ? "text-warning" : "text-white")">@kpi.PendingBookings</strong>
+            </div>
+        </div>
+    </div>
+
+    @* Card 3: Tỷ lệ lấp đầy *@
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Tỷ lệ lấp đầy</span>
+                <div class="kpi-icon-box icon-amber">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+            </div>
+            <div class="kpi-value text-warning">
+                @kpi.OccupancyRate<span class="fs-6 fw-normal ms-1">%</span>
+            </div>
+            <div class="kpi-footer text-secondary">
+                <span>Công suất sử dụng ca sân</span>
+            </div>
+        </div>
+    </div>
+
+    @* Card 4: Khách hàng & HLV *@
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Khách hàng active</span>
+                <div class="kpi-icon-box icon-purple">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+            <div class="kpi-value text-white">
+                @kpi.ActiveCustomers <span class="fs-6 fw-normal text-secondary">user</span>
+            </div>
+            <div class="kpi-footer">
+                <span>Huấn luyện viên:</span>
+                <strong class="text-info">@kpi.ActiveCoaches</strong>
+            </div>
+        </div>
+    </div>
+
+    @* Card 5: Tổng số sân *@
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Tổng số sân</span>
+                <div class="kpi-icon-box icon-cyan">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+            </div>
+            <div class="kpi-value text-info">
+                @kpi.TotalCourts <span class="fs-6 fw-normal text-secondary">sân</span>
+            </div>
+            <div class="kpi-footer">
+                <span>Đang sẵn sàng:</span>
+                <strong class="text-success">@kpi.AvailableCourts</strong>
+            </div>
+        </div>
+    </div>
+
+    @* Card 6: Sân đang bảo trì *@
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Sân đang bảo trì</span>
+                <div class="kpi-icon-box icon-orange">
+                    <i class="fa-solid fa-wrench"></i>
+                </div>
+            </div>
+            <div class="kpi-value text-warning">
+                @kpi.MaintenanceCourts <span class="fs-6 fw-normal text-secondary">sân</span>
+            </div>
+            <div class="kpi-footer">
+                <span>Ngưng hoạt động:</span>
+                <strong class="text-danger">@kpi.InactiveCourts</strong>
+            </div>
+        </div>
+    </div>
+
+    @* Card 7: Kho dịch vụ *@
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Kho dịch vụ</span>
+                <div class="kpi-icon-box icon-emerald">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+            </div>
+            <div class="kpi-value text-success fs-4 fw-bold">
+                Sẵn sàng
+            </div>
+            <div class="kpi-footer">
+                <span>Tồn kho thấp (&lt;10):</span>
+                <strong class="@(kpi.LowStockServices > 0 ? "text-danger" : "text-white")">@kpi.LowStockServices</strong>
+            </div>
+        </div>
+    </div>
+
+    @* Card 8: Cảnh báo vận hành *@
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Cảnh báo vận hành</span>
+                <div class="kpi-icon-box icon-rose">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+            </div>
+            <div class="kpi-value text-danger">
+                @totalAlertsCount <span class="fs-6 fw-normal text-secondary">vấn đề</span>
+            </div>
+            <div class="kpi-footer text-secondary">
+                <span>Cần xử lý ngay</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ───── Section: Chart & Recent Activity ───── *@
+<div class="row g-4 mb-4">
+    @* Cột trái: Chart 7 ngày *@
+    <div class="col-lg-8">
+        <div class="admin-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h6 text-white mb-0 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-chart-area text-success"></i> Xu hướng doanh thu &amp; Booking (7 ngày gần nhất)
+                </h2>
+                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-2 py-1 small">
+                    <i class="fa-solid fa-rotate-right me-1"></i> Tự động cập nhật
+                </span>
+            </div>
+            <div style="position: relative; height: 320px; width: 100%;">
+                <canvas id="revenueChartCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    @* Cột phải: Hoạt động Booking gần đây *@
     <div class="col-lg-4">
-        <div class="admin-card p-4">
-            <h2 class="h6 text-white mb-3"><i class="fa-solid fa-star me-2 text-warning"></i>Top sân đánh giá</h2>
-            @foreach (var court in Model.Summary.TopRatedCourts)
+        <div class="admin-card p-4 h-100 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h6 text-white mb-0 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-info"></i> Booking mới nhất
+                </h2>
+                <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="small text-info text-decoration-none hover-underline">Tất cả &rarr;</a>
+            </div>
+            <div class="flex-grow-1 overflow-auto pe-1" style="max-height: 320px;">
+                @if (!Model.Data.RecentBookings.Any())
+                {
+                    <div class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-calendar-xmark fs-2 mb-2 opacity-50"></i>
+                        <p class="small mb-0">Chưa có booking nào gần đây</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush bg-transparent">
+                        @foreach (var b in Model.Data.RecentBookings)
+                        {
+                            var statusCss = b.Status switch
+                            {
+                                "Confirmed" => "bg-success text-success border-success",
+                                "Pending" => "bg-warning text-warning border-warning",
+                                "Cancelled" => "bg-danger text-danger border-danger",
+                                "Completed" => "bg-info text-info border-info",
+                                _ => "bg-secondary text-secondary border-secondary"
+                            };
+                            <div class="list-group-item bg-transparent text-white border-bottom border-secondary border-opacity-25 px-0 py-2.5">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold small text-truncate" style="max-width: 170px;">
+                                        <i class="fa-solid fa-user me-1.5 text-secondary"></i>@b.CustomerName
+                                    </span>
+                                    <span class="badge @statusCss bg-opacity-10 border border-opacity-25 px-2 py-1" style="font-size: 11px;">@b.Status</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center text-secondary small">
+                                    <span><i class="fa-solid fa-shirt me-1 text-primary"></i>@b.CourtName</span>
+                                    <span class="fw-bold text-success">@b.TotalAmount.ToString("N0")đ</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ───── Section: Court Grid & Operational Alerts ───── *@
+<div class="row g-4 mb-4">
+    @* Cột trái: Trạng thái Sân real-time *@
+    <div class="col-lg-7">
+        <div class="admin-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h6 text-white mb-0 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-vector-square text-primary"></i> Trạng thái sân hiện tại
+                </h2>
+                <a asp-area="Admin" asp-controller="Complexes" asp-action="Index" class="btn-ghost py-1 px-2 text-primary small">Quản lý sân &rarr;</a>
+            </div>
+            @if (!Model.Data.CourtGrid.Any())
             {
-                <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
-                    <span class="small">@court.CourtName</span>
-                    <span class="text-warning small fw-semibold"><i class="fa-solid fa-star"></i> @court.Rating</span>
+                <div class="text-center py-4 text-secondary">
+                    <i class="fa-solid fa-building-circle-xmark fs-2 mb-2 opacity-50"></i>
+                    <p class="small mb-0">Chưa có sân nào trong hệ thống</p>
+                </div>
+            }
+            else
+            {
+                <div class="row g-2.5">
+                    @foreach (var c in Model.Data.CourtGrid)
+                    {
+                        var (bgBorder, icon, statusText) = c.Status switch
+                        {
+                            "Available" => ("border-success bg-success bg-opacity-10", "fa-circle-check text-success", "Sẵn sàng"),
+                            "Booked" => ("border-info bg-info bg-opacity-10", "fa-calendar-check text-info", "Đã đặt"),
+                            "InUse" => ("border-primary bg-primary bg-opacity-10", "fa-play text-primary", "Đang chơi"),
+                            "Maintenance" => ("border-warning bg-warning bg-opacity-10", "fa-wrench text-warning", "Bảo trì"),
+                            _ => ("border-secondary bg-secondary bg-opacity-10", "fa-ban text-secondary", "Ngưng")
+                        };
+                        <div class="col-6 col-sm-4 col-md-3">
+                            <div class="court-chip border @bgBorder">
+                                <div class="fw-bold text-white small text-truncate">@c.CourtCode</div>
+                                <div class="text-secondary" style="font-size: 11px;">@c.CourtType</div>
+                                <div class="mt-1 fw-medium" style="font-size: 11px;">
+                                    <i class="fa-solid @icon me-1"></i>@statusText
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
         </div>
-        <div class="admin-card p-4 mt-3">
-            <h2 class="h6 text-white mb-3">Truy cập nhanh</h2>
-            <div class="d-grid gap-2">
-                <a asp-area="Admin" asp-controller="Complexes" asp-action="Index" class="btn-secondary-custom justify-content-center">Quản lý sân</a>
-                <a asp-area="Admin" asp-controller="Reports" asp-action="Revenue" class="btn-secondary-custom justify-content-center">Báo cáo doanh thu</a>
-                <a asp-area="Admin" asp-controller="Services" asp-action="Index" class="btn-secondary-custom justify-content-center">Dịch vụ & Kho</a>
+    </div>
+
+    @* Cột phải: Cảnh báo vận hành *@
+    <div class="col-lg-5">
+        <div class="admin-card p-4 h-100">
+            <h2 class="h6 text-white mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-warning"></i> Cảnh báo vận hành &amp; Thông báo
+            </h2>
+            <div class="d-flex flex-column gap-2">
+                @foreach (var alert in Model.Data.Alerts)
+                {
+                    var alertClass = alert.Type switch
+                    {
+                        "danger" => "bg-danger bg-opacity-10 border-danger border-opacity-30 text-danger",
+                        "warning" => "bg-warning bg-opacity-10 border-warning border-opacity-30 text-warning",
+                        "info" => "bg-info bg-opacity-10 border-info border-opacity-30 text-info",
+                        _ => "bg-success bg-opacity-10 border-success border-opacity-30 text-success"
+                    };
+                    <div class="alert @alertClass d-flex align-items-center py-2.5 px-3 mb-1 rounded-3 border" role="alert">
+                        <i class="fa-solid @alert.Icon me-3 fs-5 flex-shrink-0"></i>
+                        <div class="small fw-semibold">@alert.Message</div>
+                    </div>
+                }
             </div>
         </div>
     </div>
 </div>
+
+@* ───── Section: Top Customers & Quick Navigation ───── *@
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="admin-card p-4">
+            <h2 class="h6 text-white mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-crown text-warning"></i> Top 5 Khách hàng chi tiêu cao nhất tuần này
+            </h2>
+            @if (!Model.Data.TopCustomers.Any())
+            {
+                <p class="text-secondary small py-2">Chưa có giao dịch tuần này</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0 align-middle small">
+                        <thead>
+                            <tr class="text-secondary border-secondary">
+                                <th style="width: 40px;">#</th>
+                                <th>Khách hàng</th>
+                                <th>Số lượt đặt</th>
+                                <th class="text-end">Tổng chi tiêu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int rank = 1; }
+                            @foreach (var cust in Model.Data.TopCustomers)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="badge rounded-circle @(rank == 1 ? "bg-warning text-dark" : rank == 2 ? "bg-light text-dark" : rank == 3 ? "bg-danger" : "bg-secondary")" style="width:24px;height:24px;line-height:16px">
+                                            @rank
+                                        </span>
+                                    </td>
+                                    <td class="fw-semibold text-white">@cust.FullName</td>
+                                    <td><span class="badge bg-secondary bg-opacity-50">@cust.BookingCount lượt</span></td>
+                                    <td class="text-end text-success fw-bold">@cust.TotalSpend.ToString("N0")đ</td>
+                                </tr>
+                                rank++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="admin-card p-4">
+            <h2 class="h6 text-white mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-compass text-info"></i> Điều hướng quản trị nhanh
+            </h2>
+            <div class="row g-2">
+                <div class="col-6">
+                    <a asp-area="Admin" asp-controller="Complexes" asp-action="Index" class="btn-secondary-custom justify-content-center w-100 py-2">
+                        <i class="fa-solid fa-building me-1.5 text-info"></i> Quản lý Sân
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a asp-area="Admin" asp-controller="Services" asp-action="Index" class="btn-secondary-custom justify-content-center w-100 py-2">
+                        <i class="fa-solid fa-boxes-stacked me-1.5 text-success"></i> Dịch vụ &amp; Kho
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="btn-secondary-custom justify-content-center w-100 py-2">
+                        <i class="fa-solid fa-users me-1.5 text-warning"></i> Quản lý User
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a asp-area="Admin" asp-controller="Roles" asp-action="Index" class="btn-secondary-custom justify-content-center w-100 py-2">
+                        <i class="fa-solid fa-user-shield me-1.5 text-primary"></i> Phân quyền
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a asp-area="Admin" asp-controller="Reports" asp-action="Revenue" class="btn-secondary-custom justify-content-center w-100 py-2">
+                        <i class="fa-solid fa-chart-column me-1.5 text-danger"></i> Báo cáo Doanh thu
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a asp-area="Admin" asp-controller="Reports" asp-action="CourtUsage" class="btn-secondary-custom justify-content-center w-100 py-2">
+                        <i class="fa-solid fa-chart-pie me-1.5 text-purple"></i> Tải lấp đầy sân
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            // Clock timer
+            setInterval(() => {
+                const now = new Date();
+                const d = String(now.getDate()).padStart(2, '0');
+                const m = String(now.getMonth() + 1).padStart(2, '0');
+                const y = now.getFullYear();
+                const hh = String(now.getHours()).padStart(2, '0');
+                const mm = String(now.getMinutes()).padStart(2, '0');
+                const ss = String(now.getSeconds()).padStart(2, '0');
+                const el = document.getElementById('clockNow');
+                if (el) el.textContent = `${d}/${m}/${y} ${hh}:${mm}:${ss}`;
+            }, 1000);
+
+            // Prepare chart data from Razor Model
+            const rawChartData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.RevenueChart));
+            const labels = rawChartData.map(x => x.date || x.Date);
+            const revenueValues = rawChartData.map(x => x.revenue || x.Revenue);
+            const bookingValues = rawChartData.map(x => x.bookings || x.Bookings);
+
+            const canvas = document.getElementById('revenueChartCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+            gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Doanh thu (VNĐ)',
+                            data: revenueValues,
+                            borderColor: '#10b981',
+                            backgroundColor: gradient,
+                            borderWidth: 2.5,
+                            fill: true,
+                            tension: 0.35,
+                            pointBackgroundColor: '#10b981',
+                            pointRadius: 4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Số đơn Booking',
+                            data: bookingValues,
+                            borderColor: '#818cf8',
+                            borderWidth: 2,
+                            borderDash: [4, 4],
+                            fill: false,
+                            tension: 0.35,
+                            pointBackgroundColor: '#818cf8',
+                            pointRadius: 3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 12 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    if (context.dataset.yAxisID === 'y') {
+                                        return `Doanh thu: ${Number(context.raw).toLocaleString('vi-VN')}đ`;
+                                    }
+                                    return `Booking: ${context.raw} đơn`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                            ticks: {
+                                color: '#10b981',
+                                callback: function (value) {
+                                    if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                                    if (value >= 1000) return (value / 1000).toFixed(0) + 'k';
+                                    return value;
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#818cf8', precision: 0 }
+                        }
+                    }
+                }
+            });
+
+            // Refresh button
+            document.getElementById('btnRefreshDashboard').addEventListener('click', function () {
+                const icon = this.querySelector('i');
+                icon.classList.add('fa-spin');
+                fetch('/Admin/Dashboard/GetData')
+                    .then(res => res.json())
+                    .then(json => {
+                        if (json.success) {
+                            location.reload();
+                        }
+                    })
+                    .catch(() => location.reload())
+                    .finally(() => icon.classList.remove('fa-spin'));
+            });
+        })();
+    </script>
+}
