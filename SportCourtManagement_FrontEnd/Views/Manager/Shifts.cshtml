@@ -1,6 +1,6 @@
 @model SportCourtManagement_FrontEnd.Models.Manager.WeeklyScheduleResponse
 @{
-    Layout = "_ManagerLayout";
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Shift Management";
     DateTime currentWeekStart;
     if (!DateTime.TryParse(Model.WeekStart, out currentWeekStart))

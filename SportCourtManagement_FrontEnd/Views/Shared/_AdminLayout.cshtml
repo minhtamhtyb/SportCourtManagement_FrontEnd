@@ -5,7 +5,15 @@
     var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Admin";
     var isAdmin = userRole == "Admin";
     var isStaff = userRole == "Staff";
+    var isManager = userRole == "Manager";
     var initial = string.IsNullOrEmpty(userName) ? "A" : userName[0].ToString().ToUpper();
+
+    // Complex selection data
+    var complexes = ViewBag.Complexes as List<SportCourtManagement_FrontEnd.Models.DTOs.CourtComplexDto>
+        ?? new List<SportCourtManagement_FrontEnd.Models.DTOs.CourtComplexDto>();
+    var sessionComplexId = ViewBag.CurrentComplexId as int? ?? 1;
+    var currentComplex = complexes.FirstOrDefault(c => c.ComplexId == sessionComplexId) ?? complexes.FirstOrDefault();
+    var currentComplexName = currentComplex?.ComplexName ?? "Chọn chi nhánh";
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -17,6 +25,37 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <style>
+        .branch-selector {
+            background-color: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            color: var(--text);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+        .branch-selector:hover {
+            background-color: var(--surface-border);
+            border-color: #475569;
+        }
+        .dropdown-menu-dark-custom {
+            background-color: var(--surface-card) !important;
+            border: 1px solid var(--surface-border) !important;
+        }
+        .dropdown-menu-dark-custom .dropdown-item {
+            color: var(--text) !important;
+        }
+        .dropdown-menu-dark-custom .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+        }
+        .dropdown-menu-dark-custom .dropdown-item.active {
+            background-color: var(--primary) !important;
+            color: #fff !important;
+        }
+    </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="admin-body">
@@ -32,17 +71,23 @@
         <nav class="admin-nav">
             <div class="admin-nav-section">
                 <div class="admin-nav-label sidebar-text">Tổng quan</div>
-                <a class="admin-nav-link @(controller=="Dashboard"?"active":"")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
-                    <i class="fa-solid fa-chart-pie"></i><span class="sidebar-text">Dashboard</span>
-                </a>
                 @if (isAdmin)
                 {
+                    <a class="admin-nav-link @(controller=="Dashboard"?"active":"")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                        <i class="fa-solid fa-chart-pie"></i><span class="sidebar-text">Dashboard</span>
+                    </a>
                     <a class="admin-nav-link @(controller=="Complexes"?"active":"")" asp-area="Admin" asp-controller="Complexes" asp-action="Index">
                         <i class="fa-solid fa-building"></i><span class="sidebar-text">Quản lý sân</span>
                     </a>
                 }
+                @if (isManager)
+                {
+                    <a class="admin-nav-link @(controller=="Manager" && action=="Dashboard"?"active":"")" href="/manager/dashboard">
+                        <i class="fa-solid fa-chart-pie"></i><span class="sidebar-text">Dashboard</span>
+                    </a>
+                }
             </div>
-            @if (isAdmin || isStaff)
+            @if (isAdmin || isStaff || isManager)
             {
             <div class="admin-nav-section">
                 <div class="admin-nav-label sidebar-text">Quản lý</div>
@@ -52,13 +97,25 @@
                         <i class="fa-solid fa-users"></i><span class="sidebar-text">Người dùng</span>
                     </a>
                 }
+                @if (isManager)
+                {
+                    <a class="admin-nav-link @(controller=="Manager" && (action=="Shifts" || action=="StaffList" || action=="SalaryConfig" || action=="Attendance")?"active":"")" href="/manager/staff/shifts">
+                        <i class="fa-solid fa-users-gear"></i><span class="sidebar-text">Nhân sự &amp; Ca trực</span>
+                    </a>
+                    <a class="admin-nav-link @(controller=="Task"?"active":"")" href="/manager/tasks">
+                        <i class="fa-solid fa-list-check"></i><span class="sidebar-text">Quản lý Công việc</span>
+                    </a>
+                    <a class="admin-nav-link @(controller=="Maintenance"?"active":"")" href="/manager/maintenance">
+                        <i class="fa-solid fa-screwdriver-wrench"></i><span class="sidebar-text">Bảo trì sân</span>
+                    </a>
+                }
                 @if (isStaff)
                 {
                     <a class="admin-nav-link @(controller=="StaffTask"?"active":"")" asp-area="" asp-controller="StaffTask" asp-action="Index">
                         <i class="fa-solid fa-list-check"></i><span class="sidebar-text">Công việc</span>
                     </a>
                 }
-                @if (isAdmin || isStaff)
+                @if (isAdmin || isStaff || isManager)
                 {
                     <a class="admin-nav-link @(controller=="Bookings"?"active":"")" asp-area="" asp-controller="Bookings" asp-action="AdminIndex">
                         <i class="fa-solid fa-calendar-check"></i><span class="sidebar-text">Đặt sân</span>
@@ -69,9 +126,12 @@
                     <a class="admin-nav-link @(controller=="Promotions"?"active":"")" asp-area="" asp-controller="Promotions" asp-action="Index">
                         <i class="fa-solid fa-tags"></i><span class="sidebar-text">Khuyến mãi</span>
                     </a>
-                    <a class="admin-nav-link @(controller=="Services"?"active":"")" asp-area="Admin" asp-controller="Services" asp-action="Index">
-                        <i class="fa-solid fa-toolbox"></i><span class="sidebar-text">Dịch vụ & Kho</span>
-                    </a>
+                    @if (isAdmin || isStaff)
+                    {
+                        <a class="admin-nav-link @(controller=="Services"?"active":"")" asp-area="Admin" asp-controller="Services" asp-action="Index">
+                            <i class="fa-solid fa-toolbox"></i><span class="sidebar-text">Dịch vụ & Kho</span>
+                        </a>
+                    }
                 }
             </div>
             }
@@ -110,7 +170,29 @@
     <div class="admin-main">
         <header class="admin-header">
             <button class="btn-ghost" id="sidebarToggle" type="button"><i class="fa-solid fa-bars"></i></button>
-            <div class="admin-search d-none d-md-flex">
+            
+            @if (complexes.Any())
+            {
+                <div class="d-flex align-items-center dropdown ms-2">
+                    <div class="branch-selector d-flex align-items-center gap-2 px-3 py-2 rounded" style="cursor: pointer;" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="fs-7 fw-medium" style="color: var(--text);">Chi nhánh: <span class="fw-bold" style="color: var(--primary) !important;">@currentComplexName</span></span>
+                        <i class="fa-solid fa-chevron-down text-secondary" style="font-size: 0.75rem;"></i>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-dark-custom shadow border-0" style="border-radius: 12px; padding: 8px;">
+                        @foreach (var c in complexes)
+                        {
+                            <li>
+                                <a class="dropdown-item rounded py-2 px-3 @(c.ComplexId == sessionComplexId ? "active" : "")" 
+                                   href="javascript:void(0)" onclick="changeComplex(@c.ComplexId)">
+                                    @c.ComplexName
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <div class="admin-search d-none d-md-flex ms-3">
                 <i class="fa-solid fa-magnifying-glass text-secondary"></i>
                 <input type="text" placeholder="Tìm kiếm booking, sân, khách hàng..." />
             </div>
@@ -136,6 +218,13 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/admin.js" asp-append-version="true"></script>
+<script>
+    function changeComplex(id) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('complexId', id);
+        window.location.href = url.href;
+    }
+</script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

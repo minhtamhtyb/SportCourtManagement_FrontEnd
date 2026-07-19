@@ -1,7 +1,7 @@
 @model SportCourtManagement_FrontEnd.Models.Tournaments.TournamentListViewModel
 @{
     var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-    Layout = (userRole == "Manager" || userRole == "Owner") ? "_ManagerLayout" : "_AdminLayout";
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Quản lý Giải đấu";
 }
 

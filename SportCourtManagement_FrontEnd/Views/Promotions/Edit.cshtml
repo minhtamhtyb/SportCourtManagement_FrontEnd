@@ -1,7 +1,7 @@
 @model SportCourtManagement_FrontEnd.Models.Promotions.PromotionFormDto
 @{
     var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-    Layout = (userRole == "Manager" || userRole == "Owner") ? "_ManagerLayout" : "_AdminLayout";
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Chỉnh sửa Chương trình Khuyến mãi";
 }
 

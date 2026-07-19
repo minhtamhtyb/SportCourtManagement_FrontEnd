@@ -1,7 +1,7 @@
 @model SportCourtManagement_FrontEnd.Models.Tournaments.TournamentDto
 @{
     var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-    Layout = (userRole == "Manager" || userRole == "Owner") ? "_ManagerLayout" : "_AdminLayout";
+    Layout = "_AdminLayout";
     ViewData["Title"] = $"Chi tiết Giải đấu #{Model.TournamentId}";
     bool isPending = Model.Status == "Pending";
     bool isCancelled = Model.Status == "Cancelled";
