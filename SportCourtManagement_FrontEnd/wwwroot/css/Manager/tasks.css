@@ -323,9 +323,19 @@
 
 .tasks-table th,
 .tasks-table td {
-    padding: 14px 24px;
+    padding: 14px 12px;
     border-bottom: 1px solid rgba(144, 143, 160, 0.1);
     vertical-align: middle;
+}
+
+.tasks-table th:first-child,
+.tasks-table td:first-child {
+    padding-left: 24px;
+}
+
+.tasks-table th:last-child,
+.tasks-table td:last-child {
+    padding-right: 24px;
 }
 
 .tasks-table thead tr {

@@ -450,13 +450,6 @@ namespace SportCourtManagement_FrontEnd.Controllers
             return RedirectToAction("StaffList");
         }
 
-        [HttpGet("staff/salary")]
-        public async Task<IActionResult> SalaryConfig()
-        {
-            await LoadLayoutDataAsync();
-            return View();
-        }
-
         [HttpGet("dashboard")]
         public async Task<IActionResult> Dashboard()
         {

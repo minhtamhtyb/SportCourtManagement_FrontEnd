@@ -26,6 +26,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
     <style>
+        :root {
+            --background: var(--surface);
+            --surface-container-lowest: #0b0f19;
+            --surface-container-low: #151e2e;
+            --surface-container: var(--surface-card);
+            --surface-container-high: #334155;
+            --surface-container-highest: #475569;
+            --on-surface: var(--text);
+            --on-surface-variant: var(--text-muted);
+            --outline-variant: var(--surface-border);
+            --primary-container: rgba(34, 197, 94, 0.2);
+            --on-primary: #ffffff;
+        }
         .branch-selector {
             background-color: var(--surface-card);
             border: 1px solid var(--surface-border);
@@ -99,7 +112,7 @@
                 }
                 @if (isManager)
                 {
-                    <a class="admin-nav-link @(controller=="Manager" && (action=="Shifts" || action=="StaffList" || action=="SalaryConfig" || action=="Attendance")?"active":"")" href="/manager/staff/shifts">
+                    <a class="admin-nav-link @(controller=="Manager" && (action=="Shifts" || action=="StaffList" || action=="Attendance")?"active":"")" href="/manager/staff/shifts">
                         <i class="fa-solid fa-users-gear"></i><span class="sidebar-text">Nhân sự &amp; Ca trực</span>
                     </a>
                     <a class="admin-nav-link @(controller=="Task"?"active":"")" href="/manager/tasks">
