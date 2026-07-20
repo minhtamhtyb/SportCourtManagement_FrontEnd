@@ -7,6 +7,7 @@ public class UserDto
     public string Email { get; set; } = "";
     public string? Phone { get; set; }
     public string? AvatarUrl { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
     public string Role { get; set; } = "Customer";
     public string? MembershipTier { get; set; }
     public bool IsActive { get; set; } = true;
@@ -260,7 +261,6 @@ public class AdminDashboardDto
     public List<DashboardAlertDto> Alerts { get; set; } = [];
     public List<TopCustomerDto> TopCustomers { get; set; } = [];
 }
-
 public class WalletDto
 {
     public int WalletId { get; set; }
@@ -278,4 +278,3 @@ public class WalletTransactionDto
     public string Description { get; set; } = "";
     public DateTime CreatedAt { get; set; }
 }
-
