@@ -100,7 +100,22 @@ else
                     <tr>
                         <td>
                             <div class="fw-bold text-white">#@item.BookingId</div>
-                            <div class="type-badge type-default mt-1">@item.BookingCode</div>
+                            @if (item.BookingCode.StartsWith("RBK", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-info text-dark mt-1" style="font-size: 11px;">
+                                    <i class="fa-solid fa-arrows-rotate me-1"></i>Định kỳ
+                                </span>
+                            }
+                            else if (item.BookingCode.StartsWith("TM-", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-warning text-dark mt-1" style="font-size: 11px;">
+                                    <i class="fa-solid fa-trophy me-1"></i>Giải đấu
+                                </span>
+                            }
+                            else
+                            {
+                                <div class="type-badge type-default mt-1">@item.BookingCode</div>
+                            }
                         </td>
                         <td>
                             <div class="fw-semibold" style="color: #60a5fa;">@item.CustomerName</div>
@@ -177,10 +192,33 @@ else
 
     @if (Model.PagedData.TotalPages > 1)
     {
+        int totalPages = Model.PagedData.TotalPages;
+        int currentPage = Model.PagedData.PageNumber;
+        int startPage = Math.Max(1, currentPage - 2);
+        int endPage = Math.Min(totalPages, currentPage + 2);
+
         <div class="pagination-custom mt-4">
-            @for (int i = 1; i <= Model.PagedData.TotalPages; i++)
+            @if (startPage > 1)
             {
-                <a asp-action="AdminIndex" asp-route-page="@i" asp-route-keyword="@Model.Keyword" asp-route-status="@Model.Status" asp-route-courtTypeId="@Model.CourtTypeId" class="@(i == Model.PagedData.PageNumber ? "active" : "")">@i</a>
+                <a asp-action="AdminIndex" asp-route-page="1" asp-route-keyword="@Model.Keyword" asp-route-status="@Model.Status" asp-route-courtTypeId="@Model.CourtTypeId">1</a>
+                @if (startPage > 2)
+                {
+                    <span class="text-secondary px-2">...</span>
+                }
+            }
+
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                <a asp-action="AdminIndex" asp-route-page="@i" asp-route-keyword="@Model.Keyword" asp-route-status="@Model.Status" asp-route-courtTypeId="@Model.CourtTypeId" class="@(i == currentPage ? "active" : "")">@i</a>
+            }
+
+            @if (endPage < totalPages)
+            {
+                @if (endPage < totalPages - 1)
+                {
+                    <span class="text-secondary px-2">...</span>
+                }
+                <a asp-action="AdminIndex" asp-route-page="@totalPages" asp-route-keyword="@Model.Keyword" asp-route-status="@Model.Status" asp-route-courtTypeId="@Model.CourtTypeId">@totalPages</a>
             }
         </div>
     }

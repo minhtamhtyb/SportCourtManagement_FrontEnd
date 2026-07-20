@@ -31,15 +31,31 @@
         </div>
     }
 
-    <form id="booking-form" asp-controller="Booking" asp-action="Create" method="post">
-        @Html.AntiForgeryToken()
-
         <div class="row g-4">
             <!-- LEFT COLUMN: Form -->
             <div class="col-lg-8">
-                <div class="sc-card p-4" style="background-color: #0D121F;">
+                <!-- Nav Tabs for Single vs Recurring Booking -->
+                <ul class="nav nav-pills mb-4 gap-2" id="booking-type-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active px-4 py-2 text-white fw-bold rounded-3" id="tab-single-btn" data-bs-toggle="pill" data-bs-target="#tab-single" type="button" role="tab" style="background-color: var(--sc-blue);">
+                            <i class="bi bi-calendar-event me-2"></i>Đặt Sân Đơn Lẻ
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link px-4 py-2 text-white fw-bold rounded-3" id="tab-recurring-btn" data-bs-toggle="pill" data-bs-target="#tab-recurring" type="button" role="tab" style="background-color: rgba(255,255,255,0.05); border: 1px solid var(--sc-border);">
+                            <i class="bi bi-arrow-repeat me-2 text-sc-amber"></i>Đặt Sân Định Kỳ (Theo Tuần)
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="booking-tab-content">
+                    <!-- TAB 1: SINGLE BOOKING (SINGLE SLOT) -->
+                    <div class="tab-pane fade show active" id="tab-single" role="tabpanel">
+                        <form id="booking-form" asp-controller="Booking" asp-action="Create" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="sc-card p-4" style="background-color: #0D121F;">
                     <h4 class="font-outfit text-white mb-4" style="font-weight: 800; border-left: 4px solid var(--sc-blue); padding-left: 12px;">
-                        Thiết Lập Đơn Đặt Sân
+                        Thiết Lập Đơn Đặt Sân Lẻ
                     </h4>
 
                     <!-- Court Selection -->
@@ -170,37 +186,45 @@
                         </div>
                     </div>
 
-                    <!-- Services Add-ons -->
-                    @if (Model.Services.Any())
-                    {
-                        <div class="mb-4">
-                            <h5 class="font-outfit text-white mb-3" style="font-weight: 700; font-size: 16px;">
-                                <i class="bi bi-box-seam me-1 text-sc-blue-light"></i> Dịch vụ phụ trợ (Tùy chọn)
-                            </h5>
-                            <div class="row g-3">
-                                @foreach (var service in Model.Services)
-                                {
-                                    <div class="col-sm-6">
-                                        <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background-color: rgba(255, 255, 255, 0.01); border: 1px solid var(--sc-border);">
-                                            <div>
-                                                <div class="text-white fw-bold" style="font-size: 14px;">@service.ServiceName</div>
-                                                <div class="text-sc-green fw-medium" style="font-size: 12px;">@service.Price.ToString("N0")đ / đơn vị</div>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="@service.ServiceId" data-delta="-1">-</button>
-                                                <input type="number" name="serviceQuantities[@service.ServiceId]" id="svc-@service.ServiceId"
-                                                       value="0" min="0" max="@(service.StockQty > 0 ? Math.Min(service.StockQty, 20) : 20)"
-                                                       data-price="@service.Price"
-                                                       class="text-center bg-transparent border-0 text-white font-monospace service-qty-input"
-                                                       style="width: 40px; font-size: 14px;" readonly />
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="@service.ServiceId" data-delta="1">+</button>
+                    <!-- Dynamic Services Add-ons -->
+                    <div class="mb-4">
+                        <h5 class="font-outfit text-white mb-3" style="font-weight: 700; font-size: 16px;">
+                            <i class="bi bi-box-seam me-1 text-sc-blue-light"></i> Dịch vụ phụ trợ (Tùy chọn)
+                        </h5>
+                        <div id="services-container">
+                            @if (Model.Services.Any())
+                            {
+                                <div class="row g-3">
+                                    @foreach (var service in Model.Services)
+                                    {
+                                        <div class="col-sm-6">
+                                            <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background-color: rgba(255, 255, 255, 0.01); border: 1px solid var(--sc-border);">
+                                                <div>
+                                                    <div class="text-white fw-bold" style="font-size: 14px;">@service.ServiceName</div>
+                                                    <div class="text-sc-green fw-medium" style="font-size: 12px;">@service.Price.ToString("N0")đ / @(service.Unit ?? "đơn vị")</div>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="@service.ServiceId" data-delta="-1">-</button>
+                                                    <input type="number" name="serviceQuantities[@service.ServiceId]" id="svc-@service.ServiceId"
+                                                           value="0" min="0" max="@(service.StockQty > 0 ? Math.Min(service.StockQty, 20) : 20)"
+                                                           data-price="@service.Price"
+                                                           class="text-center bg-transparent border-0 text-white font-monospace service-qty-input"
+                                                           style="width: 40px; font-size: 14px;" readonly />
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="@service.ServiceId" data-delta="1">+</button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                }
-                            </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="p-3 text-center rounded text-sc-muted" style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--sc-border); font-size: 13px;">
+                                    <i class="bi bi-box-seam me-2 text-sc-amber"></i>Chưa có dịch vụ đi kèm
+                                </div>
+                            }
                         </div>
-                    }
+                    </div>
 
                     <!-- Promo Code -->
                     <div class="mb-4">
@@ -217,10 +241,148 @@
                     <!-- Submit Button -->
                     <div class="mt-4 pt-3 border-top" style="border-top-color: rgba(255,255,255,0.05) !important;">
                         <button type="submit" id="btn-submit" class="sc-btn sc-btn-primary px-5 py-3 d-flex align-items-center gap-2 fw-bold" style="font-size: 15px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none;">
-                            <i class="bi bi-check-circle-fill"></i> Xác nhận đặt sân
+                            <i class="bi bi-check-circle-fill"></i> Xác nhận đặt sân lẻ
                         </button>
                     </div>
                 </div>
+            </form>
+        </div> <!-- END TAB 1 -->
+
+                <!-- TAB 2: RECURRING BOOKING (ĐẶT ĐỊNH KỲ) -->
+                <div class="tab-pane fade" id="tab-recurring" role="tabpanel">
+                    <form id="recurring-booking-form" asp-controller="Booking" asp-action="CreateRecurring" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="sc-card p-4" style="background-color: #0D121F;">
+                            <h4 class="font-outfit text-white mb-4" style="font-weight: 800; border-left: 4px solid var(--sc-amber); padding-left: 12px;">
+                                Thiết Lập Đặt Sân Định Kỳ (Theo Tuần)
+                            </h4>
+
+                            <!-- Court Selection -->
+                            <div class="mb-4">
+                                <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                                    <i class="bi bi-building me-1 text-sc-blue-light"></i>Chọn sân thể thao <span class="text-danger">*</span>
+                                </label>
+                                <select name="courtId" id="rec-court-select" class="sc-input" required style="color-scheme: dark;">
+                                    <option value="">-- Chọn sân --</option>
+                                    @foreach (var court in Model.Courts)
+                                    {
+                                        if (Model.SelectedCourtId.HasValue && Model.SelectedCourtId.Value == court.CourtId)
+                                        {
+                                            <option value="@court.CourtId" selected="selected" data-price="@court.PricePerHour">@court.CourtName — @court.CourtTypeName</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@court.CourtId" data-price="@court.PricePerHour">@court.CourtName — @court.CourtTypeName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <!-- Time Slot Selection for Recurring Booking -->
+                            <div class="mb-4">
+                                <label class="form-label text-sc-muted font-inter d-block" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    <i class="bi bi-clock me-1 text-sc-amber"></i>Chọn các khung giờ định kỳ <span class="text-danger">*</span>
+                                </label>
+                                <div class="mb-2 text-sc-muted small">
+                                    <i class="bi bi-info-circle me-1"></i>Bấm chọn slot bắt đầu, sau đó bấm chọn slot kết thúc để chọn dải khung giờ.
+                                </div>
+
+                                <div id="rec-slot-timeline-container">
+                                    <div id="rec-slot-timeline-placeholder" class="text-center py-3 rounded-3" style="background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.1);">
+                                        <i class="bi bi-calendar2-event text-sc-muted" style="font-size: 24px;"></i>
+                                        <p class="text-sc-muted mt-1 mb-0" style="font-size: 12px;">Vui lòng chọn sân để hiển thị danh sách khung giờ.</p>
+                                    </div>
+                                    <div id="rec-slot-timeline-loading" class="text-center py-3" style="display: none;">
+                                        <div class="spinner-border spinner-border-sm text-sc-amber" role="status"></div>
+                                        <span class="text-sc-muted ms-2" style="font-size: 13px;">Đang tải khung giờ...</span>
+                                    </div>
+                                    <div id="rec-slot-timeline" style="display: none;"></div>
+                                </div>
+
+                                <div id="rec-slot-hidden-inputs"></div>
+
+                                <div id="rec-slot-selection-info" class="mt-2" style="display: none;">
+                                    <div class="d-flex align-items-center gap-2 p-2 px-3 rounded-2" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); font-size: 13px;">
+                                        <i class="bi bi-check2-circle text-sc-amber"></i>
+                                        <span class="text-white">Đã chọn: <strong id="rec-slot-selection-text"></strong></span>
+                                        <button type="button" id="btn-rec-clear-slots" class="btn btn-sm ms-auto py-0 px-2" style="font-size: 11px; color: #FCA5A5; border: 1px solid rgba(239,68,68,0.3); border-radius: 4px;">
+                                            <i class="bi bi-x-lg me-1"></i>Xoá
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="rec-slot-error" class="text-danger small mt-1" style="display:none;">Vui lòng chọn ít nhất một khung giờ định kỳ.</div>
+                            </div>
+
+                            <!-- Start Date & End Date -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-sm-6">
+                                    <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                                        <i class="bi bi-calendar-event me-1 text-sc-blue-light"></i>Ngày bắt đầu <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date" name="startDate" id="rec-start-date" class="sc-input" required
+                                           value="@DateTime.Today.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" style="color-scheme: dark;" />
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                                        <i class="bi bi-calendar-check me-1 text-sc-amber"></i>Ngày kết thúc <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date" name="endDate" id="rec-end-date" class="sc-input" required
+                                           value="@DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd")" min="@DateTime.Today.AddDays(7).ToString("yyyy-MM-dd")" style="color-scheme: dark;" />
+                                </div>
+                            </div>
+
+                            <!-- Days of Week checkboxes -->
+                            <div class="mb-4">
+                                <label class="form-label text-sc-muted font-inter d-block" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                                    <i class="bi bi-calendar-week me-1 text-sc-green"></i>Chọn các ngày cố định trong tuần <span class="text-danger">*</span>
+                                </label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <div class="form-check form-check-inline bg-dark p-2 px-3 rounded" style="border: 1px solid var(--sc-border);">
+                                        <input class="form-check-input" type="checkbox" name="daysOfWeek" value="1" id="day-t2" checked>
+                                        <label class="form-check-label text-white fw-bold ms-1" for="day-t2">Thứ 2</label>
+                                    </div>
+                                    <div class="form-check form-check-inline bg-dark p-2 px-3 rounded" style="border: 1px solid var(--sc-border);">
+                                        <input class="form-check-input" type="checkbox" name="daysOfWeek" value="2" id="day-t3">
+                                        <label class="form-check-label text-white fw-bold ms-1" for="day-t3">Thứ 3</label>
+                                    </div>
+                                    <div class="form-check form-check-inline bg-dark p-2 px-3 rounded" style="border: 1px solid var(--sc-border);">
+                                        <input class="form-check-input" type="checkbox" name="daysOfWeek" value="3" id="day-t4" checked>
+                                        <label class="form-check-label text-white fw-bold ms-1" for="day-t4">Thứ 4</label>
+                                    </div>
+                                    <div class="form-check form-check-inline bg-dark p-2 px-3 rounded" style="border: 1px solid var(--sc-border);">
+                                        <input class="form-check-input" type="checkbox" name="daysOfWeek" value="4" id="day-t5">
+                                        <label class="form-check-label text-white fw-bold ms-1" for="day-t5">Thứ 5</label>
+                                    </div>
+                                    <div class="form-check form-check-inline bg-dark p-2 px-3 rounded" style="border: 1px solid var(--sc-border);">
+                                        <input class="form-check-input" type="checkbox" name="daysOfWeek" value="5" id="day-t6" checked>
+                                        <label class="form-check-label text-white fw-bold ms-1" for="day-t6">Thứ 6</label>
+                                    </div>
+                                    <div class="form-check form-check-inline bg-dark p-2 px-3 rounded" style="border: 1px solid var(--sc-border);">
+                                        <input class="form-check-input" type="checkbox" name="daysOfWeek" value="6" id="day-t7">
+                                        <label class="form-check-label text-white fw-bold ms-1" for="day-t7">Thứ 7</label>
+                                    </div>
+                                    <div class="form-check form-check-inline bg-dark p-2 px-3 rounded" style="border: 1px solid var(--sc-border);">
+                                        <input class="form-check-input" type="checkbox" name="daysOfWeek" value="0" id="day-cn">
+                                        <label class="form-check-label text-white fw-bold ms-1" for="day-cn">Chủ Nhật</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Note -->
+                            <div class="mb-4">
+                                <label class="form-label text-sc-muted font-inter" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                                    <i class="bi bi-chat-left-text me-1"></i>Ghi chú cho ban quản lý
+                                </label>
+                                <input type="text" name="note" class="sc-input" placeholder="Ghi chú yêu cầu bổ sung nếu có" />
+                            </div>
+
+                            <button type="submit" class="sc-btn sc-btn-primary px-5 py-3 fw-bold w-100" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border: none;">
+                                <i class="bi bi-arrow-repeat me-2"></i>Đăng Ký Đặt Sân Định Kỳ
+                            </button>
+                        </div>
+                    </form>
+                </div> <!-- END TAB 2 -->
+                </div> <!-- END TAB CONTENT -->
             </div>
 
             <!-- RIGHT COLUMN: Order Summary -->
@@ -285,7 +447,6 @@
                 </div>
             </div>
         </div>
-    </form>
 </main>
 
 @section Scripts {
@@ -504,8 +665,71 @@
             courtSelect.on('change', function () {
                 updateCourtPreview();
                 loadSlotAvailability();
+                loadCourtServices();
             });
             updateCourtPreview();
+
+            // Load Services by Court ID
+            function loadCourtServices() {
+                const courtId = courtSelect.val();
+                const container = $('#services-container');
+
+                if (!courtId) {
+                    container.html(`
+                        <div class="p-3 text-center rounded text-sc-muted" style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--sc-border); font-size: 13px;">
+                            <i class="bi bi-box-seam me-2 text-sc-amber"></i>Chưa có dịch vụ đi kèm
+                        </div>
+                    `);
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Booking/GetCourtServices',
+                    type: 'GET',
+                    data: { courtId: courtId },
+                    success: function (res) {
+                        if (res.success && res.services && res.services.length > 0) {
+                            let html = '<div class="row g-3">';
+                            res.services.forEach(function (svc) {
+                                html += `
+                                    <div class="col-sm-6">
+                                        <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background-color: rgba(255, 255, 255, 0.01); border: 1px solid var(--sc-border);">
+                                            <div>
+                                                <div class="text-white fw-bold" style="font-size: 14px;">${svc.serviceName}</div>
+                                                <div class="text-sc-green fw-medium" style="font-size: 12px;">${Number(svc.price).toLocaleString('vi-VN')}đ / ${svc.unit || 'đơn vị'}</div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="${svc.serviceId}" data-delta="-1">-</button>
+                                                <input type="number" name="serviceQuantities[${svc.serviceId}]" id="svc-${svc.serviceId}"
+                                                       value="0" min="0" max="${svc.stockQty > 0 ? Math.min(svc.stockQty, 20) : 20}"
+                                                       data-price="${svc.price}"
+                                                       class="text-center bg-transparent border-0 text-white font-monospace service-qty-input"
+                                                       style="width: 40px; font-size: 14px;" readonly />
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="${svc.serviceId}" data-delta="1">+</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            html += '</div>';
+                            container.html(html);
+                        } else {
+                            container.html(`
+                                <div class="p-3 text-center rounded text-sc-muted" style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--sc-border); font-size: 13px;">
+                                    <i class="bi bi-box-seam me-2 text-sc-amber"></i>Chưa có dịch vụ đi kèm
+                                </div>
+                            `);
+                        }
+                    },
+                    error: function () {
+                        container.html(`
+                            <div class="p-3 text-center rounded text-sc-muted" style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--sc-border); font-size: 13px;">
+                                <i class="bi bi-box-seam me-2 text-sc-amber"></i>Chưa có dịch vụ đi kèm
+                            </div>
+                        `);
+                    }
+                });
+            }
 
             // --- Date Summary ---
             function updateDateSummary() {
@@ -858,6 +1082,290 @@
 
             updateSummary();
 
+            // ==========================================
+            // TAB 2: RECURRING BOOKING TIMELINE & SLOTS
+            // ==========================================
+            const recCourtSelect = $('#rec-court-select');
+            const recStartDate = $('#rec-start-date');
+            const recEndDate = $('#rec-end-date');
+
+            let recSlotsData = [];
+            let recSelectionStart = null;
+            let recSelectionEnd = null;
+            let recSelectedSlotIds = [];
+
+            recCourtSelect.on('change', function () {
+                loadRecSlotAvailability();
+                updateRecSummary();
+            });
+
+            recStartDate.add(recEndDate).on('change', function () {
+                loadRecSlotAvailability();
+                updateRecSummary();
+            });
+
+            $('input[name="daysOfWeek"]').on('change', function () {
+                updateRecSummary();
+            });
+
+            function loadRecSlotAvailability() {
+                const courtId = recCourtSelect.val();
+                const startVal = recStartDate.val() || new Date().toISOString().split('T')[0];
+
+                clearRecSelection();
+
+                if (!courtId) {
+                    $('#rec-slot-timeline-placeholder').show();
+                    $('#rec-slot-timeline-loading').hide();
+                    $('#rec-slot-timeline').hide();
+                    return;
+                }
+
+                $('#rec-slot-timeline-placeholder').hide();
+                $('#rec-slot-timeline-loading').show();
+                $('#rec-slot-timeline').hide();
+
+                $.ajax({
+                    url: '/Booking/GetSlotAvailability',
+                    type: 'GET',
+                    data: { courtId: courtId, date: startVal },
+                    success: function (response) {
+                        $('#rec-slot-timeline-loading').hide();
+                        if (response.success && response.slots && response.slots.length > 0) {
+                            recSlotsData = response.slots;
+                            renderRecTimeline();
+                            $('#rec-slot-timeline').show();
+                        } else {
+                            $('#rec-slot-timeline-placeholder').show().html(
+                                '<i class="bi bi-inbox text-sc-muted" style="font-size: 24px;"></i>' +
+                                '<p class="text-sc-muted mt-1 mb-0" style="font-size: 12px;">Không có khung giờ nào cho sân này.</p>'
+                            );
+                        }
+                    },
+                    error: function () {
+                        $('#rec-slot-timeline-loading').hide();
+                        $('#rec-slot-timeline-placeholder').show().html(
+                            '<i class="bi bi-wifi-off text-sc-muted" style="font-size: 24px;"></i>' +
+                            '<p class="text-sc-muted mt-1 mb-0" style="font-size: 12px;">Lỗi kết nối máy chủ.</p>'
+                        );
+                    }
+                });
+            }
+
+            function renderRecTimeline() {
+                const container = $('#rec-slot-timeline');
+                container.empty();
+                const bar = $('<div class="slot-timeline-bar"></div>');
+
+                recSlotsData.forEach(function (slot) {
+                    const priceDisplay = Number(slot.price).toLocaleString('vi-VN') + 'đ';
+
+                    const segment = $(`
+                        <div class="slot-segment slot-available"
+                             data-slot-id="${slot.slotId}"
+                             data-slot-name="${slot.slotName}"
+                             data-start-time="${slot.startTime}"
+                             data-end-time="${slot.endTime}"
+                             data-price="${slot.price}">
+                            <div class="slot-time">${slot.startTime} - ${slot.endTime}</div>
+                            <div class="slot-name">${slot.slotName}</div>
+                            <div class="slot-price">${priceDisplay}</div>
+                            <span class="slot-status-badge" style="background: rgba(245,158,11,0.15); color: #F59E0B;">Định kỳ</span>
+                        </div>
+                    `);
+
+                    segment.on('click', function () {
+                        handleRecSlotClick(slot.slotId);
+                    });
+
+                    bar.append(segment);
+                });
+
+                container.append(bar);
+            }
+
+            function handleRecSlotClick(clickedSlotId) {
+                const clickedIndex = recSlotsData.findIndex(s => s.slotId === clickedSlotId);
+                if (clickedIndex === -1) return;
+
+                if (recSelectionStart === null) {
+                    recSelectionStart = clickedSlotId;
+                    recSelectionEnd = null;
+                    recSelectedSlotIds = [clickedSlotId];
+                } else if (recSelectionStart === clickedSlotId && recSelectionEnd === null) {
+                    clearRecSelection();
+                    return;
+                } else if (recSelectionEnd !== null) {
+                    recSelectionStart = clickedSlotId;
+                    recSelectionEnd = null;
+                    recSelectedSlotIds = [clickedSlotId];
+                } else {
+                    const startIndex = recSlotsData.findIndex(s => s.slotId === recSelectionStart);
+                    let fromIdx = Math.min(startIndex, clickedIndex);
+                    let toIdx = Math.max(startIndex, clickedIndex);
+
+                    recSelectionStart = recSlotsData[fromIdx].slotId;
+                    recSelectionEnd = recSlotsData[toIdx].slotId;
+
+                    recSelectedSlotIds = [];
+                    for (let i = fromIdx; i <= toIdx; i++) {
+                        recSelectedSlotIds.push(recSlotsData[i].slotId);
+                    }
+                }
+
+                updateRecTimelineHighlights();
+                updateRecHiddenInputs();
+                updateRecSlotSummary();
+            }
+
+            function clearRecSelection() {
+                recSelectionStart = null;
+                recSelectionEnd = null;
+                recSelectedSlotIds = [];
+                updateRecTimelineHighlights();
+                updateRecHiddenInputs();
+                updateRecSlotSummary();
+                $('#rec-slot-selection-info').hide();
+            }
+
+            $('#btn-rec-clear-slots').on('click', clearRecSelection);
+
+            function updateRecTimelineHighlights() {
+                $('#rec-slot-timeline .slot-segment').each(function () {
+                    const $el = $(this);
+                    const slotId = parseInt($el.data('slot-id'));
+
+                    $el.removeClass('slot-selected slot-in-range slot-start slot-end');
+
+                    if (recSelectedSlotIds.includes(slotId)) {
+                        if (slotId === recSelectionStart && recSelectionEnd !== null) {
+                            $el.addClass('slot-selected slot-start');
+                        } else if (slotId === recSelectionEnd) {
+                            $el.addClass('slot-selected slot-end');
+                        } else if (slotId === recSelectionStart && recSelectionEnd === null) {
+                            $el.addClass('slot-selected slot-start');
+                        } else {
+                            $el.addClass('slot-in-range');
+                        }
+                    }
+                });
+            }
+
+            function updateRecHiddenInputs() {
+                const container = $('#rec-slot-hidden-inputs');
+                container.empty();
+                recSelectedSlotIds.forEach(function (id) {
+                    container.append(`<input type="hidden" name="slotIds" value="${id}" />`);
+                });
+            }
+
+            function updateRecSlotSummary() {
+                if (recSelectedSlotIds.length === 0) {
+                    $('#rec-slot-selection-info').hide();
+                    updateRecSummary();
+                    return;
+                }
+
+                const selectedSlots = recSlotsData.filter(s => recSelectedSlotIds.includes(s.slotId));
+                if (selectedSlots.length === 1) {
+                    const s = selectedSlots[0];
+                    $('#rec-slot-selection-text').text(`${s.slotName} (${s.startTime} - ${s.endTime})`);
+                } else {
+                    const first = selectedSlots[0];
+                    const last = selectedSlots[selectedSlots.length - 1];
+                    $('#rec-slot-selection-text').text(`${first.startTime} → ${last.endTime} (${selectedSlots.length} slot)`);
+                }
+
+                $('#rec-slot-selection-info').show();
+                updateRecSummary();
+            }
+
+            function updateRecSummary() {
+                const activeTab = $('#booking-type-tabs .nav-link.active').attr('id');
+                if (activeTab === 'tab-recurring-btn') {
+                    // Update right column for recurring booking
+                    const courtName = recCourtSelect.find(':selected').text().split('—')[0].trim();
+                    $('#summary-court').text(courtName && courtName !== '-- Chọn sân --' ? courtName : '—');
+                    
+                    const startVal = recStartDate.val();
+                    const endVal = recEndDate.val();
+                    if (startVal && endVal) {
+                        $('#summary-date').text(`${formatDateVN(startVal)} - ${formatDateVN(endVal)}`);
+                    } else {
+                        $('#summary-date').text('—');
+                    }
+
+                    // Calculate total sessions
+                    let sessionCount = 0;
+                    if (startVal && endVal) {
+                        const start = new Date(startVal);
+                        const end = new Date(endVal);
+                        const daysOfWeek = [];
+                        $('input[name="daysOfWeek"]:checked').each(function () {
+                            daysOfWeek.push(parseInt($(this).val()));
+                        });
+
+                        let curr = new Date(start);
+                        while (curr <= end) {
+                            if (daysOfWeek.includes(curr.getDay())) {
+                                sessionCount++;
+                            }
+                            curr.setDate(curr.getDate() + 1);
+                        }
+                    }
+
+                    // Calculate court price from selected slots
+                    let slotTotalPerSession = 0;
+                    const selectedSlots = recSlotsData.filter(s => recSelectedSlotIds.includes(s.slotId));
+                    selectedSlots.forEach(s => slotTotalPerSession += s.price);
+
+                    const totalCourtPrice = slotTotalPerSession * sessionCount;
+                    if (totalCourtPrice > 0) {
+                        $('#summary-court-price').text(`${totalCourtPrice.toLocaleString('vi-VN')}đ (${sessionCount} buổi x ${selectedSlots.length} slot)`);
+                        $('#summary-total').text(`${totalCourtPrice.toLocaleString('vi-VN')}đ`);
+                    } else {
+                        $('#summary-court-price').text('—');
+                        $('#summary-total').text('—');
+                    }
+
+                    if (selectedSlots.length > 0) {
+                        const first = selectedSlots[0];
+                        const last = selectedSlots[selectedSlots.length - 1];
+                        $('#summary-slot').html(`${first.startTime} → ${last.endTime} (${selectedSlots.length} slot)`);
+                    } else {
+                        $('#summary-slot').text('—');
+                    }
+                    $('#summary-service-price').text('0đ');
+                }
+            }
+
+            function formatDateVN(dateStr) {
+                if (!dateStr) return '';
+                const parts = dateStr.split('-');
+                if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+                return dateStr;
+            }
+
+            // Tab switch listener to recalculate summary
+            $('#booking-type-tabs button').on('shown.bs.tab', function (e) {
+                if (e.target.id === 'tab-recurring-btn') {
+                    if (recCourtSelect.val()) loadRecSlotAvailability();
+                    updateRecSummary();
+                } else {
+                    updateSummary();
+                }
+            });
+
+            $('#recurring-booking-form').on('submit', function (e) {
+                if (recSelectedSlotIds.length === 0) {
+                    e.preventDefault();
+                    $('#rec-slot-error').show();
+                    return false;
+                }
+                $('#rec-slot-error').hide();
+                return true;
+            });
+
             // --- Form Validation ---
             $('#booking-form').on('submit', function (e) {
                 if (selectedSlotIds.length === 0) {
@@ -872,6 +1380,10 @@
             // --- Auto-load slots if court and date are pre-selected ---
             if (courtSelect.val() && dateInput.val()) {
                 loadSlotAvailability();
+            }
+            if (recCourtSelect.val()) {
+                loadRecSlotAvailability();
+                updateRecSummary();
             }
         });
     </script>

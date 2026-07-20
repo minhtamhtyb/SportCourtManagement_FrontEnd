@@ -130,7 +130,26 @@ builder.Services.AddHttpClient<ICourtApiService, CourtApiService>(client =>
 })
 .AddHttpMessageHandler<JwtForwardingHandler>();
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestHeadersTotalSize = 128 * 1024; // 128 KB
+    options.Limits.MaxRequestHeaderCount = 200;
+});
+
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    // Auto-clear old bloated TempData cookies from user browser if present
+    foreach (var cookieKey in context.Request.Cookies.Keys)
+    {
+        if (cookieKey.StartsWith(".AspNetCore.TempData", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Response.Cookies.Delete(cookieKey);
+        }
+    }
+    await next();
+});
 
 if (!app.Environment.IsDevelopment())
 {

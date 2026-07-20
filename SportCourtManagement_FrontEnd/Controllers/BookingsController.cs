@@ -93,7 +93,8 @@ public class BookingsController : Controller
     public async Task<IActionResult> Create(
         int courtId, 
         string date, 
-        int slotId, 
+        int slotId,
+        List<int>? slotIds, 
         string? note, 
         string? promotionCode, 
         int? racketQty, 
@@ -175,20 +176,19 @@ public class BookingsController : Controller
                     validDates.Remove(conflict);
                 }
 
-                var createdBookings = new List<BookingResponseDto>();
+                var createdBookings = new List<BookingDetailDto>();
                 foreach (var validDate in validDates)
                 {
-                    createdBookings.Add(new BookingResponseDto
+                    createdBookings.Add(new BookingDetailDto
                     {
                         BookingId = new Random().Next(20000, 99999),
+                        BookingCode = $"RBK{DateTime.UtcNow:yyyyMMdd}{new Random().Next(100, 999)}",
+                        CourtId = courtId,
                         CourtName = court?.CourtName ?? "Sân vận động",
-                        BookingDate = validDate,
-                        Slots = new List<BookingSlotResponseDto>
-                        {
-                            new BookingSlotResponseDto { StartTime = slotName.Split(" - ")[0], EndTime = slotName.Split(" - ")[1] }
-                        },
-                        SubTotalAmount = slotPrice,
-                        ServicesAmount = 0,
+                        SlotId = slotId,
+                        SlotName = slotName,
+                        BookingDate = validDate.ToDateTime(TimeOnly.MinValue),
+                        SubTotal = slotPrice,
                         DiscountAmount = 0,
                         TotalAmount = slotPrice,
                         Status = "Pending",
@@ -221,8 +221,8 @@ public class BookingsController : Controller
                     CourtName = court?.CourtName ?? "Sân vận động",
                     SlotId = slotId,
                     SlotName = slotName,
-                    StartDate = parsedStart,
-                    EndDate = parsedEnd,
+                    StartDate = parsedStart.ToDateTime(TimeOnly.MinValue),
+                    EndDate = parsedEnd.ToDateTime(TimeOnly.MinValue),
                     DaysOfWeek = daysDisplay,
                     Status = "Active",
                     CreatedBookings = createdBookings,

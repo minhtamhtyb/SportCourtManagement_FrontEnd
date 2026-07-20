@@ -21,6 +21,8 @@ public interface ICourtApiService
     Task<List<CourtTypeDto>> GetCourtTypesAsync();
     Task<List<ServiceDto>> GetServicesAsync();
     Task<List<ComplexCourtTypeServiceDto>> GetComplexServicesAsync(int complexId);
+    Task<List<ServiceDto>> GetServicesByCourtIdAsync(int courtId);
+    Task<(bool success, string message, int position)> JoinWaitlistAsync(int courtId, int slotId, DateTime waitDate, string? token);
     Task<List<TimeSlotDto>> GetTimeSlotsAsync();
     Task<(bool success, string message)> SubmitReviewAsync(int courtId, int bookingId, byte rating, string? comment, string? token);
     Task<BookingResponseDto?> CreateBookingAsync(BookingRequestDto request, string? token);
