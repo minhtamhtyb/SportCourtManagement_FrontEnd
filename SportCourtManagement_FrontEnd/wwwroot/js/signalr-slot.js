@@ -2,9 +2,10 @@ $(document).ready(function () {
     const courtId = $('#court-id').val();
     if (!courtId) return;
 
-    // Connect to backend SignalR Hub (Local base URL is resolved automatically as relative URL)
+    // Connect to backend SignalR Hub (dynamically resolved from config or fallback)
+    const baseUrl = (window.API_BASE_URL || "https://localhost:7075").replace(/\/$/, "");
     const connection = new signalR.HubConnectionBuilder()
-        .withUrl("https://localhost:7075/hubs/slot-status") // Fallback to absolute if different port
+        .withUrl(baseUrl + "/hubs/slot-status")
         .withAutomaticReconnect()
         .build();
 

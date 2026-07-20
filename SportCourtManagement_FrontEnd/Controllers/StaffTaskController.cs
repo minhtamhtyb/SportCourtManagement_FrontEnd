@@ -13,12 +13,15 @@ namespace SportCourtManagement_FrontEnd.Controllers
     public class StaffTaskController : Controller
     {
         private readonly HttpClient _client;
-        private readonly string _apiBase = "https://localhost:7075/api/staff/tasks";
+        private readonly string _baseUrl;
+        private readonly string _apiBase;
         private readonly JsonSerializerOptions _jsonOpts;
 
-        public StaffTaskController()
+        public StaffTaskController(Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _client = new HttpClient();
+            _baseUrl = configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7075";
+            _apiBase = $"{_baseUrl.TrimEnd('/')}/api/staff/tasks";
             _jsonOpts = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -123,7 +126,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
             AttachAuthToken();
             try
             {
-                var response = await _client.GetAsync("https://localhost:7075/api/complexes?pageSize=100");
+                var response = await _client.GetAsync($"{_baseUrl.TrimEnd('/')}/api/complexes?pageSize=100");
                 if (response.IsSuccessStatusCode)
                 {
                     string raw = await response.Content.ReadAsStringAsync();

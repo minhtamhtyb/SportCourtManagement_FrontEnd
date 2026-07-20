@@ -12,6 +12,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
     public class TaskController : Controller
     {
         private readonly HttpClient _client;
+        private readonly string _baseUrl;
         private string _apiBase
         {
             get
@@ -29,14 +30,15 @@ namespace SportCourtManagement_FrontEnd.Controllers
                     HttpContext.Session.LoadAsync().GetAwaiter().GetResult();
                     complexId = HttpContext.Session.GetInt32("selected_complex_id") ?? 1;
                 }
-                return $"https://localhost:7075/api/manager/complexes/{complexId}";
+                return $"{_baseUrl.TrimEnd('/')}/api/manager/complexes/{complexId}";
             }
         }
         private readonly JsonSerializerOptions _jsonOpts;
 
-        public TaskController()
+        public TaskController(Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _client = new HttpClient();
+            _baseUrl = configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7075";
             _jsonOpts = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -283,7 +285,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
             try
             {
-                var response = await _client.GetAsync("https://localhost:7075/api/complexes?pageSize=100");
+                var response = await _client.GetAsync($"{_baseUrl.TrimEnd('/')}/api/complexes?pageSize=100");
                 if (response.IsSuccessStatusCode)
                 {
                     var raw = await response.Content.ReadAsStringAsync();
