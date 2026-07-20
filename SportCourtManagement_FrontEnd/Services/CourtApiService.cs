@@ -1048,11 +1048,11 @@ public class CourtApiService : ICourtApiService
         return "{}";
     }
 
-    public async Task<SingularBookingResponseDto?> CreateSingularBookingAsync(CreateBookingRequestDto request)
+    public async Task<SingularBookingResponseDto?> CreateSingularBookingAsync(CreateBookingRequestDto request, string? token)
     {
         try
         {
-            var req = new HttpRequestMessage(HttpMethod.Post, "api/Booking");
+            var req = CreateAuthRequest(HttpMethod.Post, "api/Booking", token);
             req.Content = JsonContent.Create(request, null, _jsonOptions);
 
             var response = await _httpClient.SendAsync(req);
@@ -1180,5 +1180,50 @@ public class CourtApiService : ICourtApiService
             _logger.LogError(ex, "Error adding services to booking {BookingId}", bookingId);
             return (false, $"Lỗi kết nối: {ex.Message}");
         }
+    }
+
+    public async Task<SportCourtManagement_FrontEnd.Models.DTOs.WalletDto?> GetWalletBalanceAsync(string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Get, "api/wallet/balance", token);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                return await res.Content.ReadFromJsonAsync<SportCourtManagement_FrontEnd.Models.DTOs.WalletDto>(_jsonOptions);
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error GetWalletBalanceAsync"); }
+        return null;
+    }
+
+    public async Task<List<SportCourtManagement_FrontEnd.Models.DTOs.WalletTransactionDto>> GetWalletTransactionsAsync(string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Get, "api/wallet/transactions", token);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                return await res.Content.ReadFromJsonAsync<List<SportCourtManagement_FrontEnd.Models.DTOs.WalletTransactionDto>>(_jsonOptions) ?? [];
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error GetWalletTransactionsAsync"); }
+        return [];
+    }
+
+    public async Task<SePayQrCodeDto?> GetWalletDepositQrAsync(decimal amount, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Get, $"api/wallet/deposit-qr?amount={amount}", token);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                return await res.Content.ReadFromJsonAsync<SePayQrCodeDto>(_jsonOptions);
+            }
+        }
+        catch (Exception ex) { _logger.LogError(ex, "Error GetWalletDepositQrAsync"); }
+        return null;
     }
 }

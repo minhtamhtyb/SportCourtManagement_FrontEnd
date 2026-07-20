@@ -275,6 +275,12 @@ public class BookingsController : Controller
                 return RedirectToAction("Detail", "Courts", new { id = courtId });
             }
 
+            if (bookingResponse != null && (string.Equals(bookingResponse.Status, "Confirmed", StringComparison.OrdinalIgnoreCase) || string.Equals(bookingResponse.Status, "Paid", StringComparison.OrdinalIgnoreCase)))
+            {
+                TempData["SuccessMessage"] = $"Đặt sân thành công! Số tiền {bookingResponse.TotalAmount:N0}đ đã được thanh toán từ ví.";
+                return RedirectToAction("PaymentSuccess", new { bookingId = bookingResponse.BookingId, paymentMethod = "Ví điện tử" });
+            }
+
             // Fallback Mock booking if API is offline or returns error
             if (bookingResponse == null)
             {

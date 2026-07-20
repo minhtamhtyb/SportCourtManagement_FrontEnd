@@ -292,6 +292,13 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 return RedirectToAction("Index", new { courtId, date = bookingDate });
             }
 
+            var token = GetToken();
+            if (string.IsNullOrEmpty(token))
+            {
+                TempData["ErrorMessage"] = "Bạn cần đăng nhập để đặt sân.";
+                return RedirectToAction("Index", new { courtId, date = bookingDate });
+            }
+
             // Build service items list once (shared across all slot bookings)
             var serviceItems = new List<CreateBookingServiceItemDto>();
             if (serviceQuantities != null)
@@ -326,7 +333,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
                 try
                 {
-                    var result = await _apiService.CreateSingularBookingAsync(request);
+                    var result = await _apiService.CreateSingularBookingAsync(request, token);
                     if (result != null)
                     {
                         successfulBookings.Add(result);
@@ -344,18 +351,26 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
             if (successfulBookings.Count == 0)
             {
-                TempData["ErrorMessage"] = "Không thể tạo đặt sân. " + string.Join(" | ", errors);
+                TempData["ErrorMessage"] = "Không thể đặt sân. " + string.Join(" | ", errors);
                 return RedirectToAction("Index", new { courtId, date = bookingDate });
             }
 
             if (errors.Count > 0)
             {
-                TempData["WarningMessage"] = $"Đã tạo {successfulBookings.Count}/{slotIds.Count} đơn. Lỗi: {string.Join(" | ", errors)}";
+                TempData["WarningMessage"] = $"Đã đặt {successfulBookings.Count}/{slotIds.Count} sân thành công. Lỗi: {string.Join(" | ", errors)}";
             }
 
-            // Store all bookings in TempData for the payment page
-            TempData["BookingResponses"] = JsonSerializer.Serialize(successfulBookings);
             var bookingCodes = string.Join(",", successfulBookings.Select(b => b.BookingCode));
+
+            // Nếu đã được xác nhận (thanh toán qua ví thành công trực tiếp)
+            if (successfulBookings.Any(b => string.Equals(b.Status, "Confirmed", StringComparison.OrdinalIgnoreCase)))
+            {
+                TempData["SuccessMessage"] = $"Đặt sân thành công! Tổng cộng {successfulBookings.Sum(b => b.TotalAmount):N0}đ đã được thanh toán từ ví.";
+                return RedirectToAction("Success", new { bookingCodes });
+            }
+
+            // Fallback
+            TempData["BookingResponses"] = JsonSerializer.Serialize(successfulBookings);
             return RedirectToAction("Payment", new { bookingCodes });
         }
 

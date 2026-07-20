@@ -1,0 +1,230 @@
+@using SportCourtManagement_FrontEnd.Models.DTOs
+@{
+    ViewData["Title"] = "Ví tiền của tôi";
+    var wallet = ViewBag.Wallet as WalletDto;
+    var transactions = ViewBag.Transactions as List<WalletTransactionDto> ?? new();
+}
+
+<div class="container px-4 py-5 font-outfit" style="max-width: 1000px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-sc-blue text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item active text-white-50" aria-current="page">Ví tiền</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Left Side: Balance & Top up -->
+        <div class="col-lg-5">
+            <!-- Balance Card -->
+            <div class="card p-4 mb-4 border-0 shadow-lg" style="background: linear-gradient(135deg, #1A233A 0%, #0F1524 100%) !important; border-radius: 20px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05) !important;">
+                <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(79, 110, 247, 0.1) !important; filter: blur(50px); border-radius: 50%;"></div>
+                
+                <h6 class="text-white-50 mb-2" style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Số dư tài khoản</h6>
+                <div class="d-flex align-items-baseline gap-2 mb-4">
+                    <span class="text-white fw-bold fs-1 font-outfit">@(wallet?.Balance.ToString("N0") ?? "0")</span>
+                    <span class="text-sc-blue fw-semibold">VND</span>
+                </div>
+                
+                <div class="d-flex justify-content-between text-white-50" style="font-size: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                    <span>Cập nhật mới nhất</span>
+                    <span>@(wallet?.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "Chưa có")</span>
+                </div>
+            </div>
+
+            <!-- Top Up Card -->
+            <div class="card p-4 border-0 shadow-lg" style="background-color: #141B2D !important; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05) !important;">
+                <h5 class="fw-bold mb-4" style="color: #ffffff !important;"><i class="bi bi-wallet2 text-sc-blue me-2"></i>Nạp tiền vào ví</h5>
+                
+                <div class="mb-4">
+                    <label class="form-label small mb-2" style="color: rgba(255,255,255,0.7) !important;">Chọn số tiền nhanh</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-secondary w-100 py-2 btn-preset" data-amount="50000" style="border-color: rgba(255,255,255,0.1); color: #fff;">50k VND</button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-secondary w-100 py-2 btn-preset" data-amount="100000" style="border-color: rgba(255,255,255,0.1); color: #fff;">100k VND</button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-secondary w-100 py-2 btn-preset" data-amount="200000" style="border-color: rgba(255,255,255,0.1); color: #fff;">200k VND</button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-secondary w-100 py-2 btn-preset" data-amount="500000" style="border-color: rgba(255,255,255,0.1); color: #fff;">500k VND</button>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="depositForm">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-4">
+                        <label for="customAmount" class="form-label small" style="color: rgba(255,255,255,0.7) !important;">Số tiền nạp tùy chỉnh (VND)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control text-white" id="customAmount" placeholder="Từ 10,000đ đến 10,000,000đ..." style="background-color: #0D121F; border-color: rgba(255,255,255,0.1); font-weight: 600;" required min="10000" max="10000000" step="1000" />
+                            <span class="input-group-text text-white-50" style="background-color: #0D121F; border-color: rgba(255,255,255,0.1);">VND</span>
+                        </div>
+                        <div class="form-text small mt-1" style="color: rgba(255,255,255,0.4) !important;">Số tiền tối thiểu: 10,000đ, tối đa: 10,000,000đ.</div>
+                    </div>
+
+                    <button type="submit" class="sc-btn sc-btn-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2" style="border-radius: 12px; font-weight: 600;">
+                        <i class="bi bi-qr-code"></i> Tạo mã QR nạp tiền
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Side: Transactions History -->
+        <div class="col-lg-7">
+            <div class="card p-4 border-0 shadow-lg h-100" style="background-color: #141B2D !important; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05) !important;">
+                <h5 class="fw-bold mb-4" style="color: #ffffff !important;"><i class="bi bi-clock-history text-sc-blue me-2"></i>Lịch sử giao dịch</h5>
+                
+                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                    @if (transactions.Count == 0)
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-wallet2 text-white-50 fs-1"></i>
+                            <p class="mt-3 small" style="color: rgba(255,255,255,0.6) !important;">Chưa có lịch sử giao dịch ví nào.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table table-dark table-hover border-0 align-middle">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <th class="small fw-semibold" style="color: rgba(255,255,255,0.7) !important; background: transparent;">Thời gian</th>
+                                    <th class="small fw-semibold" style="color: rgba(255,255,255,0.7) !important; background: transparent;">Nội dung</th>
+                                    <th class="small fw-semibold text-end" style="color: rgba(255,255,255,0.7) !important; background: transparent;">Số tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tx in transactions)
+                                {
+                                    var isCredit = tx.Amount > 0;
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                        <td style="color: rgba(255,255,255,0.7) !important; background: transparent; font-size: 13px;">
+                                            @tx.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td style="color: #ffffff !important; background: transparent; font-size: 13px;">
+                                            @tx.Description
+                                            @if (tx.BookingId.HasValue)
+                                            {
+                                                <span class="badge bg-secondary ms-1 small" style="font-size: 10px;">Đặt sân #@tx.BookingId</span>
+                                            }
+                                        </td>
+                                        <td class="text-end fw-bold" style="background: transparent; font-size: 14px; color: @(isCredit ? "#10B981" : "#EF4444");">
+                                            @(isCredit ? "+" : "")@tx.Amount.ToString("N0")đ
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true" style="backdrop-filter: blur(10px);">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+        <div class="modal-content" style="background-color: #141B2D; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-white fw-bold" id="qrModalLabel">Quét mã QR để chuyển khoản</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="p-3 bg-white d-inline-block rounded-4 mb-4 shadow">
+                    <img id="qrImage" src="" alt="QR Code" style="width: 250px; height: 250px; object-fit: contain;" />
+                </div>
+                
+                <div class="alert alert-warning text-start border-0 px-3 py-2 small mb-4" style="background-color: rgba(245, 158, 11, 0.1); color: #F59E0B; border-radius: 10px;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <strong>Chú ý:</strong> Vui lòng giữ nguyên nội dung chuyển khoản để hệ thống tự động cộng tiền vào ví trong 1-3 phút.
+                </div>
+
+                <div class="text-start bg-dark p-3 rounded-3 mb-3 small border border-secondary border-opacity-10 text-white-50">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Số tài khoản:</span>
+                        <strong class="text-white" id="qrAccount"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tên tài khoản:</span>
+                        <strong class="text-white" id="qrName"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Số tiền nạp:</span>
+                        <strong class="text-white" id="qrAmount"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Nội dung CK:</span>
+                        <strong class="text-success" id="qrMemo"></strong>
+                    </div>
+                </div>
+
+                <button type="button" class="sc-btn sc-btn-primary w-100 py-3" data-bs-dismiss="modal" style="border-radius: 12px; font-weight: 600;">
+                    Tôi đã chuyển khoản
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Preset amounts click
+            $('.btn-preset').click(function() {
+                var amt = $(this).data('amount');
+                $('#customAmount').val(amt);
+                $('.btn-preset').removeClass('btn-primary').addClass('btn-outline-secondary');
+                $(this).removeClass('btn-outline-secondary').addClass('btn-primary');
+            });
+
+            $('#customAmount').on('input', function() {
+                $('.btn-preset').removeClass('btn-primary').addClass('btn-outline-secondary');
+            });
+
+            // Form submit
+            $('#depositForm').submit(function(e) {
+                e.preventDefault();
+                var amt = parseFloat($('#customAmount').val());
+                if (isNaN(amt) || amt < 10000 || amt > 10000000) {
+                    alert("Số tiền nạp tùy chỉnh phải từ 10.000đ đến 10.000.000đ.");
+                    return;
+                }
+                
+                $.ajax({
+                    url: '/Wallet/Deposit',
+                    type: 'POST',
+                    data: {
+                        amount: amt,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(res) {
+                        if (res.success) {
+                            $('#qrImage').attr('src', res.qrCodeUrl);
+                            $('#qrAccount').text(res.accountNumber);
+                            $('#qrName').text(res.accountName);
+                            
+                            // Format currency
+                            var formattedAmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(res.amount);
+                            $('#qrAmount').text(formattedAmt);
+                            
+                            // Parse memo from URL
+                            var memo = "WL" + res.qrCodeUrl.split('addInfo=')[1].split('&')[0];
+                            $('#qrMemo').text(memo);
+
+                            $('#qrModal').modal('show');
+                        } else {
+                            alert(res.message || "Tạo mã QR thất bại.");
+                        }
+                    },
+                    error: function() {
+                        alert("Lỗi kết nối máy chủ.");
+                    }
+                });
+            });
+        });
+    </script>
+}

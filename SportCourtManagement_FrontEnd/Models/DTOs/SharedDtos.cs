@@ -261,3 +261,21 @@ public class AdminDashboardDto
     public List<TopCustomerDto> TopCustomers { get; set; } = [];
 }
 
+public class WalletDto
+{
+    public int WalletId { get; set; }
+    public int UserId { get; set; }
+    public decimal Balance { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+public class WalletTransactionDto
+{
+    public int TransactionId { get; set; }
+    public decimal Amount { get; set; }
+    public string Type { get; set; } = "";
+    public int? BookingId { get; set; }
+    public string Description { get; set; } = "";
+    public DateTime CreatedAt { get; set; }
+}
+

@@ -52,6 +52,11 @@ public interface ICourtApiService
     Task<bool> UpdateTournamentStatusAsync(int id, string status, string? cancelReason);
     Task<SePayQrCodeDto?> GetSePayQrCodeAsync(string bookingOrTournamentCode);
 
+    // Wallet
+    Task<SportCourtManagement_FrontEnd.Models.DTOs.WalletDto?> GetWalletBalanceAsync(string? token);
+    Task<List<SportCourtManagement_FrontEnd.Models.DTOs.WalletTransactionDto>> GetWalletTransactionsAsync(string? token);
+    Task<SePayQrCodeDto?> GetWalletDepositQrAsync(decimal amount, string? token);
+
     // Auth
     Task<Models.Auth.AuthLoginResult> LoginAsync(Models.Auth.LoginRequest request);
     Task<(bool Success, string? ErrorMessage)> RegisterAsync(Models.Auth.RegisterRequest request);
@@ -60,8 +65,8 @@ public interface ICourtApiService
     // Raw JSON utility
     Task<string> GetRawJsonAsync(string relativeUrl);
 
-    // Singular Booking (BookingController - no auth, hardcoded userId)
-    Task<SingularBookingResponseDto?> CreateSingularBookingAsync(CreateBookingRequestDto request);
+    // Singular Booking (BookingController - with auth)
+    Task<SingularBookingResponseDto?> CreateSingularBookingAsync(CreateBookingRequestDto request, string? token);
     Task<(bool Success, string Message, SingularBookingResponseDto? Data)> SimulateSePayWebhookAsync(string bookingCode, decimal amount);
     Task<(bool Success, string Message)> AddServicesToBookingAsync(int bookingId, Dictionary<int, int> serviceQuantities, string? token);
 }
