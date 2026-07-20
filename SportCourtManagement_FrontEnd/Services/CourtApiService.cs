@@ -254,7 +254,6 @@ public class CourtApiService : ICourtApiService
             _logger.LogError(ex, "Error calling JoinWaitlist API");
         }
         return (false, "Không thể đăng ký hàng chờ. Vui lòng thử lại sau.", 0);
->>>>>>> Stashed changes
     }
 
     public async Task<List<TimeSlotDto>> GetTimeSlotsAsync()
