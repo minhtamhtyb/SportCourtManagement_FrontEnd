@@ -378,6 +378,10 @@ namespace SportCourtManagement_FrontEnd.Controllers
         [HttpGet]
         public async Task<IActionResult> Payment(string bookingCodes, bool isServicePayment = false)
         {
+            var token = GetToken();
+            var wallet = await _apiService.GetWalletBalanceAsync(token);
+            ViewBag.Wallet = wallet;
+
             ViewBag.IsServicePayment = isServicePayment;
             ViewBag.BookingCodes = bookingCodes;
 
@@ -439,7 +443,6 @@ namespace SportCourtManagement_FrontEnd.Controllers
             if (bookings.Count == 0 && !string.IsNullOrEmpty(bookingCodes))
             {
                 var codes = bookingCodes.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim()).ToList();
-                var token = GetToken();
                 var allMyBookings = await _apiService.GetPagedMyBookingsAsync(null, null, null, null, 1, 100, token);
                 if (allMyBookings?.Items != null)
                 {
@@ -596,6 +599,58 @@ namespace SportCourtManagement_FrontEnd.Controllers
             }
 
             return Json(new { success = true, allPaid = allPaid });
+        }
+
+        // POST: /Booking/PayWithWallet
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PayWithWallet(string bookingCodes, bool isServicePayment = false)
+        {
+            var token = GetToken();
+            if (string.IsNullOrEmpty(token))
+            {
+                return Json(new { success = false, message = "Bạn cần đăng nhập." });
+            }
+
+            if (string.IsNullOrEmpty(bookingCodes))
+            {
+                return Json(new { success = false, message = "Không tìm thấy mã đặt sân." });
+            }
+
+            if (isServicePayment)
+            {
+                // Lấy thông tin thanh toán dịch vụ bổ sung từ TempData
+                if (TempData.TryGetValue("ServicePaymentInfo", out var serviceInfoJson))
+                {
+                    TempData.Keep("ServicePaymentInfo");
+                    var json = serviceInfoJson as string;
+                    if (!string.IsNullOrEmpty(json))
+                    {
+                        using var doc = JsonDocument.Parse(json);
+                        var root = doc.RootElement;
+                        var addAmount = root.GetProperty("AdditionalAmount").GetDecimal();
+                        
+                        var (success, msg) = await _apiService.PayServicesWithWalletAsync(bookingCodes, addAmount, token);
+                        if (success)
+                        {
+                            TempData["SuccessMessage"] = "Thanh toán dịch vụ bổ sung từ ví thành công!";
+                            return Json(new { success = true, redirectUrl = Url.Action("Index", "MyBookings") });
+                        }
+                        return Json(new { success = false, message = msg });
+                    }
+                }
+                return Json(new { success = false, message = "Không tìm thấy thông tin dịch vụ mua thêm." });
+            }
+            else
+            {
+                var (success, msg) = await _apiService.PayBookingWithWalletAsync(bookingCodes, token);
+                if (success)
+                {
+                    TempData["SuccessMessage"] = $"Đặt sân thành công! Tổng cộng đã được thanh toán từ ví.";
+                    return Json(new { success = true, redirectUrl = Url.Action("Success", new { bookingCodes }) });
+                }
+                return Json(new { success = false, message = msg });
+            }
         }
 
         private string? GetToken()

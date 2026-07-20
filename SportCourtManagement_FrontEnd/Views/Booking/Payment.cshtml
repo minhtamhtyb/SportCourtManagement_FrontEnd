@@ -126,41 +126,45 @@
                         </div>
                     </div>
 
-                    <!-- QR Code Section -->
-                    @if (qrCode != null)
-                    {
-                        <div class="text-center mb-4">
-                            <h6 class="text-white font-outfit mb-3" style="font-weight: 700;">
-                                <i class="bi bi-qr-code me-1 text-sc-blue-light"></i> Quét mã QR để thanh toán (@totalAmount.ToString("N0")đ)
-                            </h6>
-                            <div class="d-inline-block p-3 rounded-3 mb-3" style="background: #ffffff; border-radius: 16px !important;">
-                                <img src="@qrCode.QrCodeUrl" alt="QR Code thanh toán" style="width: 220px; height: 220px;" />
-                            </div>
-                            <div class="text-sc-muted" style="font-size: 12px; line-height: 1.6;">
-                                <div><strong class="text-white">Ngân hàng:</strong> @qrCode.BankBin</div>
-                                <div><strong class="text-white">STK:</strong> <span class="font-monospace">@qrCode.AccountNumber</span></div>
-                                <div><strong class="text-white">Chủ TK:</strong> @qrCode.AccountName</div>
-                                <div><strong class="text-white">Nội dung CK:</strong> <span class="text-sc-amber font-monospace fw-bold">@qrCode.BookingCode</span></div>
-                            </div>
-                            <div class="small text-sc-amber mt-2" style="font-size: 11px;">
-                                <i class="bi bi-exclamation-circle-fill"></i> SePay sẽ quét giao dịch chuyển khoản với nội dung là mã đặt sân để tự động kích hoạt.
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-center mb-4 p-4 rounded-3" style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15);">
-                            <i class="bi bi-exclamation-triangle text-warning" style="font-size: 32px;"></i>
-                            <p class="text-sc-muted mt-2 mb-0" style="font-size: 13px;">Không thể tạo mã QR thanh toán.</p>
-                        </div>
+                    <!-- Wallet Payment Section -->
+                    @{
+                        var wallet = ViewBag.Wallet as SportCourtManagement_FrontEnd.Models.DTOs.WalletDto;
+                        var hasEnough = wallet != null && wallet.Balance >= totalAmount;
                     }
 
-                    <!-- Timer Warning -->
-                    <div class="alert d-flex align-items-center gap-2 py-3 px-4 rounded-3 mb-4" style="background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.15); color: #FCA5A5; font-size: 13px;">
-                        <i class="bi bi-clock-history" style="font-size: 18px;"></i>
-                        <div>
-                            <strong>Lưu ý:</strong> Vui lòng hoàn tất chuyển khoản đúng số tiền <strong>@totalAmount.ToString("N0")đ</strong>.
+                    <div class="p-4 rounded-3 mb-4 text-center" style="background-color: #141B2D; border: 1px solid rgba(255,255,255,0.05);">
+                        @Html.AntiForgeryToken()
+                        <h6 class="text-white font-outfit mb-3" style="font-weight: 700;">
+                            <i class="bi bi-wallet2 me-1 text-sc-blue-light"></i> Thanh toán bằng Ví điện tử
+                        </h6>
+                        
+                        <div class="d-flex justify-content-center gap-4 mb-3 text-start bg-dark p-3 rounded">
+                            <div>
+                                <span class="text-white-50 small">Số dư ví của bạn:</span>
+                                <h5 class="text-white fw-bold mt-1">@(wallet?.Balance.ToString("N0") ?? "0")đ</h5>
+                            </div>
+                            <div class="border-start border-secondary opacity-25"></div>
+                            <div>
+                                <span class="text-white-50 small">Số tiền cần thanh toán:</span>
+                                <h5 class="text-sc-green fw-bold mt-1">@totalAmount.ToString("N0")đ</h5>
+                            </div>
                         </div>
+
+                        @if (hasEnough)
+                        {
+                            <button type="button" id="btnPayWithWallet" class="sc-btn sc-btn-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2" style="border-radius: 12px; font-weight: 600;">
+                                <i class="bi bi-shield-check"></i> Xác nhận thanh toán từ Ví
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger border-0 small text-start py-2 px-3 mb-3" style="background: rgba(239, 68, 68, 0.1); color: #FCA5A5;">
+                                <i class="bi bi-exclamation-circle-fill me-1"></i> Số dư ví không đủ. Vui lòng nạp thêm tiền.
+                            </div>
+                            <a href="/Wallet" class="sc-btn sc-btn-gradient w-100 py-3 text-center text-white text-decoration-none d-block" style="border-radius: 12px; font-weight: 600; background: linear-gradient(135deg, #4F6EF7 0%, #3B5BDF 100%);">
+                                <i class="bi bi-plus-circle"></i> Nạp tiền vào ví (@((totalAmount - (wallet?.Balance ?? 0)).ToString("N0"))đ còn thiếu)
+                            </a>
+                        }
                     </div>
 
                     <!-- Action Buttons -->
@@ -187,25 +191,32 @@
             var bookingCodes = '@bookingCodesStr';
             var isServicePayment = @(isServicePayment ? "true" : "false");
 
-            if (bookingCodes) {
-                // Gửi request kiểm tra mỗi 3 giây
-                var checkInterval = setInterval(function () {
-                    $.ajax({
-                        url: '/Booking/CheckStatus',
-                        type: 'GET',
-                        data: { bookingCodes: bookingCodes, isServicePayment: isServicePayment },
-                        success: function (response) {
-                            if (response.success && response.allPaid) {
-                                clearInterval(checkInterval);
-                                window.location.href = '/MyBookings';
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            console.error("Lỗi kiểm tra trạng thái:", error);
+            $('#btnPayWithWallet').click(function() {
+                var btn = $(this);
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+
+                $.ajax({
+                    url: '/Booking/PayWithWallet',
+                    type: 'POST',
+                    data: {
+                        bookingCodes: bookingCodes,
+                        isServicePayment: isServicePayment,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(res) {
+                        if (res.success) {
+                            window.location.href = res.redirectUrl;
+                        } else {
+                            alert(res.message || "Thanh toán thất bại.");
+                            btn.prop('disabled', false).html('<i class="bi bi-shield-check"></i> Xác nhận thanh toán từ Ví');
                         }
-                    });
-                }, 3000); // 3 giây
-            }
+                    },
+                    error: function() {
+                        alert("Lỗi kết nối máy chủ.");
+                        btn.prop('disabled', false).html('<i class="bi bi-shield-check"></i> Xác nhận thanh toán từ Ví');
+                    }
+                });
+            });
         });
     </script>
 }

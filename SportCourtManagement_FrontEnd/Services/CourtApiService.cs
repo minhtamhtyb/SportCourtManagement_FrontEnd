@@ -1226,4 +1226,66 @@ public class CourtApiService : ICourtApiService
         catch (Exception ex) { _logger.LogError(ex, "Error GetWalletDepositQrAsync"); }
         return null;
     }
+
+    public async Task<(bool Success, string Message)> PayBookingWithWalletAsync(string bookingCode, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Post, "api/wallet/pay-booking", token);
+            req.Content = JsonContent.Create(new { BookingCode = bookingCode }, null, _jsonOptions);
+            var res = await _httpClient.SendAsync(req);
+            var body = await res.Content.ReadAsStringAsync();
+            if (res.IsSuccessStatusCode)
+            {
+                return (true, "Thanh toán bằng ví thành công.");
+            }
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("message", out var msgProp))
+                {
+                    return (false, msgProp.GetString() ?? "Thanh toán thất bại.");
+                }
+            }
+            catch {}
+            return (false, body);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error PayBookingWithWalletAsync");
+            return (false, "Lỗi kết nối máy chủ.");
+        }
+    }
+
+    public async Task<(bool Success, string Message)> PayServicesWithWalletAsync(string bookingCode, decimal amount, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Post, "api/wallet/pay-services", token);
+            req.Content = JsonContent.Create(new { BookingCode = bookingCode, Amount = amount }, null, _jsonOptions);
+            var res = await _httpClient.SendAsync(req);
+            var body = await res.Content.ReadAsStringAsync();
+            if (res.IsSuccessStatusCode)
+            {
+                return (true, "Thanh toán dịch vụ bổ sung thành công.");
+            }
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("message", out var msgProp))
+                {
+                    return (false, msgProp.GetString() ?? "Thanh toán thất bại.");
+                }
+            }
+            catch {}
+            return (false, body);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error PayServicesWithWalletAsync");
+            return (false, "Lỗi kết nối máy chủ.");
+        }
+    }
 }
