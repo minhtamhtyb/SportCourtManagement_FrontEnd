@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -197,6 +198,65 @@ public class CourtApiService : ICourtApiService
         return new List<ComplexCourtTypeServiceDto>();
     }
 
+    public async Task<List<ServiceDto>> GetServicesByCourtIdAsync(int courtId)
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ServiceDto>>>($"api/courts/{courtId}/services");
+            if (response != null && (response.Success || response.Data != null))
+            {
+                return response.Data ?? new List<ServiceDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling GetServicesByCourtId API for court {CourtId}", courtId);
+        }
+        // Fallback to general services if court-specific call fails
+        return await GetServicesAsync();
+    }
+
+    public async Task<(bool success, string message, int position)> JoinWaitlistAsync(int courtId, int slotId, DateTime waitDate, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Post, "api/bookings/waitlist", token);
+            req.Content = JsonContent.Create(new
+            {
+                CourtId = courtId,
+                SlotId = slotId,
+                WaitDate = waitDate
+            });
+
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<JsonElement>>(_jsonOptions);
+                int position = 1;
+                if (body?.Data.ValueKind == JsonValueKind.Object && body.Data.TryGetProperty("position", out var posProp))
+                {
+                    position = posProp.GetInt32();
+                }
+                return (true, body?.Message ?? "Đăng ký hàng chờ thành công!", position);
+            }
+
+            var errBody = await res.Content.ReadAsStringAsync();
+            try
+            {
+                var errorObj = JsonSerializer.Deserialize<JsonNode>(errBody);
+                var msg = errorObj?["message"]?.ToString();
+                if (!string.IsNullOrEmpty(msg)) return (false, msg, 0);
+            }
+            catch {}
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling JoinWaitlist API");
+        }
+        return (false, "Không thể đăng ký hàng chờ. Vui lòng thử lại sau.", 0);
+>>>>>>> Stashed changes
+    }
+
     public async Task<List<TimeSlotDto>> GetTimeSlotsAsync()
     {
         try
@@ -342,30 +402,55 @@ public class CourtApiService : ICourtApiService
             req.Content = JsonContent.Create(backendRequest);
 
             var response = await _httpClient.SendAsync(req);
+            var body = await response.Content.ReadAsStringAsync();
+
             if (response.IsSuccessStatusCode)
             {
-                var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<RecurringBookingResponseDto>>();
-                if (apiResponse != null && apiResponse.Success)
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<RecurringBookingResponseDto>>(body, _jsonOptions);
+                if (apiResponse != null && apiResponse.Success && apiResponse.Data != null)
                 {
                     return apiResponse.Data;
                 }
-            }
-            else
-            {
-                var err = await response.Content.ReadAsStringAsync();
-                _logger.LogWarning("CreateRecurringBooking API failed: {Body}", err);
-                try
+
+                if (apiResponse != null && !string.IsNullOrEmpty(apiResponse.Message))
                 {
-                    var errorObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.Nodes.JsonNode>(err);
-                    var msg = errorObj?["message"]?.ToString();
-                    if (!string.IsNullOrEmpty(msg))
+                    throw new InvalidOperationException(apiResponse.Message);
+                }
+            }
+
+            _logger.LogWarning("CreateRecurringBooking API failed: Status {Status}, Body {Body}", response.StatusCode, body);
+
+            // Extract error message from body
+            string? errorMsg = null;
+            try
+            {
+                var apiErr = JsonSerializer.Deserialize<ApiResponse<object>>(body, _jsonOptions);
+                if (apiErr != null && !string.IsNullOrWhiteSpace(apiErr.Message))
+                {
+                    errorMsg = apiErr.Message;
+                }
+                else
+                {
+                    var node = JsonSerializer.Deserialize<System.Text.Json.Nodes.JsonNode>(body);
+                    errorMsg = node?["message"]?.ToString() ?? node?["details"]?.ToString();
+                    if (string.IsNullOrEmpty(errorMsg) && node?["errors"] != null)
                     {
-                        throw new InvalidOperationException(msg);
+                        var firstErr = node["errors"]?.AsObject().FirstOrDefault();
+                        if (firstErr.HasValue && firstErr.Value.Value is System.Text.Json.Nodes.JsonArray arr && arr.Count > 0)
+                        {
+                            errorMsg = arr[0]?.ToString();
+                        }
                     }
                 }
-                catch (System.Text.Json.JsonException) { }
-                catch (InvalidOperationException) { throw; }
             }
+            catch { }
+
+            if (!string.IsNullOrEmpty(errorMsg))
+            {
+                throw new InvalidOperationException(errorMsg);
+            }
+
+            throw new InvalidOperationException($"Không thể tạo lịch định kỳ (Mã lỗi {response.StatusCode}).");
         }
         catch (InvalidOperationException)
         {
@@ -374,8 +459,8 @@ public class CourtApiService : ICourtApiService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating recurring booking");
+            throw new InvalidOperationException($"Lỗi hệ thống khi tạo lịch đặt định kỳ: {ex.Message}");
         }
-        return null;
     }
 
     public async Task<PaymentResponseDto?> CreatePaymentLinkAsync(PaymentRequestDto request, string? token)

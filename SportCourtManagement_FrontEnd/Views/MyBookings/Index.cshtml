@@ -98,6 +98,24 @@
                             <div>
                                 <span class="text-secondary small d-block">Mã đơn đặt sân</span>
                                 <span class="fw-bold text-white fs-5">#@item.BookingCode</span>
+                                @if (item.BookingCode.StartsWith("RBK", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-opacity-15 bg-info text-info border border-info border-opacity-20 rounded-pill ms-2" style="font-size: 11px;">
+                                        <i class="bi bi-arrow-repeat me-1"></i>Định kỳ
+                                    </span>
+                                }
+                                else if (item.BookingCode.StartsWith("TM-", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-opacity-15 bg-warning text-warning border border-warning border-opacity-20 rounded-pill ms-2" style="font-size: 11px;">
+                                        <i class="bi bi-trophy me-1"></i>Giải đấu
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-opacity-15 bg-secondary text-secondary border border-secondary border-opacity-20 rounded-pill ms-2" style="font-size: 11px;">
+                                        <i class="bi bi-calendar-event me-1"></i>Đơn lẻ
+                                    </span>
+                                }
                             </div>
                             <!-- Status Badge -->
                             <div>
@@ -153,7 +171,7 @@
                                         @foreach (var svc in item.Services)
                                         {
                                             <div class="d-flex justify-content-between text-secondary">
-                                                <span>• @svc.ServiceName x@svc.Quantity</span>
+                                                <span>• @svc.ServiceName x@(svc.Quantity)</span>
                                                 <span class="fw-medium text-white">@svc.TotalPrice.ToString("N0")đ</span>
                                             </div>
                                         }
@@ -198,7 +216,7 @@
                                     <button type="button" class="btn btn-outline-indigo btn-sm rounded-3 flex-grow-1 py-2 text-indigo-400" style="border-color: rgba(79,110,247,0.3); background-color: rgba(79,110,247,0.05);" onclick="openChangeCourtModal(@item.BookingId)">
                                         <i class="bi bi-arrow-left-right me-1"></i> Đổi sân
                                     </button>
-                                    <button type="button" class="btn btn-outline-success btn-sm rounded-3 flex-grow-1 py-2 text-success" style="border-color: rgba(16,185,129,0.3); background-color: rgba(16,185,129,0.05);" onclick="openAddServicesModal(@item.BookingId)">
+                                    <button type="button" class="btn btn-outline-success btn-sm rounded-3 flex-grow-1 py-2 text-success" style="border-color: rgba(16,185,129,0.3); background-color: rgba(16,185,129,0.05);" onclick="openAddServicesModal(@item.BookingId, @item.CourtId)">
                                         <i class="bi bi-cart-plus me-1"></i> Mua thêm DV
                                     </button>
                                 </div>
@@ -212,21 +230,50 @@
         <!-- Pagination -->
         @if (Model.PagedData.TotalPages > 1)
         {
+            int totalPages = Model.PagedData.TotalPages;
+            int currentPage = Model.PagedData.PageNumber;
+            int startPage = Math.Max(1, currentPage - 2);
+            int endPage = Math.Min(totalPages, currentPage + 2);
+
             <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top" style="border-top-color: rgba(255,255,255,0.05) !important;">
-                <span class="text-secondary small">Hiển thị trang @Model.PagedData.PageNumber / @Model.PagedData.TotalPages</span>
+                <span class="text-secondary small">Hiển thị trang @currentPage / @totalPages</span>
                 <nav>
                     <ul class="pagination mb-0">
-                        <li class="page-item @(Model.PagedData.PageNumber <= 1 ? "disabled" : "")">
-                            <a class="page-link border-0 text-white rounded-3 me-1 bg-dark bg-opacity-50" asp-action="Index" asp-route-page="@(Model.PagedData.PageNumber - 1)" asp-route-keyword="@Model.Keyword" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status">Trước</a>
+                        <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                            <a class="page-link border-0 text-white rounded-3 me-1 bg-dark bg-opacity-50" asp-action="Index" asp-route-page="@(currentPage - 1)" asp-route-keyword="@Model.Keyword" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status">Trước</a>
                         </li>
-                        @for (int i = 1; i <= Model.PagedData.TotalPages; i++)
+
+                        @if (startPage > 1)
                         {
-                            <li class="page-item @(i == Model.PagedData.PageNumber ? "active" : "")">
-                                <a class="page-link border-0 rounded-3 me-1 @(i == Model.PagedData.PageNumber ? "bg-indigo-600 text-white fw-bold" : "text-white bg-dark bg-opacity-50")" asp-action="Index" asp-route-page="@i" asp-route-keyword="@Model.Keyword" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status">@i</a>
+                            <li class="page-item">
+                                <a class="page-link border-0 text-white rounded-3 me-1 bg-dark bg-opacity-50" asp-action="Index" asp-route-page="1" asp-route-keyword="@Model.Keyword" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled"><span class="page-link border-0 text-secondary bg-transparent me-1">...</span></li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link border-0 rounded-3 me-1 @(i == currentPage ? "bg-indigo-600 text-white fw-bold" : "text-white bg-dark bg-opacity-50")" asp-action="Index" asp-route-page="@i" asp-route-keyword="@Model.Keyword" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status">@i</a>
                             </li>
                         }
-                        <li class="page-item @(Model.PagedData.PageNumber >= Model.PagedData.TotalPages ? "disabled" : "")">
-                            <a class="page-link border-0 text-white rounded-3 bg-dark bg-opacity-50" asp-action="Index" asp-route-page="@(Model.PagedData.PageNumber + 1)" asp-route-keyword="@Model.Keyword" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status">Sau</a>
+
+                        @if (endPage < totalPages)
+                        {
+                            @if (endPage < totalPages - 1)
+                            {
+                                <li class="page-item disabled"><span class="page-link border-0 text-secondary bg-transparent me-1">...</span></li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link border-0 text-white rounded-3 me-1 bg-dark bg-opacity-50" asp-action="Index" asp-route-page="@totalPages" asp-route-keyword="@Model.Keyword" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status">@totalPages</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                            <a class="page-link border-0 text-white rounded-3 bg-dark bg-opacity-50" asp-action="Index" asp-route-page="@(currentPage + 1)" asp-route-keyword="@Model.Keyword" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status">Sau</a>
                         </li>
                     </ul>
                 </nav>
@@ -599,7 +646,7 @@
 
         // 3. Open Add Services Modal
         let activeServices = [];
-        async function openAddServicesModal(bookingId) {
+        async function openAddServicesModal(bookingId, courtId) {
             document.getElementById('servicesBookingId').value = bookingId;
             document.getElementById('servicesTotalPrice').textContent = "0đ";
             document.getElementById('btnConfirmAddServices').disabled = true;
@@ -613,7 +660,8 @@
             servicesModal.show();
 
             try {
-                const response = await fetch('/MyBookings/GetServices');
+                const url = courtId ? `/MyBookings/GetServices?courtId=${courtId}` : '/MyBookings/GetServices';
+                const response = await fetch(url);
                 activeServices = await response.json();
 
                 loader.style.setProperty('display', 'none', 'important');
@@ -622,7 +670,6 @@
                     container.innerHTML = '';
                     
                     activeServices.forEach(service => {
-                        // Ignore coaching or events, focus on equipments & drinks for booking addition
                         if (service.category === "Coach" || service.category === "Event") return;
 
                         const item = document.createElement('div');
@@ -644,11 +691,33 @@
                         container.appendChild(item);
                     });
 
+                    if (container.children.length > 0) {
+                        container.style.setProperty('display', 'flex', 'important');
+                    } else {
+                        container.innerHTML = `
+                            <div class="p-3 text-center rounded text-secondary w-100" style="background-color: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1);">
+                                <i class="bi bi-box-seam me-2 text-warning"></i>Chưa có dịch vụ đi kèm
+                            </div>
+                        `;
+                        container.style.setProperty('display', 'flex', 'important');
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="p-3 text-center rounded text-secondary w-100" style="background-color: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1);">
+                            <i class="bi bi-box-seam me-2 text-warning"></i>Chưa có dịch vụ đi kèm
+                        </div>
+                    `;
                     container.style.setProperty('display', 'flex', 'important');
                 }
             } catch (error) {
                 console.error("Error loading services catalog:", error);
                 loader.style.setProperty('display', 'none', 'important');
+                container.innerHTML = `
+                    <div class="p-3 text-center rounded text-secondary w-100" style="background-color: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1);">
+                        <i class="bi bi-box-seam me-2 text-warning"></i>Chưa có dịch vụ đi kèm
+                    </div>
+                `;
+                container.style.setProperty('display', 'flex', 'important');
             }
         }
 

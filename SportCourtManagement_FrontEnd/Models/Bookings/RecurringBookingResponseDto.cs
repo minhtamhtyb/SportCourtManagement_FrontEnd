@@ -10,11 +10,11 @@ namespace SportCourtManagement_FrontEnd.Models.Bookings
         public string CourtName { get; set; } = null!;
         public int SlotId { get; set; }
         public string SlotName { get; set; } = null!;
-        public DateOnly StartDate { get; set; }
-        public DateOnly EndDate { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
         public string DaysOfWeek { get; set; } = null!;
         public string Status { get; set; } = null!;
-        public List<BookingResponseDto> CreatedBookings { get; set; } = new();
+        public List<BookingDetailDto> CreatedBookings { get; set; } = new();
         public List<string> ConflictDates { get; set; } = new();
         public int TotalRequestedSessions { get; set; }
         public int TotalBookedSessions { get; set; }

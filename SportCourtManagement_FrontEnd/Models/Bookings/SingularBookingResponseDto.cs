@@ -22,8 +22,10 @@ public class SingularBookingResponseDto
     public decimal SubTotal { get; set; }
     public decimal DiscountAmount { get; set; }
     public decimal TotalAmount { get; set; }
+    public decimal ServicesAmount { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? PromoCode { get; set; }
+    public string? Note { get; set; }
     public List<SingularBookingServiceResponseDto> BookingServices { get; set; } = new();
 }
 
