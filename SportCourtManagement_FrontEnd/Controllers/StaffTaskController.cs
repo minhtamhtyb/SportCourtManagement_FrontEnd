@@ -37,13 +37,9 @@ namespace SportCourtManagement_FrontEnd.Controllers
             AttachAuthToken();
 
             page = page < 1 ? 1 : page;
-            int pageSize = 10;
+            int pageSize = 100;
 
-            string url = $"{_apiBase}?page={page}&pageSize={pageSize}";
-            if (!string.IsNullOrEmpty(status))
-            {
-                url += $"&status={status}";
-            }
+            string url = $"{_apiBase}?page=1&pageSize={pageSize}";
 
             var model = new PagedTaskResponse();
             var response = await _client.GetAsync(url);
@@ -53,7 +49,18 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 model = JsonSerializer.Deserialize<PagedTaskResponse>(raw, _jsonOpts) ?? new PagedTaskResponse();
             }
 
+            ViewBag.PendingCount = model.Items.Count(t => t.Status == "Pending");
+            ViewBag.InProgressCount = model.Items.Count(t => t.Status == "InProgress");
+            ViewBag.CompletedCount = model.Items.Count(t => t.Status == "Completed");
+            ViewBag.ApprovedCount = model.Items.Count(t => t.Status == "Approved");
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                model.Items = model.Items.Where(t => t.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
             ViewBag.SelectedStatus = status;
+            ViewBag.CurrentPage = page;
             return View(model);
         }
 

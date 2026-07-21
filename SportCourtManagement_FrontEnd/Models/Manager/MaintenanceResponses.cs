@@ -39,7 +39,7 @@ namespace SportCourtManagement_FrontEnd.Models.Manager
         public string Status { get; set; } = string.Empty;
     }
 
-    // View Model for the Maintenance View
+    // View Model for the Manager Maintenance View
     public class MaintenanceViewModel
     {
         public PagedMaintenanceResponse Schedules { get; set; } = new();
@@ -51,4 +51,16 @@ namespace SportCourtManagement_FrontEnd.Models.Manager
         public int CompletedCount { get; set; }
         public int CancelledCount { get; set; }
     }
+
+    // View Model for the Staff Maintenance View
+    public class StaffMaintenanceViewModel
+    {
+        public PagedMaintenanceResponse Schedules { get; set; } = new();
+
+        public int PendingCount { get; set; }
+        public int InProgressCount { get; set; }
+        public int CompletedCount { get; set; }
+        public int CancelledCount { get; set; }
+    }
 }
+
