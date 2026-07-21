@@ -59,6 +59,32 @@
         .btn-action-complete:active {
             transform: translateY(0);
         }
+
+        .btn-action-detail {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(100, 116, 139, 0.28);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+        }
+        .btn-action-detail:hover {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            box-shadow: 0 6px 18px rgba(100, 116, 139, 0.45);
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+        .btn-action-detail:active {
+            transform: translateY(0);
+        }
     </style>
 }
 
@@ -195,12 +221,17 @@
                         <tr data-id="@item.MaintenanceId"
                             data-court-id="@item.CourtId"
                             data-court-name="@item.CourtName"
+                            data-complex-name="@item.ComplexName"
                             data-type="@item.MaintenanceType"
                             data-reason="@item.Reason"
-                            data-start="@item.StartDateTime.ToString("yyyy-MM-ddTHH:mm")"
-                            data-end="@item.EndDateTime.ToString("yyyy-MM-ddTHH:mm")"
+                            data-start="@item.StartDateTime.ToString("dd/MM/yyyy HH:mm")"
+                            data-end="@item.EndDateTime.ToString("dd/MM/yyyy HH:mm")"
+                            data-created="@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")"
                             data-status="@item.Status"
-                            data-staff-id="@item.AssignedStaffId">
+                            data-staff-id="@item.AssignedStaffId"
+                            data-staff-name="@(string.IsNullOrEmpty(item.AssignedStaffName) ? "Chưa phân công" : item.AssignedStaffName)"
+                            data-result="@(string.IsNullOrWhiteSpace(item.Result) || item.Result == "–" ? "Chưa có kết quả" : item.Result)"
+                            data-image="@(item.ImageProof ?? "")">
                             <td>
                                 <div class="court-cell">
                                     <div class="court-icon">
@@ -233,6 +264,25 @@
 
                             <td>
                                 <div class="actions-cell">
+                                    <button type="button" 
+                                            class="btn-action-detail"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#detailModal"
+                                            data-id="@item.MaintenanceId"
+                                            data-court-name="@item.CourtName"
+                                            data-complex-name="@item.ComplexName"
+                                            data-type="@item.MaintenanceType"
+                                            data-start="@item.StartDateTime.ToString("dd/MM/yyyy HH:mm")"
+                                            data-end="@item.EndDateTime.ToString("dd/MM/yyyy HH:mm")"
+                                            data-created="@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")"
+                                            data-reason="@item.Reason"
+                                            data-status="@item.Status"
+                                            data-staff-name="@(string.IsNullOrEmpty(item.AssignedStaffName) ? "Chưa phân công" : item.AssignedStaffName)"
+                                            data-result="@(string.IsNullOrWhiteSpace(item.Result) || item.Result == "–" ? "Chưa có kết quả" : item.Result)"
+                                            data-image="@(item.ImageProof ?? "")">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+                                        Chi tiết
+                                    </button>
                                     @if (isPending)
                                     {
                                         <form asp-controller="StaffMaintenance" asp-action="StartMaintenance" asp-route-id="@item.MaintenanceId" asp-route-status="@selectedStatus" asp-route-page="@currentPage" method="post" style="margin: 0;">
@@ -266,20 +316,6 @@
                                             <span class="material-symbols-outlined" style="font-size: 16px;">check_circle</span>
                                             Báo cáo hoàn thành
                                         </button>
-                                    }
-                                    else if (isCompleted)
-                                    {
-                                        <span style="font-size: 12px; color: var(--emerald-400); display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
-                                            <span class="material-symbols-outlined" style="font-size: 16px;">hourglass_top</span>
-                                            Chờ nghiệm thu
-                                        </span>
-                                    }
-                                    else if (isCancelled)
-                                    {
-                                        <span style="font-size: 12px; color: var(--rose-400); display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
-                                            <span class="material-symbols-outlined" style="font-size: 16px;">cancel</span>
-                                            Đã bị hủy
-                                        </span>
                                     }
                                 </div>
                             </td>
@@ -384,9 +420,152 @@
     </div>
 </div>
 
+<!-- Modal Xem Chi Tiết Bảo Trì -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.12); color: #fff; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 18px 24px;">
+                <h5 class="modal-title" id="detailModalLabel" style="font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-outlined" style="color: var(--sky-400);">info</span>
+                    Chi tiết lịch bảo trì <span id="detailMaintIdTitle" style="color: var(--sky-400);"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <div class="row g-3">
+                    <!-- Sân & Cơ sở -->
+                    <div class="col-md-6">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); height: 100%;">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Sân bóng & Cơ sở</p>
+                            <p style="font-size: 16px; font-weight: 700; color: #f8fafc; margin-bottom: 4px;" id="detailCourtName"></p>
+                            <p style="font-size: 13px; color: #cbd5e1; margin: 0;" id="detailComplexName"></p>
+                        </div>
+                    </div>
+                    <!-- Trạng thái & Loại -->
+                    <div class="col-md-6">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); height: 100%;">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Phân loại & Trạng thái</p>
+                            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                                <span id="detailTypeBadge" class="type-badge"></span>
+                                <span id="detailStatusBadge" class="status-badge"></span>
+                            </div>
+                            <p style="font-size: 13px; color: #cbd5e1; margin: 0;">
+                                <strong>Nhân viên:</strong> <span id="detailStaffName"></span>
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Thời gian thi công -->
+                    <div class="col-12">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Thời gian thi công</p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <span style="font-size: 12px; color: #64748b;">Thời gian bắt đầu:</span>
+                                    <p style="font-size: 14px; font-weight: 600; color: #38bdf8; margin: 2px 0 0 0;" id="detailStart"></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <span style="font-size: 12px; color: #64748b;">Thời gian kết thúc:</span>
+                                    <p style="font-size: 14px; font-weight: 600; color: #f43f5e; margin: 2px 0 0 0;" id="detailEnd"></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <span style="font-size: 12px; color: #64748b;">Ngày khởi tạo:</span>
+                                    <p style="font-size: 14px; font-weight: 500; color: #cbd5e1; margin: 2px 0 0 0;" id="detailCreated"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Nội dung / Lý do bảo trì -->
+                    <div class="col-12">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Lý do / Nội dung công việc</p>
+                            <p style="font-size: 14px; color: #e2e8f0; margin: 0; line-height: 1.5;" id="detailReason"></p>
+                        </div>
+                    </div>
+                    <!-- Kết quả hoàn thành -->
+                    <div class="col-12">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Kết quả / Ghi chú hoàn thành</p>
+                            <p style="font-size: 14px; color: #34d399; margin: 0; line-height: 1.5; font-style: italic;" id="detailResult"></p>
+                        </div>
+                    </div>
+                    <!-- Ảnh minh chứng -->
+                    <div class="col-12">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Hình ảnh minh chứng</p>
+                            <div id="detailImageContainer">
+                                <!-- Dynamic JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); padding: 14px 24px;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px; padding: 8px 20px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        // Modal Event Listener
+        // Detail Modal Event Listener
+        const detailModal = document.getElementById('detailModal');
+        if (detailModal) {
+            detailModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const maintId = button.getAttribute('data-id');
+                const courtName = button.getAttribute('data-court-name') || '';
+                const complexName = button.getAttribute('data-complex-name') || '';
+                const type = button.getAttribute('data-type') || 'Routine';
+                const start = button.getAttribute('data-start') || '';
+                const end = button.getAttribute('data-end') || '';
+                const created = button.getAttribute('data-created') || '';
+                const reason = button.getAttribute('data-reason') || '';
+                const status = button.getAttribute('data-status') || 'Pending';
+                const staffName = button.getAttribute('data-staff-name') || 'Chưa phân công';
+                const result = button.getAttribute('data-result') || 'Chưa có kết quả';
+                const image = button.getAttribute('data-image') || '';
+
+                document.getElementById('detailMaintIdTitle').textContent = `#${maintId}`;
+                document.getElementById('detailCourtName').textContent = courtName;
+                document.getElementById('detailComplexName').textContent = complexName;
+                document.getElementById('detailStaffName').textContent = staffName;
+                document.getElementById('detailStart').textContent = start;
+                document.getElementById('detailEnd').textContent = end;
+                document.getElementById('detailCreated').textContent = created;
+                document.getElementById('detailReason').textContent = reason;
+                document.getElementById('detailResult').textContent = result;
+
+                // Type Badge
+                const typeBadge = document.getElementById('detailTypeBadge');
+                typeBadge.textContent = type;
+                typeBadge.className = 'type-badge ' + (type.toLowerCase() === 'emergency' ? 'emergency' : (type.toLowerCase() === 'upgrade' ? 'upgrade' : 'routine'));
+
+                // Status Badge
+                const statusBadge = document.getElementById('detailStatusBadge');
+                statusBadge.textContent = status;
+                statusBadge.className = 'status-badge ' + (status.toLowerCase() === 'inprogress' ? 'in-progress' : (status.toLowerCase() === 'completed' ? 'done' : (status.toLowerCase() === 'cancelled' ? 'cancelled' : 'pending')));
+
+                // Image Container
+                const imgContainer = document.getElementById('detailImageContainer');
+                if (image && image.trim() !== '') {
+                    imgContainer.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+                            <a href="${image}" target="_blank" rel="noopener noreferrer">
+                                <img src="${image}" alt="Minh chứng bảo trì" style="max-width: 100%; max-height: 250px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); object-fit: cover;" />
+                            </a>
+                            <a href="${image}" target="_blank" rel="noopener noreferrer" style="color: var(--sky-400); font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span> Xem ảnh phóng to
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    imgContainer.innerHTML = `<p style="font-size: 13px; color: #64748b; font-style: italic; margin: 0;">Không có hình ảnh minh chứng.</p>`;
+                }
+            });
+        }
+
+        // Modal Complete Event Listener
         const completeModal = document.getElementById('completeModal');
         if (completeModal) {
             completeModal.addEventListener('show.bs.modal', function (event) {
