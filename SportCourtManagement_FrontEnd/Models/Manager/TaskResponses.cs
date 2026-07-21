@@ -21,7 +21,9 @@ namespace SportCourtManagement_FrontEnd.Models.Manager
         public DateTime DueDate { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
+        public string? ImageProof { get; set; }
     }
+
 
     public class PagedTaskResponse
     {

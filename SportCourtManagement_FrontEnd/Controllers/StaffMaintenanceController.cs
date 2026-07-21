@@ -181,11 +181,33 @@ namespace SportCourtManagement_FrontEnd.Controllers
             [FromForm] string endDateTime, 
             [FromForm] string reason, 
             [FromForm] string resultNote, 
+            [FromForm] string? proofImageUrl,
+            [FromForm] IFormFile? proofImageFile,
             [FromForm] int? assignedStaffId,
             [FromQuery] string? status = null, 
             [FromQuery] int page = 1)
         {
             AttachAuthToken();
+
+            string finalImageUrl = proofImageUrl?.Trim() ?? string.Empty;
+
+            if (proofImageFile != null && proofImageFile.Length > 0)
+            {
+                var uploadedUrl = await UploadImageToCloudinaryAsync(proofImageFile);
+                if (!string.IsNullOrEmpty(uploadedUrl))
+                {
+                    finalImageUrl = uploadedUrl;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(resultNote))
+            {
+                TempData["ErrorMessage"] = "Vui lòng nhập mô tả kết quả hoàn thành bảo trì.";
+                return RedirectToAction(nameof(Index), new { status, page });
+            }
+
+
+
             int complexId = HttpContext.Session.GetInt32("selected_complex_id") ?? 1;
 
             DateTime start = DateTime.TryParse(startDateTime, out var sParsed) ? sParsed : DateTime.Now;
@@ -198,10 +220,15 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 startDateTime = start,
                 endDateTime = end,
                 reason = reason,
-                result = string.IsNullOrWhiteSpace(resultNote) ? "Báo cáo hoàn thành công việc bảo trì từ nhân viên." : resultNote,
+                result = resultNote.Trim(),
+                imageProof = string.IsNullOrWhiteSpace(finalImageUrl) ? null : finalImageUrl,
                 assignedStaffId = assignedStaffId,
+
                 status = "Completed"
             };
+
+
+
 
             var json = JsonSerializer.Serialize(updateReq, _jsonOpts);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -283,5 +310,37 @@ namespace SportCourtManagement_FrontEnd.Controllers
             }
             catch { }
         }
+
+        private async Task<string?> UploadImageToCloudinaryAsync(IFormFile file)
+        {
+            try
+            {
+                using var content = new MultipartFormDataContent();
+                using var stream = file.OpenReadStream();
+                using var streamContent = new StreamContent(stream);
+                streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType ?? "image/jpeg");
+                content.Add(streamContent, "file", file.FileName);
+
+                AttachAuthToken();
+                var response = await _client.PostAsync($"{_baseUrl.TrimEnd('/')}/api/complexes/upload-image", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonStr = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(jsonStr);
+                    if (doc.RootElement.TryGetProperty("data", out var dataProp) && dataProp.TryGetProperty("url", out var urlProp))
+                    {
+                        return urlProp.GetString();
+                    }
+                    if (doc.RootElement.TryGetProperty("url", out var directUrlProp))
+                    {
+                        return directUrlProp.GetString();
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
     }
 }
+
+

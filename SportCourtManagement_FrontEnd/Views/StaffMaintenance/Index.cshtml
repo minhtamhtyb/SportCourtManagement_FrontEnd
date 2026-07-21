@@ -8,6 +8,58 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/Manager/maintenance.css" asp-append-version="true" />
+    <style>
+        .btn-action-start {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.28);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+        }
+        .btn-action-start:hover {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+            box-shadow: 0 6px 18px rgba(56, 189, 248, 0.45);
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+        .btn-action-start:active {
+            transform: translateY(0);
+        }
+
+        .btn-action-complete {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(52, 211, 153, 0.28);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-action-complete:hover {
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            box-shadow: 0 6px 18px rgba(52, 211, 153, 0.45);
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+        .btn-action-complete:active {
+            transform: translateY(0);
+        }
+    </style>
 }
 
 <div class="maintenance-container">
@@ -169,7 +221,16 @@
                             <td><span class="status-badge @statusBadgeClass">@item.Status</span></td>
                             <td class="reason-cell" style="font-style: italic; color: #a7f3d0;">
                                 @(string.IsNullOrWhiteSpace(item.Result) || item.Result == "–" ? "Chưa có kết quả" : item.Result)
+                                @if (!string.IsNullOrWhiteSpace(item.ImageProof))
+                                {
+                                    <div class="mt-1">
+                                        <a href="@item.ImageProof" target="_blank" rel="noopener noreferrer" style="color: var(--sky-400); font-size: 12px; font-style: normal; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                            <span class="material-symbols-outlined" style="font-size: 14px;">image</span> Xem ảnh minh chứng
+                                        </a>
+                                    </div>
+                                }
                             </td>
+
                             <td>
                                 <div class="actions-cell">
                                     @if (isPending)
@@ -182,7 +243,7 @@
                                             <input type="hidden" name="endDateTime" value="@item.EndDateTime.ToString("yyyy-MM-ddTHH:mm")" />
                                             <input type="hidden" name="reason" value="@item.Reason" />
                                             <input type="hidden" name="assignedStaffId" value="@item.AssignedStaffId" />
-                                            <button type="submit" class="btn-primary-custom" style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, var(--sky-400), #0284c7);">
+                                            <button type="submit" class="btn-action-start">
                                                 <span class="material-symbols-outlined" style="font-size: 16px;">play_arrow</span>
                                                 Bắt đầu bảo trì
                                             </button>
@@ -191,8 +252,7 @@
                                     else if (isInProgress)
                                     {
                                         <button type="button" 
-                                                class="btn-primary-custom"
-                                                style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, var(--emerald-400), var(--emerald-500));"
+                                                class="btn-action-complete"
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#completeModal"
                                                 data-id="@item.MaintenanceId"
@@ -279,7 +339,7 @@
 <div class="modal fade" id="completeModal" tabindex="-1" aria-labelledby="completeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 16px;">
-            <form asp-controller="StaffMaintenance" asp-action="CompleteMaintenance" method="post" id="completeForm">
+            <form asp-controller="StaffMaintenance" asp-action="CompleteMaintenance" method="post" enctype="multipart/form-data" id="completeForm">
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="modalMaintId" name="id" />
                 <input type="hidden" id="modalCourtId" name="courtId" />
@@ -300,10 +360,18 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: #cbd5e1;">Nội dung kết quả / Ghi chú sau bảo trì:</label>
-                        <textarea class="form-control" name="resultNote" rows="4" maxlength="500" placeholder="Mô tả chi tiết các hạng mục đã hoàn thành (ví dụ: Đã sửa xong hệ thống đèn chiếu sáng, vệ sinh mặt sân và căng lại lưới...)" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 10px;" required></textarea>
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: #cbd5e1;">Nội dung kết quả / Ghi chú hoàn thành *:</label>
+                        <textarea class="form-control" name="resultNote" rows="3" maxlength="500" placeholder="Mô tả chi tiết các hạng mục đã hoàn thành (ví dụ: Đã sửa xong hệ thống đèn chiếu sáng, vệ sinh mặt sân và căng lại lưới...)" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 10px;" required></textarea>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: #cbd5e1;">Tải ảnh minh chứng từ thiết bị (Không bắt buộc):</label>
+                        <input type="file" class="form-control" name="proofImageFile" accept="image/*" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 10px;" />
+                    </div>
+
+
                 </div>
+
+
                 <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">Hủy</button>
                     <button type="submit" class="btn btn-success" style="border-radius: 10px; background: var(--emerald-500); border: none;">
