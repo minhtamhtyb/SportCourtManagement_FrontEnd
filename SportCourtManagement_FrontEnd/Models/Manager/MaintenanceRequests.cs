@@ -32,6 +32,7 @@ namespace SportCourtManagement_FrontEnd.Models.Manager
         [Required(ErrorMessage = "Thời gian kết thúc không được để trống.")]
         public DateTime? EndDateTime { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn nhân viên phụ trách.")]
         public int? AssignedStaffId { get; set; }
 
         [Required(ErrorMessage = "Lý do bảo trì không được để trống.")]
@@ -55,6 +56,7 @@ namespace SportCourtManagement_FrontEnd.Models.Manager
         [Required(ErrorMessage = "Thời gian kết thúc không được để trống.")]
         public DateTime? EndDateTime { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn nhân viên phụ trách.")]
         public int? AssignedStaffId { get; set; }
 
         [Required(ErrorMessage = "Lý do bảo trì không được để trống.")]

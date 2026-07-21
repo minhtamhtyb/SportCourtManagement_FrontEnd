@@ -39,20 +39,27 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
         // ── GET: /staff/maintenance ───────────────────
         [HttpGet]
-        public async Task<IActionResult> Index([FromQuery] string? status = null, [FromQuery] int page = 1)
+        public async Task<IActionResult> Index([FromQuery] int? complexId = null, [FromQuery] string? status = null, [FromQuery] int page = 1)
         {
             await LoadLayoutDataAsync();
             AttachAuthToken();
 
+            if (complexId.HasValue && complexId.Value > 0)
+            {
+                HttpContext.Session.SetInt32("selected_complex_id", complexId.Value);
+            }
+            else if (int.TryParse(Request.Query["complexId"], out int qId) && qId > 0)
+            {
+                HttpContext.Session.SetInt32("selected_complex_id", qId);
+            }
+
+            int selectedComplexId = HttpContext.Session.GetInt32("selected_complex_id") ?? 1;
+
             page = page < 1 ? 1 : page;
-            int pageSize = 10;
+            int pageSize = 100;
             var model = new StaffMaintenanceViewModel();
 
-            string url = $"{GetApiBase()}/maintenance?page={page}&pageSize={pageSize}";
-            if (!string.IsNullOrEmpty(status))
-            {
-                url += $"&status={status}";
-            }
+            string url = $"{_baseUrl.TrimEnd('/')}/api/manager/complexes/{selectedComplexId}/maintenance?page=1&pageSize={pageSize}";
 
             var response = await _client.GetAsync(url);
             if (response.IsSuccessStatusCode)
@@ -65,15 +72,55 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 }
             }
 
+            // Calculate Summary Counts
             model.PendingCount = model.Schedules.Items.Count(s => s.Status == "Pending" || s.Status == "Scheduled");
             model.InProgressCount = model.Schedules.Items.Count(s => s.Status == "InProgress");
             model.CompletedCount = model.Schedules.Items.Count(s => s.Status == "Completed");
             model.CancelledCount = model.Schedules.Items.Count(s => s.Status == "Cancelled");
 
+            // Filter status if requested
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status.Equals("Scheduled", StringComparison.OrdinalIgnoreCase) || status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+                {
+                    model.Schedules.Items = model.Schedules.Items
+                        .Where(s => s.Status.Equals("Scheduled", StringComparison.OrdinalIgnoreCase) || s.Status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
+                else
+                {
+                    model.Schedules.Items = model.Schedules.Items
+                        .Where(s => s.Status.Equals(status, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
+            }
+
+            // Paginate strictly 10 items per page
+            pageSize = 10;
+            int totalItems = model.Schedules.Items.Count;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            totalPages = totalPages > 0 ? totalPages : 1;
+            page = page > totalPages ? totalPages : (page < 1 ? 1 : page);
+
+            var pagedItems = model.Schedules.Items
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            model.Schedules.Items = pagedItems;
+            model.Schedules.Page = page;
+            model.Schedules.PageSize = pageSize;
+            model.Schedules.TotalCount = totalItems;
+            model.Schedules.TotalPages = totalPages;
+
             ViewBag.SelectedStatus = status;
             ViewBag.CurrentPage = page;
+            ViewBag.SelectedComplexId = selectedComplexId;
             return View(model);
         }
+
+
 
         // ── POST: /staff/maintenance/{id}/start ───────────────────
         [HttpPost("{id:int}/start")]

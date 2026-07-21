@@ -53,10 +53,11 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
         // ── GET: /manager/maintenance ───────────────────
         [HttpGet]
-        public async Task<IActionResult> Maintenance()
+        public async Task<IActionResult> Maintenance([FromQuery] string? status = null, [FromQuery] int page = 1)
         {
             await LoadLayoutDataAsync();
             var model = new MaintenanceViewModel();
+            page = page < 1 ? 1 : page;
 
             var scheduleResponse = await _client.GetAsync(_apiBase + "/maintenance?pageSize=100");
             if (scheduleResponse.IsSuccessStatusCode)
@@ -73,6 +74,43 @@ namespace SportCourtManagement_FrontEnd.Controllers
             model.InProgressCount = model.Schedules.Items.Count(s => s.Status == "InProgress");
             model.CompletedCount = model.Schedules.Items.Count(s => s.Status == "Completed");
             model.CancelledCount = model.Schedules.Items.Count(s => s.Status == "Cancelled");
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status.Equals("Scheduled", StringComparison.OrdinalIgnoreCase) || status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+                {
+                    model.Schedules.Items = model.Schedules.Items
+                        .Where(s => s.Status.Equals("Scheduled", StringComparison.OrdinalIgnoreCase) || s.Status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
+                else
+                {
+                    model.Schedules.Items = model.Schedules.Items
+                        .Where(s => s.Status.Equals(status, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
+            }
+
+            // Paginate strictly 10 items per page
+            int pageSize = 10;
+            int totalItems = model.Schedules.Items.Count;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            totalPages = totalPages > 0 ? totalPages : 1;
+            page = page > totalPages ? totalPages : (page < 1 ? 1 : page);
+
+            var pagedItems = model.Schedules.Items
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            model.Schedules.Items = pagedItems;
+            model.Schedules.Page = page;
+            model.Schedules.PageSize = pageSize;
+            model.Schedules.TotalCount = totalItems;
+            model.Schedules.TotalPages = totalPages;
+
+            ViewBag.SelectedStatus = status;
+            ViewBag.CurrentPage = page;
 
             var staffResponse = await _client.GetAsync(_apiBase + "/staff?pageSize=100");
             if (staffResponse.IsSuccessStatusCode)
@@ -99,12 +137,19 @@ namespace SportCourtManagement_FrontEnd.Controllers
             return View(model);
         }
 
+
         // ── POST: /manager/maintenance/create ─────────────────────────────────────────
         [HttpPost("create")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateMaintenance(CreateMaintenanceRequest model)
         {
             AttachAuthToken();
+            if (!model.AssignedStaffId.HasValue || model.AssignedStaffId.Value <= 0)
+            {
+                TempData["ErrorMessage"] = "Vui lòng chọn nhân viên phụ trách.";
+                return RedirectToAction(nameof(Maintenance));
+            }
+
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
@@ -155,6 +200,12 @@ namespace SportCourtManagement_FrontEnd.Controllers
         public async Task<IActionResult> UpdateMaintenance([FromForm] int MaintenanceId, UpdateMaintenanceRequest model)
         {
             AttachAuthToken();
+            if (!model.AssignedStaffId.HasValue || model.AssignedStaffId.Value <= 0)
+            {
+                TempData["ErrorMessage"] = "Vui lòng chọn nhân viên phụ trách.";
+                return RedirectToAction(nameof(Maintenance));
+            }
+
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
@@ -168,6 +219,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
             }
 
             var json = JsonSerializer.Serialize(model, _jsonOpts);
+
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _client.PutAsync(_apiBase + $"/maintenance/{MaintenanceId}", content);
 

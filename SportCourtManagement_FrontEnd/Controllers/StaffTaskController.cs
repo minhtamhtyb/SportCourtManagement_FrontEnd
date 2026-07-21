@@ -59,10 +59,30 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 model.Items = model.Items.Where(t => t.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
+            // Paginate strictly 10 items per page
+            pageSize = 10;
+            int totalItems = model.Items.Count;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            totalPages = totalPages > 0 ? totalPages : 1;
+            page = page > totalPages ? totalPages : (page < 1 ? 1 : page);
+
+            var pagedItems = model.Items
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            model.Items = pagedItems;
+            model.Page = page;
+            model.PageSize = pageSize;
+            model.TotalCount = totalItems;
+            model.TotalPages = totalPages;
+
             ViewBag.SelectedStatus = status;
             ViewBag.CurrentPage = page;
             return View(model);
         }
+
 
         // POST: /staff/tasks/{taskId}/start
         [HttpPost("{taskId:int}/start")]

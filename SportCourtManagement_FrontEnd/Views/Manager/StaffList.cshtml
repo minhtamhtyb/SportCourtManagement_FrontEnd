@@ -139,8 +139,7 @@
     <!-- Pagination -->
     <div class="pagination-panel">
         <p class="pagination-info">
-            Hiển thị @(Model.TotalCount == 0 ? 0 : (Model.Page - 1) * Model.PageSize + 1) - 
-            @Math.Min(Model.Page * Model.PageSize, Model.TotalCount) của @Model.TotalCount nhân viên
+            Hiển thị trang @Model.Page / @Model.TotalPages (Tổng số @Model.TotalCount nhân viên - 10 nhân viên / trang)
         </p>
         <div class="pagination-buttons">
             @if (Model.Page > 1)

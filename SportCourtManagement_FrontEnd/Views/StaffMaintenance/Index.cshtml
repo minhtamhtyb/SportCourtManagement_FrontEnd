@@ -1,225 +1,284 @@
 @model SportCourtManagement_FrontEnd.Models.Manager.StaffMaintenanceViewModel
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Nhiệm vụ bảo trì sân | ProCourt";
+    ViewData["Title"] = "Bảo trì được giao | ProCourt";
     string? selectedStatus = ViewBag.SelectedStatus as string;
     int currentPage = ViewBag.CurrentPage ?? 1;
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/staff-maintenance.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Manager/maintenance.css" asp-append-version="true" />
 }
 
-<div class="staff-maintenance-wrapper">
-    <!-- Header -->
-    <div class="staff-maint-header">
-        <div>
-            <h2>🛠️ Công việc Bảo trì sân của tôi</h2>
-            <p>Theo dõi, thực hiện và gửi báo cáo kết quả bảo trì sân bóng được phân công.</p>
+<div class="maintenance-container">
+
+    <!-- Module Header -->
+    <div class="module-header">
+        <div class="module-title">
+            <h3>🛠️ Nhiệm vụ Bảo trì được giao</h3>
+            <p>Theo dõi, tiếp nhận thi công và báo cáo kết quả bảo trì sân theo phân công vận hành tại cơ sở.</p>
         </div>
     </div>
 
     <!-- Summary Stats -->
-    <div class="stats-grid">
-        <div class="stat-card-custom">
-            <div class="stat-icon-wrapper amber">
+    <div class="summary-stats">
+        <div class="stat-card glass-panel">
+            <div class="stat-icon orange">
                 <span class="material-symbols-outlined">pending_actions</span>
             </div>
-            <div class="stat-info">
-                <div class="stat-value">@Model.PendingCount</div>
-                <div class="stat-label">Chờ bắt đầu</div>
+            <div class="stat-body">
+                <p class="stat-label">Pending</p>
+                <span class="stat-value orange">@Model.PendingCount</span>
+                <p class="stat-sub">Chờ bắt đầu</p>
             </div>
         </div>
-
-        <div class="stat-card-custom">
-            <div class="stat-icon-wrapper sky">
-                <span class="material-symbols-outlined">engineering</span>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon sky">
+                <span class="material-symbols-outlined">construction</span>
             </div>
-            <div class="stat-info">
-                <div class="stat-value">@Model.InProgressCount</div>
-                <div class="stat-label">Đang thi công</div>
-            </div>
-        </div>
-
-        <div class="stat-card-custom">
-            <div class="stat-icon-wrapper emerald">
-                <span class="material-symbols-outlined">task_alt</span>
-            </div>
-            <div class="stat-info">
-                <div class="stat-value">@Model.CompletedCount</div>
-                <div class="stat-label">Chờ nghiệm thu</div>
+            <div class="stat-body">
+                <p class="stat-label">In Progress</p>
+                <span class="stat-value sky">@Model.InProgressCount</span>
+                <p class="stat-sub">Đang thi công</p>
             </div>
         </div>
-
-        <div class="stat-card-custom">
-            <div class="stat-icon-wrapper rose">
-                <span class="material-symbols-outlined">block</span>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon emerald">
+                <span class="material-symbols-outlined">check_circle</span>
             </div>
-            <div class="stat-info">
-                <div class="stat-value">@Model.CancelledCount</div>
-                <div class="stat-label">Đã hủy / Từ chối</div>
+            <div class="stat-body">
+                <p class="stat-label">Completed</p>
+                <span class="stat-value emerald">@Model.CompletedCount</span>
+                <p class="stat-sub">Chờ nghiệm thu</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon rose">
+                <span class="material-symbols-outlined">cancel</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Cancelled</p>
+                <span class="stat-value rose">@Model.CancelledCount</span>
+                <p class="stat-sub">Đã hủy / Từ chối</p>
             </div>
         </div>
     </div>
 
-    <!-- Filter Tabs -->
-    <div class="filters-tabs">
-        <a class="filter-tab-btn @(string.IsNullOrEmpty(selectedStatus) ? "active" : "")" href="/staff/maintenance">
-            <span class="material-symbols-outlined" style="font-size: 18px;">apps</span>
-            Tất cả
-        </a>
-        <a class="filter-tab-btn @(selectedStatus == "Scheduled" || selectedStatus == "Pending" ? "active" : "")" href="/staff/maintenance?status=Scheduled">
-            <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
-            Chờ bắt đầu (Scheduled)
-        </a>
-        <a class="filter-tab-btn @(selectedStatus == "InProgress" ? "active" : "")" href="/staff/maintenance?status=InProgress">
-            <span class="material-symbols-outlined" style="font-size: 18px;">construction</span>
-            Đang làm (InProgress)
-        </a>
-        <a class="filter-tab-btn @(selectedStatus == "Completed" ? "active" : "")" href="/staff/maintenance?status=Completed">
-            <span class="material-symbols-outlined" style="font-size: 18px;">how_to_reg</span>
-            Chờ nghiệm thu (Completed)
-        </a>
+    <!-- Toolbar Filters -->
+    <div class="toolbar-container">
+        <div class="toolbar-filters">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" id="searchInput" placeholder="Tìm theo tên sân, lý do bảo trì..." />
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">filter_list</span>
+                <select id="statusFilter">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Scheduled" selected="@(selectedStatus == "Scheduled" || selectedStatus == "Pending")">Scheduled (Chờ bắt đầu)</option>
+                    <option value="InProgress" selected="@(selectedStatus == "InProgress")">In Progress (Đang làm)</option>
+                    <option value="Completed" selected="@(selectedStatus == "Completed")">Completed (Chờ duyệt)</option>
+                    <option value="Cancelled" selected="@(selectedStatus == "Cancelled")">Cancelled (Bị hủy)</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">build</span>
+                <select id="typeFilter">
+                    <option value="">Tất cả loại bảo trì</option>
+                    <option value="Routine">Routine (Định kỳ)</option>
+                    <option value="Emergency">Emergency (Khẩn cấp)</option>
+                    <option value="Upgrade">Upgrade (Nâng cấp)</option>
+                </select>
+            </div>
+        </div>
     </div>
 
-    <!-- Maintenance Cards List -->
-    @if (Model.Schedules?.Items == null || !Model.Schedules.Items.Any())
-    {
-        <div class="empty-state-card">
-            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-muted); margin-bottom: 12px;">handyman</span>
-            <h4>Không có lịch bảo trì nào</h4>
-            <p>Bạn không có công việc bảo trì nào thuộc danh mục này hoặc chưa được giao việc.</p>
-        </div>
-    }
-    else
-    {
-        <div class="maint-cards-grid">
-            @foreach (var item in Model.Schedules.Items)
-            {
-                var isPending = item.Status == "Scheduled" || item.Status == "Pending";
-                var isInProgress = item.Status == "InProgress";
-                var isCompleted = item.Status == "Completed";
-                var isCancelled = item.Status == "Cancelled";
-
-                var typeClass = item.MaintenanceType.ToLower() switch
+    <!-- Maintenance Table Panel -->
+    <div class="table-panel glass-panel">
+        <table class="maintenance-table">
+            <thead>
+                <tr>
+                    <th>Sân bóng</th>
+                    <th>Loại bảo trì</th>
+                    <th>Lý do / Nội dung công việc</th>
+                    <th>Thời gian thi công</th>
+                    <th>Trạng thái</th>
+                    <th>Kết quả / Ghi chú</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Schedules?.Items == null || !Model.Schedules.Items.Any())
                 {
-                    "emergency" => "type-emergency",
-                    "upgrade" => "type-upgrade",
-                    _ => "type-routine"
-                };
-
-                var statusClass = item.Status.ToLower() switch
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--on-surface-variant); font-style: italic;">
+                            Không có lịch bảo trì nào được phân công.
+                        </td>
+                    </tr>
+                }
+                else
                 {
-                    "inprogress" => "status-inprogress",
-                    "completed" => "status-completed",
-                    "cancelled" => "status-cancelled",
-                    _ => "status-scheduled"
-                };
-
-                <div class="maint-card">
-                    <!-- Header -->
-                    <div class="maint-card-header">
-                        <div class="court-title-group">
-                            <div class="court-badge-icon">
-                                <span class="material-symbols-outlined">sports_tennis</span>
-                            </div>
-                            <div>
-                                <h3>@item.CourtName</h3>
-                                <span>@item.ComplexName</span>
-                            </div>
-                        </div>
-                        <div class="badges-stack">
-                            <span class="badge-custom @typeClass">@item.MaintenanceType</span>
-                            <span class="badge-custom @statusClass">@item.Status</span>
-                        </div>
-                    </div>
-
-                    <!-- Details -->
-                    <div class="maint-details">
-                        <div class="detail-row">
-                            <span class="material-symbols-outlined">schedule</span>
-                            <div>Bắt đầu: <strong>@item.StartDateTime.ToString("dd/MM/yyyy HH:mm")</strong></div>
-                        </div>
-                        <div class="detail-row">
-                            <span class="material-symbols-outlined">event_available</span>
-                            <div>Dự kiến xong: <strong>@item.EndDateTime.ToString("dd/MM/yyyy HH:mm")</strong></div>
-                        </div>
-                    </div>
-
-                    <!-- Reason -->
-                    <div class="maint-reason">
-                        <strong>Lý do / Nội dung công việc:</strong>
-                        <p style="margin: 4px 0 0 0; color: #cbd5e1;">@item.Reason</p>
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(item.Result) && item.Result != "–")
+                    @foreach (var item in Model.Schedules.Items)
                     {
-                        <div class="maint-result-box">
-                            <strong>Ghi chú / Kết quả:</strong> @item.Result
-                        </div>
-                    }
+                        var isPending = item.Status == "Scheduled" || item.Status == "Pending";
+                        var isInProgress = item.Status == "InProgress";
+                        var isCompleted = item.Status == "Completed";
+                        var isCancelled = item.Status == "Cancelled";
 
-                    <!-- Action Footer -->
-                    <div class="maint-card-footer">
-                        @if (isPending)
+                        var typeBadgeClass = item.MaintenanceType.ToLower() switch
                         {
-                            <form asp-controller="StaffMaintenance" asp-action="StartMaintenance" asp-route-id="@item.MaintenanceId" asp-route-status="@selectedStatus" asp-route-page="@currentPage" method="post" style="margin: 0;">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="courtId" value="@item.CourtId" />
-                                <input type="hidden" name="maintenanceType" value="@item.MaintenanceType" />
-                                <input type="hidden" name="startDateTime" value="@item.StartDateTime.ToString("yyyy-MM-ddTHH:mm")" />
-                                <input type="hidden" name="endDateTime" value="@item.EndDateTime.ToString("yyyy-MM-ddTHH:mm")" />
-                                <input type="hidden" name="reason" value="@item.Reason" />
-                                <input type="hidden" name="assignedStaffId" value="@item.AssignedStaffId" />
-                                <button type="submit" class="btn-maint-action btn-maint-start">
-                                    <span class="material-symbols-outlined">play_arrow</span>
-                                    Bắt đầu bảo trì
-                                </button>
-                            </form>
-                        }
-                        else if (isInProgress)
+                            "emergency" => "emergency",
+                            "upgrade" => "upgrade",
+                            _ => "routine"
+                        };
+
+                        var statusBadgeClass = item.Status.ToLower() switch
                         {
-                            <button type="button" 
-                                    class="btn-maint-action btn-maint-complete"
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#completeModal"
-                                    data-id="@item.MaintenanceId"
-                                    data-court-id="@item.CourtId"
-                                    data-type="@item.MaintenanceType"
-                                    data-start="@item.StartDateTime.ToString("yyyy-MM-ddTHH:mm")"
-                                    data-end="@item.EndDateTime.ToString("yyyy-MM-ddTHH:mm")"
-                                    data-reason="@item.Reason"
-                                    data-court-name="@item.CourtName"
-                                    data-staff-id="@item.AssignedStaffId">
-                                <span class="material-symbols-outlined">check_circle</span>
-                                Báo cáo hoàn thành
-                            </button>
-                        }
-                        else if (isCompleted)
-                        {
-                            <span style="font-size: 13px; color: var(--emerald-400); display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
-                                <span class="material-symbols-outlined">hourglass_top</span>
-                                Đã báo cáo – Chờ Manager nghiệm thu
-                            </span>
-                        }
-                        else if (isCancelled)
-                        {
-                            <span style="font-size: 13px; color: var(--rose-400); display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
-                                <span class="material-symbols-outlined">cancel</span>
-                                Đã bị hủy / Bị từ chối
-                            </span>
-                        }
-                    </div>
-                </div>
-            }
+                            "inprogress" => "in-progress",
+                            "completed" => "done",
+                            "cancelled" => "cancelled",
+                            _ => "pending"
+                        };
+
+                        <tr data-id="@item.MaintenanceId"
+                            data-court-id="@item.CourtId"
+                            data-court-name="@item.CourtName"
+                            data-type="@item.MaintenanceType"
+                            data-reason="@item.Reason"
+                            data-start="@item.StartDateTime.ToString("yyyy-MM-ddTHH:mm")"
+                            data-end="@item.EndDateTime.ToString("yyyy-MM-ddTHH:mm")"
+                            data-status="@item.Status"
+                            data-staff-id="@item.AssignedStaffId">
+                            <td>
+                                <div class="court-cell">
+                                    <div class="court-icon">
+                                        <span class="material-symbols-outlined">sports_tennis</span>
+                                    </div>
+                                    <div>
+                                        <p class="court-name">@item.CourtName</p>
+                                        <p class="court-location">@item.ComplexName</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="type-badge @typeBadgeClass">@item.MaintenanceType</span></td>
+                            <td class="reason-cell">@item.Reason</td>
+                            <td>
+                                <p class="time-start">Từ: @item.StartDateTime.ToString("dd/MM/yyyy HH:mm")</p>
+                                <p class="time-end">Đến: @item.EndDateTime.ToString("dd/MM/yyyy HH:mm")</p>
+                            </td>
+                            <td><span class="status-badge @statusBadgeClass">@item.Status</span></td>
+                            <td class="reason-cell" style="font-style: italic; color: #a7f3d0;">
+                                @(string.IsNullOrWhiteSpace(item.Result) || item.Result == "–" ? "Chưa có kết quả" : item.Result)
+                            </td>
+                            <td>
+                                <div class="actions-cell">
+                                    @if (isPending)
+                                    {
+                                        <form asp-controller="StaffMaintenance" asp-action="StartMaintenance" asp-route-id="@item.MaintenanceId" asp-route-status="@selectedStatus" asp-route-page="@currentPage" method="post" style="margin: 0;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="courtId" value="@item.CourtId" />
+                                            <input type="hidden" name="maintenanceType" value="@item.MaintenanceType" />
+                                            <input type="hidden" name="startDateTime" value="@item.StartDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+                                            <input type="hidden" name="endDateTime" value="@item.EndDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+                                            <input type="hidden" name="reason" value="@item.Reason" />
+                                            <input type="hidden" name="assignedStaffId" value="@item.AssignedStaffId" />
+                                            <button type="submit" class="btn-primary-custom" style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, var(--sky-400), #0284c7);">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">play_arrow</span>
+                                                Bắt đầu bảo trì
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (isInProgress)
+                                    {
+                                        <button type="button" 
+                                                class="btn-primary-custom"
+                                                style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, var(--emerald-400), var(--emerald-500));"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#completeModal"
+                                                data-id="@item.MaintenanceId"
+                                                data-court-id="@item.CourtId"
+                                                data-type="@item.MaintenanceType"
+                                                data-start="@item.StartDateTime.ToString("yyyy-MM-ddTHH:mm")"
+                                                data-end="@item.EndDateTime.ToString("yyyy-MM-ddTHH:mm")"
+                                                data-reason="@item.Reason"
+                                                data-court-name="@item.CourtName"
+                                                data-staff-id="@item.AssignedStaffId">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">check_circle</span>
+                                            Báo cáo hoàn thành
+                                        </button>
+                                    }
+                                    else if (isCompleted)
+                                    {
+                                        <span style="font-size: 12px; color: var(--emerald-400); display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">hourglass_top</span>
+                                            Chờ nghiệm thu
+                                        </span>
+                                    }
+                                    else if (isCancelled)
+                                    {
+                                        <span style="font-size: 12px; color: var(--rose-400); display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">cancel</span>
+                                            Đã bị hủy
+                                        </span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Panel -->
+    @if (Model.Schedules?.TotalPages > 0)
+    {
+        <div class="pagination-panel">
+            <p class="pagination-info">
+                Hiển thị trang @Model.Schedules.Page / @Model.Schedules.TotalPages (Tổng số @Model.Schedules.TotalCount bản ghi - 10 bản ghi / trang)
+            </p>
+            <div class="pagination-buttons">
+                @if (Model.Schedules.Page > 1)
+                {
+                    <a class="pagination-btn" href="/staff/maintenance?status=@selectedStatus&page=@(Model.Schedules.Page - 1)">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </a>
+                }
+                else
+                {
+                    <button class="pagination-btn" disabled>
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                }
+
+                @for (int i = 1; i <= Model.Schedules.TotalPages; i++)
+                {
+                    <a class="pagination-btn @(i == Model.Schedules.Page ? "active" : "")" href="/staff/maintenance?status=@selectedStatus&page=@i">@i</a>
+                }
+
+                @if (Model.Schedules.Page < Model.Schedules.TotalPages)
+                {
+                    <a class="pagination-btn" href="/staff/maintenance?status=@selectedStatus&page=@(Model.Schedules.Page + 1)">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </a>
+                }
+                else
+                {
+                    <button class="pagination-btn" disabled>
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                }
+            </div>
         </div>
     }
+
+
 </div>
 
 <!-- Modal Báo Cáo Hoàn Thành -->
-<div class="modal fade maint-modal" id="completeModal" tabindex="-1" aria-labelledby="completeModalLabel" aria-hidden="true">
+<div class="modal fade" id="completeModal" tabindex="-1" aria-labelledby="completeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 16px;">
             <form asp-controller="StaffMaintenance" asp-action="CompleteMaintenance" method="post" id="completeForm">
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="modalMaintId" name="id" />
@@ -232,7 +291,7 @@
                 <input type="hidden" name="status" value="@selectedStatus" />
                 <input type="hidden" name="page" value="@currentPage" />
 
-                <div class="modal-header">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
                     <h5 class="modal-title" id="completeModalLabel">
                         <span class="material-symbols-outlined" style="vertical-align: middle; color: var(--emerald-400);">task_alt</span>
                         Báo cáo hoàn thành bảo trì - <span id="modalCourtNameTitle"></span>
@@ -242,10 +301,10 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label" style="font-size: 14px; font-weight: 600; color: #cbd5e1;">Nội dung kết quả / Ghi chú sau bảo trì:</label>
-                        <textarea class="form-control" name="resultNote" rows="4" maxlength="500" placeholder="Mô tả chi tiết các hạng mục đã hoàn thành (ví dụ: Đã sửa xong hệ thống đèn chiếu sáng, vệ sinh mặt sân và căng lại lưới...)" required></textarea>
+                        <textarea class="form-control" name="resultNote" rows="4" maxlength="500" placeholder="Mô tả chi tiết các hạng mục đã hoàn thành (ví dụ: Đã sửa xong hệ thống đèn chiếu sáng, vệ sinh mặt sân và căng lại lưới...)" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 10px;" required></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">Hủy</button>
                     <button type="submit" class="btn btn-success" style="border-radius: 10px; background: var(--emerald-500); border: none;">
                         <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">send</span>
@@ -259,7 +318,7 @@
 
 @section Scripts {
     <script>
-        // Populate modal fields
+        // Modal Event Listener
         const completeModal = document.getElementById('completeModal');
         if (completeModal) {
             completeModal.addEventListener('show.bs.modal', function (event) {
@@ -285,7 +344,6 @@
             });
         }
 
-
         // Toast Helper
         function showToast(message, type = 'success') {
             document.querySelectorAll('.toast-notification').forEach(t => t.remove());
@@ -305,5 +363,68 @@
         {
             <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
         }
+
+        // Live Client-side Search & Filter Logic
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const typeFilter = document.getElementById('typeFilter');
+        const tableRows = document.querySelectorAll('.maintenance-table tbody tr');
+
+        function filterTable() {
+            const query = searchInput.value.toLowerCase().trim();
+            const status = statusFilter.value;
+            const type = typeFilter.value;
+
+            tableRows.forEach(row => {
+                if (row.cells.length === 1 && row.cells[0].colSpan > 1) return; // Skip empty row
+
+                const courtName = row.dataset.courtName ? row.dataset.courtName.toLowerCase() : '';
+                const reason = row.dataset.reason ? row.dataset.reason.toLowerCase() : '';
+                const rowStatus = row.dataset.status || '';
+                const rowType = row.dataset.type || '';
+
+                const matchesSearch = courtName.includes(query) || reason.includes(query);
+                
+                let matchesStatus = true;
+                if (status) {
+                    if (status.toLowerCase() === 'scheduled' || status.toLowerCase() === 'pending') {
+                        matchesStatus = rowStatus.toLowerCase() === 'scheduled' || rowStatus.toLowerCase() === 'pending';
+                    } else {
+                        matchesStatus = rowStatus.toLowerCase() === status.toLowerCase();
+                    }
+                }
+
+                const matchesType = !type || rowType.toLowerCase() === type.toLowerCase();
+
+                if (matchesSearch && matchesStatus && matchesType) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            updatePaginationInfo();
+        }
+
+        searchInput.addEventListener('input', filterTable);
+        statusFilter.addEventListener('change', filterTable);
+        typeFilter.addEventListener('change', filterTable);
+
+        function updatePaginationInfo() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            const visibleRows = document.querySelectorAll('.maintenance-table tbody tr:not([style*="display: none"])');
+            const totalRows = document.querySelectorAll('.maintenance-table tbody tr');
+            
+            const isNoData = totalRows.length === 1 && totalRows[0].cells[0].colSpan > 1;
+            const activeCount = isNoData ? 0 : visibleRows.length;
+            const totalCount = isNoData ? 0 : totalRows.length;
+
+            const pageInfo = document.querySelector('.pagination-info');
+            if (pageInfo) {
+                pageInfo.textContent = `Lọc kết quả: ${activeCount} / ${totalCount} bản ghi`;
+            }
+        }
+
     </script>
 }

@@ -209,18 +209,47 @@
     </div>
 
     <!-- Pagination -->
-    <div class="pagination-panel">
-        <p class="pagination-info"></p>
-        <div class="pagination-buttons">
-            <button class="pagination-btn" disabled>
-                <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button class="pagination-btn active">1</button>
-            <button class="pagination-btn" disabled>
-                <span class="material-symbols-outlined">chevron_right</span>
-            </button>
+    @if (Model.Schedules?.TotalPages > 0)
+    {
+        var selectedStatus = ViewBag.SelectedStatus as string;
+        <div class="pagination-panel">
+            <p class="pagination-info">
+                Hiển thị trang @Model.Schedules.Page / @Model.Schedules.TotalPages (Tổng số @Model.Schedules.TotalCount bản ghi - 10 bản ghi / trang)
+            </p>
+            <div class="pagination-buttons">
+                @if (Model.Schedules.Page > 1)
+                {
+                    <a class="pagination-btn" href="/manager/maintenance?status=@selectedStatus&page=@(Model.Schedules.Page - 1)">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </a>
+                }
+                else
+                {
+                    <button class="pagination-btn" disabled>
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                }
+
+                @for (int i = 1; i <= Model.Schedules.TotalPages; i++)
+                {
+                    <a class="pagination-btn @(i == Model.Schedules.Page ? "active" : "")" href="/manager/maintenance?status=@selectedStatus&page=@i">@i</a>
+                }
+
+                @if (Model.Schedules.Page < Model.Schedules.TotalPages)
+                {
+                    <a class="pagination-btn" href="/manager/maintenance?status=@selectedStatus&page=@(Model.Schedules.Page + 1)">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </a>
+                }
+                else
+                {
+                    <button class="pagination-btn" disabled>
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                }
+            </div>
         </div>
-    </div>
+    }
 
 </div>
 
@@ -293,9 +322,9 @@
                             <input type="datetime-local" class="form-input-custom" name="EndDateTime" id="createEndDateTime" required />
                         </div>
                         <div class="form-group">
-                            <label class="form-label-custom">Nhân viên phụ trách</label>
-                            <select class="form-input-custom" name="AssignedStaffId" id="createAssignedStaffId">
-                                <option value="">-- Chưa phân công --</option>
+                            <label class="form-label-custom">Nhân viên phụ trách *</label>
+                            <select class="form-input-custom" name="AssignedStaffId" id="createAssignedStaffId" required>
+                                <option value="">-- Chọn nhân viên phụ trách --</option>
                                 @foreach (var s in Model.Staffs)
                                 {
                                     <option value="@s.UserId">@s.FullName</option>
@@ -369,9 +398,9 @@
                             <input type="datetime-local" class="form-input-custom" name="EndDateTime" id="editEndDateTime" required />
                         </div>
                         <div class="form-group">
-                            <label class="form-label-custom">Nhân viên phụ trách</label>
-                            <select class="form-input-custom" name="AssignedStaffId" id="editAssignedStaffId">
-                                <option value="">-- Chưa phân công --</option>
+                            <label class="form-label-custom">Nhân viên phụ trách *</label>
+                            <select class="form-input-custom" name="AssignedStaffId" id="editAssignedStaffId" required>
+                                <option value="">-- Chọn nhân viên phụ trách --</option>
                                 @foreach (var s in Model.Staffs)
                                 {
                                     <option value="@s.UserId">@s.FullName</option>
@@ -517,19 +546,21 @@
         typeFilter.addEventListener('change', filterTable);
 
         function updatePaginationInfo() {
+            const query = searchInput.value.trim();
+            if (!query) return; // Retain server pagination text if not searching
+
             const tableRowsCount = document.querySelectorAll('.maintenance-table tbody tr:not([style*="display: none"])');
             const totalRows = document.querySelectorAll('.maintenance-table tbody tr');
             
-            // Exclude empty message row if present
             const isNoData = totalRows.length === 1 && totalRows[0].cells[0].colSpan > 1;
             const activeCount = isNoData ? 0 : tableRowsCount.length;
             const totalCount = isNoData ? 0 : totalRows.length;
 
-            document.querySelector('.pagination-info').textContent = `Hiển thị 1 - ${activeCount} của ${totalCount} lịch bảo trì`;
+            const pageInfo = document.querySelector('.pagination-info');
+            if (pageInfo) {
+                pageInfo.textContent = `Lọc kết quả: ${activeCount} / ${totalCount} bản ghi`;
+            }
         }
-
-        // Initial pagination text trigger
-        updatePaginationInfo();
 
         // Event Delegation for row actions (Edit, Verify, Delete)
         document.querySelector('.maintenance-table tbody').addEventListener('click', function(e) {

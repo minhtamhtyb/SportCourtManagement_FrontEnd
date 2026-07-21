@@ -223,18 +223,47 @@
     </div>
 
     <!-- Pagination Panel -->
-    <div class="pagination-panel">
-        <p class="pagination-info"></p>
-        <div class="pagination-buttons">
-            <button class="pagination-btn" disabled>
-                <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button class="pagination-btn active">1</button>
-            <button class="pagination-btn" disabled>
-                <span class="material-symbols-outlined">chevron_right</span>
-            </button>
+    @if (Model.TotalPages > 0)
+    {
+        <div class="pagination-panel">
+            <p class="pagination-info">
+                Hiển thị trang @Model.Page / @Model.TotalPages (Tổng số @Model.TotalCount công việc - 10 công việc / trang)
+            </p>
+            <div class="pagination-buttons">
+                @if (Model.Page > 1)
+                {
+                    <a class="pagination-btn" href="/staff/tasks?status=@selectedStatus&page=@(Model.Page - 1)">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </a>
+                }
+                else
+                {
+                    <button class="pagination-btn" disabled>
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                }
+
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a class="pagination-btn @(i == Model.Page ? "active" : "")" href="/staff/tasks?status=@selectedStatus&page=@i">@i</a>
+                }
+
+                @if (Model.Page < Model.TotalPages)
+                {
+                    <a class="pagination-btn" href="/staff/tasks?status=@selectedStatus&page=@(Model.Page + 1)">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </a>
+                }
+                else
+                {
+                    <button class="pagination-btn" disabled>
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                }
+            </div>
         </div>
-    </div>
+    }
+
 
 </div>
 
@@ -303,6 +332,9 @@
         categoryFilter.addEventListener('change', filterTable);
 
         function updatePaginationInfo() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
             const visibleRows = document.querySelectorAll('.maintenance-table tbody tr:not([style*="display: none"])');
             const totalRows = document.querySelectorAll('.maintenance-table tbody tr');
             
@@ -310,9 +342,11 @@
             const activeCount = isNoData ? 0 : visibleRows.length;
             const totalCount = isNoData ? 0 : totalRows.length;
 
-            document.querySelector('.pagination-info').textContent = `Hiển thị 1 - ${activeCount} của ${totalCount} công việc`;
+            const pageInfo = document.querySelector('.pagination-info');
+            if (pageInfo) {
+                pageInfo.textContent = `Lọc kết quả: ${activeCount} / ${totalCount} công việc`;
+            }
         }
 
-        updatePaginationInfo();
     </script>
 }

@@ -243,8 +243,7 @@
     <!-- Footer Pagination -->
     <div class="pagination-panel">
         <p class="pagination-info">
-            Hiển thị @(Model.TotalRecords == 0 ? 0 : (Model.CurrentPage - 1) * Model.PageSize + 1) - 
-            @Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalRecords) của @Model.TotalRecords bản ghi
+            Hiển thị trang @Model.CurrentPage / @Model.TotalPages (Tổng số @Model.TotalRecords bản ghi - 10 bản ghi / trang)
         </p>
         <div class="pagination-buttons">
             <!-- Left arrow -->
