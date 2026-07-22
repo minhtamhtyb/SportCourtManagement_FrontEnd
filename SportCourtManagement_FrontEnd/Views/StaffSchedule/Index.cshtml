@@ -553,7 +553,18 @@
                     DateTime parsedDayDate;
                     if (DateTime.TryParse(day.Date, out parsedDayDate))
                     {
-                        isTodayDate = parsedDayDate.Date == DateTime.Today;
+                        var utcNow = DateTime.UtcNow;
+                        TimeZoneInfo vnZone;
+                        try
+                        {
+                            vnZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                        }
+                        catch (TimeZoneNotFoundException)
+                        {
+                            vnZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+                        }
+                        var vnNow = TimeZoneInfo.ConvertTimeFromUtc(utcNow, vnZone);
+                        isTodayDate = parsedDayDate.Date == vnNow.Date;
                     }
 
                     // Filter shifts based on tab
@@ -680,22 +691,7 @@
                                             </div>
                                         }
 
-                                        <!-- Quick Action Buttons for Logged-in Staff on Today's shift -->
-                                        @if (isMyShift && isTodayDate && shift.CheckInTime.HasValue && !shift.CheckOutTime.HasValue)
-                                        {
-                                            <div class="shift-action-btn-group" onclick="event.stopPropagation();">
-                                                <form asp-controller="StaffSchedule" asp-action="CheckOut" method="post" style="margin:0;">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="shiftId" value="@shift.ShiftId" />
-                                                    <input type="hidden" name="weekStart" value="@rawWeekStart" />
-                                                    <input type="hidden" name="filter" value="@activeFilter" />
-                                                    <button type="submit" class="btn-checkout-action">
-                                                        <span class="material-symbols-outlined" style="font-size: 16px;">logout</span>
-                                                        Chấm công Ra
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        }
+                    
 
                                     </div>
                                 }

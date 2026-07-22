@@ -1,5 +1,7 @@
+using System.Net;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace SportCourtManagement_FrontEnd.Services.Api;
 
@@ -16,62 +18,113 @@ public class JwtForwardingHandler(IHttpContextAccessor httpContextAccessor) : De
         if (httpContext is not null)
         {
             var token = await ResolveAccessTokenAsync(httpContext, cancellationToken);
-            System.Console.WriteLine($"[JwtForwardingHandler] Resolving token for request {request.RequestUri}. Token exists: {!string.IsNullOrWhiteSpace(token)}");
             if (!string.IsNullOrWhiteSpace(token))
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                System.Console.WriteLine($"[JwtForwardingHandler] Authorization header set to: Bearer {(token.Length > 15 ? token.Substring(0, 15) : token)}...");
-                try
+                if (IsJwtTokenExpired(token))
                 {
-                    var parts = token.Split('.');
-                    if (parts.Length > 1)
+                    System.Console.WriteLine($"[JwtForwardingHandler] Access token EXPIRED for request {request.RequestUri}! Logging out immediately.");
+                    await LogoutUserAsync(httpContext);
+                    return new HttpResponseMessage(HttpStatusCode.Unauthorized)
                     {
-                        var payload = parts[1];
-                        payload = payload.Replace('-', '+').Replace('_', '/');
-                        switch (payload.Length % 4)
-                        {
-                            case 2: payload += "=="; break;
-                            case 3: payload += "="; break;
-                        }
-                        var decodedBytes = System.Convert.FromBase64String(payload);
-                        var json = System.Text.Encoding.UTF8.GetString(decodedBytes);
-                        System.Console.WriteLine($"[JwtForwardingHandler] JWT Decoded Payload JSON: {json}");
-                    }
+                        ReasonPhrase = "Token Expired",
+                        Content = new StringContent("Access token expired")
+                    };
                 }
-                catch (System.Exception ex)
-                {
-                    System.Console.WriteLine($"[JwtForwardingHandler] Failed to custom decode JWT: {ex.Message}");
-                }
+
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
-            else
-            {
-                System.Console.WriteLine($"[JwtForwardingHandler] Token is empty or null!");
-            }
-        }
-        else
-        {
-            System.Console.WriteLine($"[JwtForwardingHandler] HttpContext is null!");
         }
 
-        return await base.SendAsync(request, cancellationToken);
+        var response = await base.SendAsync(request, cancellationToken);
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized && httpContext is not null)
+        {
+            System.Console.WriteLine($"[JwtForwardingHandler] Backend returned 401 Unauthorized for {request.RequestUri}! Logging out immediately.");
+            await LogoutUserAsync(httpContext);
+        }
+
+        return response;
     }
 
     internal static async Task<string?> ResolveAccessTokenAsync(
         HttpContext httpContext,
         CancellationToken cancellationToken = default)
     {
+        string? token = null;
+
         if (httpContext.Session.IsAvailable)
         {
             await httpContext.Session.LoadAsync(cancellationToken);
-            var sessionToken = httpContext.Session.GetString(SessionTokenKey);
-            if (!string.IsNullOrWhiteSpace(sessionToken))
-                return sessionToken;
+            token = httpContext.Session.GetString(SessionTokenKey);
+            if (!string.IsNullOrWhiteSpace(token))
+                return token;
         }
 
-        var authToken = await httpContext.GetTokenAsync("access_token");
-        if (!string.IsNullOrWhiteSpace(authToken))
-            return authToken;
+        token = await httpContext.GetTokenAsync("access_token");
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            token = httpContext.User.FindFirst(AccessTokenClaimType)?.Value;
+        }
 
-        return httpContext.User.FindFirst(AccessTokenClaimType)?.Value;
+        if (!string.IsNullOrWhiteSpace(token) && httpContext.Session.IsAvailable)
+        {
+            httpContext.Session.SetString(SessionTokenKey, token);
+            await httpContext.Session.CommitAsync(cancellationToken);
+        }
+
+        return token;
+    }
+
+    public static bool IsJwtTokenExpired(string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return true;
+
+        try
+        {
+            var parts = token.Split('.');
+            if (parts.Length > 1)
+            {
+                var payload = parts[1];
+                payload = payload.Replace('-', '+').Replace('_', '/');
+                switch (payload.Length % 4)
+                {
+                    case 2: payload += "=="; break;
+                    case 3: payload += "="; break;
+                }
+                var decodedBytes = System.Convert.FromBase64String(payload);
+                var json = System.Text.Encoding.UTF8.GetString(decodedBytes);
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("exp", out var expProp))
+                {
+                    long exp = expProp.GetInt64();
+                    var expTime = DateTimeOffset.FromUnixTimeSeconds(exp);
+                    return expTime <= DateTimeOffset.UtcNow.AddSeconds(5);
+                }
+            }
+        }
+        catch
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    internal static async Task LogoutUserAsync(HttpContext httpContext)
+    {
+        try
+        {
+            await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (httpContext.Session.IsAvailable)
+            {
+                httpContext.Session.Remove(SessionTokenKey);
+                httpContext.Session.Remove("refresh_token");
+            }
+        }
+        catch (System.Exception ex)
+        {
+            System.Console.WriteLine($"[JwtForwardingHandler] LogoutUserAsync error: {ex.Message}");
+        }
     }
 }

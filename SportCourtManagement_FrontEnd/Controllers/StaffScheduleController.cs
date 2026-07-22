@@ -52,7 +52,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
             DateTime inputDate;
             if (string.IsNullOrEmpty(weekStart) || !DateTime.TryParse(weekStart, out inputDate))
             {
-                inputDate = DateTime.Today;
+                inputDate = GetVietnamTime();
             }
 
             int diffToMonday = (7 + (inputDate.DayOfWeek - DayOfWeek.Monday)) % 7;
@@ -76,7 +76,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
             var myShifts = weeklyData.Days?.SelectMany(d => d.Shifts).ToList() ?? new List<SportCourtManagement_FrontEnd.Models.Manager.StaffShiftResponse>();
 
-            string todayStr = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
+            string todayStr = DateOnly.FromDateTime(GetVietnamTime()).ToString("yyyy-MM-dd");
             var myTodayShift = myShifts.FirstOrDefault(s => s.ShiftDate == todayStr);
 
             ViewBag.UserEmail = userEmail;
@@ -87,7 +87,8 @@ namespace SportCourtManagement_FrontEnd.Controllers
             ViewBag.RawWeekStart = formattedWeekStart;
             ViewBag.PrevWeekStart = mondayDate.AddDays(-7).ToString("yyyy-MM-dd");
             ViewBag.NextWeekStart = mondayDate.AddDays(7).ToString("yyyy-MM-dd");
-            ViewBag.IsCurrentWeek = (mondayDate == DateTime.Today.AddDays(-(7 + (DateTime.Today.DayOfWeek - DayOfWeek.Monday)) % 7).Date);
+            var todayVn = GetVietnamTime().Date;
+            ViewBag.IsCurrentWeek = (mondayDate == todayVn.AddDays(-(7 + (todayVn.DayOfWeek - DayOfWeek.Monday)) % 7).Date);
             ViewBag.Filter = filter;
 
             // Summary Stats for logged in staff
@@ -188,6 +189,20 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 }
             }
             catch { }
+        }
+        private static DateTime GetVietnamTime()
+        {
+            var utcNow = DateTime.UtcNow;
+            TimeZoneInfo vnZone;
+            try
+            {
+                vnZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                vnZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+            }
+            return TimeZoneInfo.ConvertTimeFromUtc(utcNow, vnZone);
         }
     }
 }

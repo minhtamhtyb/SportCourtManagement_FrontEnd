@@ -233,4 +233,9 @@ public class ApiRoleService(ApiClient api) : IRoleService
         var rows = await api.GetDataAsync<List<PermissionMatrixRow>>("api/roles/permission-matrix");
         return rows ?? [];
     }
+
+    public async Task UpdatePermissionMatrixAsync(List<PermissionMatrixRow> matrix)
+    {
+        await api.PutDataAsync<object>("api/roles/permission-matrix", matrix);
+    }
 }

@@ -157,15 +157,6 @@
             @if (isAdmin)
             {
             <div class="admin-nav-section">
-                <div class="admin-nav-label sidebar-text">Báo cáo</div>
-                <a class="admin-nav-link @(controller=="Reports" && action=="Revenue"?"active":"")" asp-area="Admin" asp-controller="Reports" asp-action="Revenue">
-                    <i class="fa-solid fa-chart-line"></i><span class="sidebar-text">Doanh thu</span>
-                </a>
-                <a class="admin-nav-link @(controller=="Reports" && action=="CourtUsage"?"active":"")" asp-area="Admin" asp-controller="Reports" asp-action="CourtUsage">
-                    <i class="fa-solid fa-clock"></i><span class="sidebar-text">Sử dụng sân</span>
-                </a>
-            </div>
-            <div class="admin-nav-section">
                 <div class="admin-nav-label sidebar-text">Hệ thống</div>
                 <a class="admin-nav-link @(controller=="Roles"?"active":"")" asp-area="Admin" asp-controller="Roles" asp-action="Index">
                     <i class="fa-solid fa-shield-halved"></i><span class="sidebar-text">Phân quyền</span>
@@ -243,6 +234,16 @@
         url.searchParams.set('complexId', id);
         window.location.href = url.href;
     }
+    (function () {
+        const origFetch = window.fetch;
+        window.fetch = async function (...args) {
+            const res = await origFetch.apply(this, args);
+            if (res.status === 401) {
+                window.location.href = '/Account/Login?expired=true';
+            }
+            return res;
+        };
+    })();
 </script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>

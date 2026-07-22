@@ -89,7 +89,7 @@ public class MockCourtService(MockDataStore store) : ICourtService
         Task.FromResult(store.CourtTypes.Where(t => t.IsActive).ToList());
 
     public Task<List<UserDto>> GetManagersAsync() =>
-        Task.FromResult(store.Users.Where(u => u.Role == "Staff" && u.IsActive).ToList());
+        Task.FromResult(store.Users.Where(u => (u.Role == "Staff" || u.Role == "Manager") && u.IsActive).ToList());
 
     public Task<string> UploadComplexImageAsync(IFormFile file) =>
         Task.FromResult($"https://picsum.photos/seed/{Guid.NewGuid():N}/800/400");

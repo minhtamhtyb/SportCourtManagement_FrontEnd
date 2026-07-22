@@ -72,10 +72,25 @@ namespace SportCourtManagement_FrontEnd.Controllers
         private string? GetToken()
         {
             var token = HttpContext.Session.GetString(Services.Api.JwtForwardingHandler.SessionTokenKey);
+            if (!string.IsNullOrWhiteSpace(token))
+                return token;
+
+            try
+            {
+                token = Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.GetTokenAsync(HttpContext, "access_token").GetAwaiter().GetResult();
+            }
+            catch { }
+
             if (string.IsNullOrWhiteSpace(token))
             {
                 token = User.FindFirst(Services.Api.JwtForwardingHandler.AccessTokenClaimType)?.Value;
             }
+
+            if (!string.IsNullOrWhiteSpace(token) && HttpContext.Session.IsAvailable)
+            {
+                HttpContext.Session.SetString(Services.Api.JwtForwardingHandler.SessionTokenKey, token);
+            }
+
             return token;
         }
     }

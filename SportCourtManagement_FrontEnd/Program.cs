@@ -84,8 +84,18 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             OnValidatePrincipal = async context =>
             {
                 var token = context.Principal?.FindFirst(JwtForwardingHandler.AccessTokenClaimType)?.Value;
-                if (string.IsNullOrWhiteSpace(token))
+                if (string.IsNullOrWhiteSpace(token) || JwtForwardingHandler.IsJwtTokenExpired(token))
+                {
+                    System.Console.WriteLine("[CookieAuth] JWT Token is missing or expired. Rejecting principal & logging out.");
+                    context.RejectPrincipal();
+                    await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    if (context.HttpContext.Session.IsAvailable)
+                    {
+                        context.HttpContext.Session.Remove(JwtForwardingHandler.SessionTokenKey);
+                        context.HttpContext.Session.Remove("refresh_token");
+                    }
                     return;
+                }
 
                 var session = context.HttpContext.Session;
                 if (!session.IsAvailable)

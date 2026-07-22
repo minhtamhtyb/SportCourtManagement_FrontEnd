@@ -157,13 +157,24 @@ public class ApiClient(HttpClient http, IHttpContextAccessor httpContextAccessor
             return;
         }
 
-        // Login/register endpoints do not need a token.
-        if (IsAnonymousAuthRequest(request))
-            return;
-
-        throw new InvalidOperationException(
-            "Chưa có token API trong phiên làm việc. Vui lòng đăng xuất và đăng nhập lại.");
+        // Login/register endpoints do not need a token — skip silently.
+        // For all other endpoints, just proceed without a token;
+        // the Backend will return 401 if auth is required.
     }
+
+    /// <summary>
+    /// Anonymous auth endpoints that do NOT require a Bearer token.
+    /// Note: api/auth/me DOES require a token and is intentionally excluded.
+    /// </summary>
+    private static readonly string[] AnonymousAuthPaths =
+    [
+        "api/auth/login",
+        "api/auth/register",
+        "api/auth/google-login",
+        "api/auth/verify-email",
+        "api/auth/forgot-password",
+        "api/auth/reset-password",
+    ];
 
     private static bool IsAnonymousAuthRequest(HttpRequestMessage request)
     {
@@ -172,7 +183,7 @@ public class ApiClient(HttpClient http, IHttpContextAccessor httpContextAccessor
             return false;
 
         var path = uri.IsAbsoluteUri ? uri.AbsolutePath : uri.OriginalString;
-        return path.Contains("api/auth/", StringComparison.OrdinalIgnoreCase);
+        return AnonymousAuthPaths.Any(p => path.Contains(p, StringComparison.OrdinalIgnoreCase));
     }
 
     private static async Task<T?> ReadDataAsync<T>(HttpResponseMessage response, CancellationToken ct)

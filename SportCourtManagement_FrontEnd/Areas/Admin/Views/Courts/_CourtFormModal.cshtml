@@ -32,12 +32,13 @@
         </div>
         <div class="col-md-6 mb-3">
             <label asp-for="CourtCode" class="form-label"></label>
-            <input asp-for="CourtCode" class="form-control" placeholder="VD: PCK-A1" />
+            <input asp-for="CourtCode" class="form-control text-uppercase" placeholder="VD: PI0001, FB0001, BA0001" id="CourtCode" maxlength="6" />
             <span asp-validation-for="CourtCode" class="text-danger small field-error"></span>
+            <div id="courtCodeHelpText" class="form-text text-info small mt-1"></div>
         </div>
         <div class="col-md-6 mb-3">
             <label asp-for="CourtTypeId" class="form-label"></label>
-            <select asp-for="CourtTypeId" class="form-select" asp-items="@(new SelectList(Model.CourtTypes, "CourtTypeId", "TypeName"))"></select>
+            <select asp-for="CourtTypeId" class="form-select" id="CourtTypeId" asp-items="@(new SelectList(Model.CourtTypes, "CourtTypeId", "TypeName"))"></select>
             <span asp-validation-for="CourtTypeId" class="text-danger small field-error"></span>
         </div>
         <div class="col-md-6 mb-3">
@@ -88,16 +89,10 @@
             </select>
             <span asp-validation-for="CloseTime" class="text-danger small field-error"></span>
         </div>
-        <div class="col-md-6 mb-3">
-            <label asp-for="PricePerHour" class="form-label"></label>
-            <input asp-for="PricePerHour" class="form-control" type="number" min="0" step="1000" />
-            <span asp-validation-for="PricePerHour" class="text-danger small field-error"></span>
-        </div>
-        <div class="col-md-6 mb-3">
-            <label asp-for="Surface" class="form-label"></label>
-            <input asp-for="Surface" class="form-control" placeholder="Polymer cao cấp" />
-            <span asp-validation-for="Surface" class="text-danger small field-error"></span>
-        </div>
+        
+        <input type="hidden" asp-for="PricePerHour" id="PricePerHour" value="@(Model.PricePerHour > 0 ? Model.PricePerHour : 100000)" />
+        <input type="hidden" asp-for="Surface" value="@(Model.Surface ?? "")" />
+
         <div class="col-12 mb-3">
             <label asp-for="Description" class="form-label"></label>
             <textarea asp-for="Description" class="form-control" rows="2"></textarea>
@@ -194,4 +189,38 @@
             input.value = Math.round(basePrice * duration);
         });
     });
+
+    (function() {
+        var typeSelect = document.getElementById('CourtTypeId');
+        var codeInput = document.getElementById('CourtCode');
+        var helpText = document.getElementById('courtCodeHelpText');
+        if (!typeSelect || !codeInput) return;
+
+        function getPrefixInfo() {
+            var selectedText = typeSelect.options[typeSelect.selectedIndex]?.text?.toLowerCase() || '';
+            if (selectedText.includes('bóng đá') || selectedText.includes('football')) {
+                return { prefix: 'FB', example: 'FB0001', name: 'Bóng đá' };
+            } else if (selectedText.includes('pickleball') || selectedText.includes('pickle')) {
+                return { prefix: 'PI', example: 'PI0001', name: 'Pickleball' };
+            } else if (selectedText.includes('cầu lông') || selectedText.includes('badminton')) {
+                return { prefix: 'BA', example: 'BA0001', name: 'Cầu lông' };
+            } else {
+                return { prefix: 'XX', example: 'XX0001', name: 'Khác' };
+            }
+        }
+
+        function updateHelp() {
+            var info = getPrefixInfo();
+            if (helpText) {
+                helpText.innerHTML = '<i class="fa-solid fa-circle-info me-1"></i>Loại ' + info.name + ': Mã phải bắt đầu bằng <strong>' + info.prefix + '</strong> và 4 chữ số cuối (Ví dụ: <code>' + info.example + '</code>)';
+            }
+        }
+
+        typeSelect.addEventListener('change', updateHelp);
+        codeInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+
+        updateHelp();
+    })();
 </script>
