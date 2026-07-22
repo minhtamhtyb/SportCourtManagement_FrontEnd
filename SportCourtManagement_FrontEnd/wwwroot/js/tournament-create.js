@@ -270,13 +270,21 @@
 
         let addedSlots = 0;
         document.querySelectorAll(".court-item").forEach(function (card) {
+            const courtIdNumber = Number(card.dataset.courtId);
             const checked = Array.from(card.querySelectorAll(".slot-checkbox:checked"));
-            if (checked.length === 0) return;
-            const courtId = Number(card.dataset.courtId);
-            const courtName = card.dataset.courtName || `Sân ${courtId}`;
-            let schedule = state.schedules.find(function (item) { return item.courtId === courtId && item.date === date; });
+            const incomingServices = readServices(courtIdNumber);
+            if (checked.length === 0 && incomingServices.length === 0) return;
+
+            const courtName = card.dataset.courtName || `Sân ${courtIdNumber}`;
+            let schedule = state.schedules.find(function (item) { return item.courtId === courtIdNumber && item.date === date; });
+            
+            if (!schedule && checked.length === 0) {
+                // Must select a slot first to add services
+                return;
+            }
+
             if (!schedule) {
-                schedule = { id: createId(), courtId: courtId, courtName: courtName, date: date, slots: [], services: [] };
+                schedule = { id: createId(), courtId: courtIdNumber, courtName: courtName, date: date, slots: [], services: [] };
                 state.schedules.push(schedule);
             }
 
@@ -287,8 +295,12 @@
                 addedSlots += 1;
                 input.checked = false;
             });
-            mergeServices(schedule.services, readServices(courtId));
-            resetServices(courtId);
+            
+            if (incomingServices.length > 0) {
+                mergeServices(schedule.services, incomingServices);
+                addedSlots += 1; // trigger success toast even if only services were added
+            }
+            resetServices(courtIdNumber);
         });
 
         state.schedules = state.schedules.filter(function (schedule) { return schedule.slots.length > 0; });
