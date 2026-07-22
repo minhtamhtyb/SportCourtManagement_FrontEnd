@@ -18,8 +18,13 @@ public class AccountController(IAuthService authService, IOptions<ApiSettings> a
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult Login(string? returnUrl = null)
+    public IActionResult Login(string? returnUrl = null, bool expired = false)
     {
+        if (expired)
+        {
+            TempData["Error"] = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+        }
+
         if (User.Identity?.IsAuthenticated == true)
             return RedirectToRoleHome();
 

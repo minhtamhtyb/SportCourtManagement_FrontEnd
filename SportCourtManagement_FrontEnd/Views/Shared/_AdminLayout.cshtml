@@ -228,6 +228,16 @@
         url.searchParams.set('complexId', id);
         window.location.href = url.href;
     }
+    (function () {
+        const origFetch = window.fetch;
+        window.fetch = async function (...args) {
+            const res = await origFetch.apply(this, args);
+            if (res.status === 401) {
+                window.location.href = '/Account/Login?expired=true';
+            }
+            return res;
+        };
+    })();
 </script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
