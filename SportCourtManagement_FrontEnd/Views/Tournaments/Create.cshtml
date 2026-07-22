@@ -1,769 +1,293 @@
 @model SportCourtManagement_FrontEnd.Models.Tournaments.CreateTournamentFormDto
+@using SportCourtManagement_FrontEnd.Models.Courts
+@using SportCourtManagement_FrontEnd.Models.DTOs
 @{
-  ViewData["Title"] = "Đăng Ký Tổ Chức Giải Đấu";
+    ViewData["Title"] = "Đăng ký tổ chức giải đấu";
+    var courts = (ViewBag.Courts as IEnumerable<CourtListDto> ?? Enumerable.Empty<CourtListDto>()).ToList();
+    var timeSlots = (ViewBag.TimeSlots as IEnumerable<TimeSlotDto> ?? Enumerable.Empty<TimeSlotDto>()).ToList();
+    var services = (ViewBag.ComplexServices as IEnumerable<ComplexCourtTypeServiceDto> ?? Enumerable.Empty<ComplexCourtTypeServiceDto>()).ToList();
+
+    string NormalizeCourtType(string? value)
+    {
+        var name = value ?? "Khác";
+        if (name.Contains("Cầu Lông", StringComparison.OrdinalIgnoreCase)) return "Sân Cầu Lông";
+        if (name.Contains("Bóng Rổ", StringComparison.OrdinalIgnoreCase)) return "Sân Bóng Rổ";
+        if (name.Contains("Tennis", StringComparison.OrdinalIgnoreCase)) return "Sân Tennis";
+        if (name.Contains("Pickleball", StringComparison.OrdinalIgnoreCase)) return "Sân Pickleball";
+        if (name.Contains("Bóng Đá", StringComparison.OrdinalIgnoreCase)) return "Sân Bóng Đá Mini";
+        return name;
+    }
+
+    var courtTypes = courts.Select(c => NormalizeCourtType(c.CourtTypeName)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 }
 
-<style>
-  :root {
-    --primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    --glass-bg: rgba(255, 255, 255, 0.95);
-    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  }
+@section Styles {
+    <link rel="stylesheet" href="~/css/tournament-create.css" asp-append-version="true" />
+}
 
-  body {
-    background-color: #f8fafc;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  }
+<main class="sc-container tournament-create-page pb-4">
+    <nav class="sc-breadcrumb" aria-label="Điều hướng">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span>›</span>
+        <a asp-action="MyTournaments">Giải đấu của tôi</a>
+        <span>›</span>
+        <span class="text-white fw-medium">Đặt giải đấu</span>
+    </nav>
 
-  .hero-tournament-header {
-    background: var(--primary-gradient);
-    color: #ffffff;
-    padding: 3rem 2.5rem;
-    border-radius: 1.5rem 1.5rem 0 0;
-    position: relative;
-    overflow: hidden;
-  }
+    <header class="tc-hero">
+        <div class="tc-hero-top d-flex align-items-start justify-content-between gap-3">
+            <div class="position-relative z-1">
+                <div class="tc-eyebrow mb-2"><i class="bi bi-trophy-fill me-1 text-warning"></i> Công cụ dành cho ban tổ chức</div>
+                <h1 class="font-outfit fs-2 mb-2">Xây dựng lịch thi đấu</h1>
+                <p class="text-sc-muted mb-0" style="max-width: 680px; font-size: 14px;">
+                    Chọn nhiều sân và ca theo từng ngày. Trạng thái được cập nhật trực tiếp để hạn chế tối đa việc chọn trùng.
+                </p>
+            </div>
+            <div id="realtimeStatus" class="tc-live-pill is-polling" role="status" aria-live="polite">
+                <span class="tc-live-dot"></span>
+                <span id="realtimeStatusText">Đang kết nối dữ liệu trực tiếp</span>
+            </div>
+        </div>
+        <div class="tc-progress" aria-label="Tiến trình đặt giải">
+            <div class="tc-progress-item is-active" data-step="1">Thông tin</div>
+            <div class="tc-progress-item is-active" data-step="2">Lịch sân</div>
+            <div class="tc-progress-item" data-step="3">Xác nhận</div>
+        </div>
+    </header>
 
-  .hero-tournament-header::after {
-    content: "";
-    position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
-    border-radius: 50%;
-    pointer-events: none;
-  }
-
-  .filter-tab-btn {
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #334155;
-    font-weight: 600;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .filter-tab-btn:hover, .filter-tab-btn.active {
-    background: #2563eb;
-    color: #ffffff;
-    border-color: #2563eb;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-  }
-
-  .court-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1.5px solid #e2e8f0 !important;
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-  }
-
-  .court-card:hover {
-    border-color: #3b82f6 !important;
-    transform: translateY(-3px);
-    box-shadow: var(--glass-shadow);
-  }
-
-  .court-card.conflict-highlight {
-    border-color: #ef4444 !important;
-    background-color: #fef2f2 !important;
-    animation: pulse-border 1.5s infinite;
-  }
-
-  @@keyframes pulse-border {
-    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-  }
-
-  .sticky-summary {
-    position: sticky;
-    top: 100px;
-    z-index: 10;
-  }
-
-  .slot-label {
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .slot-label:hover {
-    transform: scale(1.05);
-  }
-
-  .slot-checkbox:checked + .slot-label {
-    background: #2563eb !important;
-    color: #ffffff !important;
-    border-color: #2563eb !important;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-  }
-
-  .slot-label.conflict-slot {
-    background: #ef4444 !important;
-    color: #ffffff !important;
-    border-color: #dc2626 !important;
-  }
-</style>
-
-<div class="container py-4">
-  <!-- Conflict Alert Banner (Hidden by default) -->
-  <div id="conflictAlertBanner" class="alert alert-danger rounded-4 shadow-lg mb-4 d-none border-danger border-2 d-flex align-items-center justify-content-between p-4" role="alert">
-    <div>
-      <h5 class="fw-bold mb-1 text-danger"><i class="bi bi-exclamation-octagon-fill me-2 fs-4"></i>Phát hiện ca thi đấu bị trùng hoặc hết hạn giữ chỗ!</h5>
-      <p id="conflictAlertMessage" class="mb-0 small text-dark fw-semibold"></p>
+    <div id="conflictAlertBanner" class="tc-alert" role="alert" hidden>
+        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+        <div class="flex-grow-1">
+            <strong class="d-block text-white mb-1">Lịch vừa có thay đổi</strong>
+            <span id="conflictAlertMessage"></span>
+        </div>
+        <button type="button" id="dismissConflict" class="btn-close btn-close-white" aria-label="Đóng"></button>
     </div>
-    <button type="button" class="btn-close" onclick="hideConflictBanner()"></button>
-  </div>
 
-  <form id="tournamentForm" onsubmit="return false;">
-    @Html.AntiForgeryToken()
-    <div class="row g-4">
-      <!-- Left Column: Main Form -->
-      <div class="col-lg-8">
-        <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
-          <!-- Rich Gradient Header -->
-          <div class="hero-tournament-header">
-            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3 small shadow-sm">
-              <i class="bi bi-star-fill me-1"></i> Dành cho Ban Tổ Chức
-            </span>
-            <h2 class="mb-2 fw-black text-white"><i class="bi bi-trophy-fill me-2 text-warning"></i>Đăng Ký Tổ Chức Giải Đấu Thể Thao</h2>
-            <p class="mb-0 text-white-50 fs-6">Đặt lịch đồng loạt nhiều sân đấu, khung giờ và dịch vụ đi kèm với quy trình giữ chỗ thời gian thực</p>
-          </div>
-          
-          <div class="card-body p-4 p-md-5">
-            <!-- 1. Basic Info Section -->
-            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-1-circle-fill text-primary me-2"></i>Thông Tin Chung</h5>
-            <div class="row g-3 mb-4">
-              <div class="col-12">
-                <label asp-for="TournamentName" class="form-label fw-semibold text-dark">Tên giải đấu <span class="text-danger">*</span></label>
-                <input asp-for="TournamentName" class="form-control rounded-3 py-2 shadow-sm" id="inputTournamentName" placeholder="VD: Giải Cầu Lông Mở Rộng 2026..." required />
-                <span asp-validation-for="TournamentName" class="text-danger small"></span>
-              </div>
-              <div class="col-12">
-                <label asp-for="Description" class="form-label fw-semibold text-dark">Mô tả và quy mô giải đấu</label>
-                <textarea asp-for="Description" id="inputDescription" class="form-control rounded-3 shadow-sm" rows="2" placeholder="Giới thiệu thể lệ, số lượng vận động viên dự kiến..."></textarea>
-              </div>
-            </div>
-
-            <!-- 2. Court & Slot Selection Section -->
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-              <h5 class="fw-bold text-dark mb-0"><i class="bi bi-2-circle-fill text-primary me-2"></i>Thêm Lịch Thi Đấu (Schedule Builder)</h5>
-              <span class="text-muted small"><i class="bi bi-hand-index-thumb me-1"></i>Chọn ngày, chọn sân rồi bấm Thêm</span>
-            </div>
-
-            <div class="mb-3 p-3 bg-light rounded-3 border">
-              <label class="form-label fw-bold text-primary mb-2"><i class="bi bi-calendar-event me-2"></i>1. Chọn Ngày Thi Đấu</label>
-              <input type="date" class="form-control fw-bold text-center w-auto shadow-sm" id="builderDate" value="@DateTime.Today.AddDays(7).ToString("yyyy-MM-dd")" />
-            </div>
-
-            <label class="form-label fw-bold text-primary mb-2 mt-3"><i class="bi bi-geo-alt-fill me-2"></i>2. Chọn Sân & Khung Giờ cho ngày trên</label>
-            <!-- Court Type Filter Bar -->
-            <div class="d-flex flex-wrap gap-2 mb-3" id="courtTypeFilters">
-              <button type="button" class="btn btn-sm rounded-pill filter-tab-btn active px-3 py-1.5" data-filter="all">
-                <i class="bi bi-grid-fill me-1"></i> Tất Cả
-              </button>
-              @if (ViewBag.CourtTypes != null)
-              {
-                var seenTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var ct in ViewBag.CourtTypes)
-                {
-                  string normTab = ct.TypeName;
-                  if (normTab.Contains("Cầu Lông", StringComparison.OrdinalIgnoreCase)) normTab = "Sân Cầu Lông";
-                  else if (normTab.Contains("Bóng Rổ", StringComparison.OrdinalIgnoreCase)) normTab = "Sân Bóng Rổ";
-                  else if (normTab.Contains("Tennis", StringComparison.OrdinalIgnoreCase)) normTab = "Sân Tennis";
-                  else if (normTab.Contains("Pickleball", StringComparison.OrdinalIgnoreCase)) normTab = "Sân Pickleball";
-                  else if (normTab.Contains("Bóng Đá", StringComparison.OrdinalIgnoreCase)) normTab = "Sân Bóng Đá Mini";
-
-                  if (!seenTypes.Contains(normTab))
-                  {
-                    seenTypes.Add(normTab);
-                    <button type="button" class="btn btn-sm rounded-pill filter-tab-btn px-3 py-1.5" data-filter="@normTab">
-                      @normTab
-                    </button>
-                  }
-                }
-              }
-            </div>
-
-            <div class="alert alert-info bg-info-subtle border-info-subtle rounded-3 mb-4 small text-dark shadow-sm">
-              <i class="bi bi-shield-check text-primary me-2 fs-5"></i><strong>Bảo vệ quyền lợi:</strong> Khi anh chọn ca, hệ thống sẽ tự động kiểm tra và khóa tạm thời (TTL 10 phút) ngay sau khi bấm xác nhận để tránh người khác đặt trùng.
-            </div>
-
-            <div class="mb-4" id="courtContainer">
-              @if (ViewBag.Courts != null && ViewBag.Courts.Count > 0)
-              {
-                int index = 0;
-                foreach (var c in ViewBag.Courts)
-                {
-                  string normCourtType = c.CourtTypeName ?? "";
-                  if (normCourtType.Contains("Cầu Lông", StringComparison.OrdinalIgnoreCase)) normCourtType = "Sân Cầu Lông";
-                  else if (normCourtType.Contains("Bóng Rổ", StringComparison.OrdinalIgnoreCase)) normCourtType = "Sân Bóng Rổ";
-                  else if (normCourtType.Contains("Tennis", StringComparison.OrdinalIgnoreCase)) normCourtType = "Sân Tennis";
-                  else if (normCourtType.Contains("Pickleball", StringComparison.OrdinalIgnoreCase)) normCourtType = "Sân Pickleball";
-                  else if (normCourtType.Contains("Bóng Đá", StringComparison.OrdinalIgnoreCase)) normCourtType = "Sân Bóng Đá Mini";
-
-                  <div class="card court-card rounded-4 mb-3 court-item" id="court_card_@c.CourtId" data-court-id="@c.CourtId" data-court-name="@c.CourtName" data-court-type="@normCourtType">
-                    <div class="card-body p-3 p-md-4">
-                      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                        <div class="form-check mb-0">
-                          <input class="form-check-input court-checkbox fs-5 mt-1" type="checkbox" value="@c.CourtId" id="court_@c.CourtId" data-court-id="@c.CourtId" data-court-name="@c.CourtName" data-court-type="@normCourtType" data-court-price="@((c.MinPrice ?? 150000m) * 2)">
-                          <label class="form-check-label fw-bold fs-6 text-dark cursor-pointer ms-1" for="court_@c.CourtId">
-                            @c.CourtName <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2 small">@normCourtType</span>
-                          </label>
+    <form id="tournamentForm" novalidate>
+        @Html.AntiForgeryToken()
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <section class="tc-panel" aria-labelledby="generalHeading">
+                    <h2 id="generalHeading" class="tc-section-title">
+                        <span class="tc-section-icon"><i class="bi bi-card-text"></i></span>
+                        Thông tin giải đấu
+                    </h2>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="TournamentName" class="tc-field-label form-label">Tên giải đấu <span class="text-danger">*</span></label>
+                            <input asp-for="TournamentName" id="inputTournamentName" class="sc-input" maxlength="200" placeholder="Ví dụ: Giải Cầu Lông Mở Rộng 2026" autocomplete="off" required />
+                            <span asp-validation-for="TournamentName" class="text-danger small"></span>
                         </div>
-                        <span class="text-success fw-bold small"><i class="bi bi-tag-fill me-1"></i>~@(((c.MinPrice ?? 150000m) * 2).ToString("N0"))đ/ca</span>
-                      </div>
-
-                      <div class="ps-md-4">
-                        <label class="small fw-semibold text-secondary mb-2 d-block">Chọn các khung giờ thi đấu cho sân này:</label>
-                        <div class="d-flex flex-wrap gap-2">
-                          @if (ViewBag.TimeSlots != null && ViewBag.TimeSlots.Count > 0)
-                          {
-                            foreach (var s in ViewBag.TimeSlots)
-                            {
-                              <input type="checkbox" class="btn-check slot-checkbox" id="slot_@(s.SlotId)_@(c.CourtId)" value="@s.SlotId" data-court-id="@c.CourtId" data-slot-id="@s.SlotId" data-slot-name="@s.SlotName" autocomplete="off">
-                              <label class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5 slot-label" id="label_slot_@(s.SlotId)_@(c.CourtId)" for="slot_@(s.SlotId)_@(c.CourtId)">
-                                <i class="bi bi-clock me-1"></i>@s.SlotName
-                              </label>
-                            }
-                          }
-                          else
-                          {
-                            <input type="checkbox" class="btn-check slot-checkbox" id="slot_1_@c.CourtId" value="1" data-court-id="@c.CourtId" data-slot-id="1" data-slot-name="Sáng (07:00 - 09:00)">
-                            <label class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5 slot-label" id="label_slot_1_@c.CourtId" for="slot_1_@c.CourtId">Sáng (07:00 - 09:00)</label>
-
-                            <input type="checkbox" class="btn-check slot-checkbox" id="slot_2_@c.CourtId" value="2" data-court-id="@c.CourtId" data-slot-id="2" data-slot-name="Chiều (14:00 - 17:00)">
-                            <label class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5 slot-label" id="label_slot_2_@c.CourtId" for="slot_2_@c.CourtId">Chiều (14:00 - 17:00)</label>
-
-                            <input type="checkbox" class="btn-check slot-checkbox" id="slot_3_@c.CourtId" value="3" data-court-id="@c.CourtId" data-slot-id="3" data-slot-name="Tối (17:00 - 21:00)">
-                            <label class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5 slot-label" id="label_slot_3_@c.CourtId" for="slot_3_@c.CourtId">Tối (17:00 - 21:00)</label>
-                          }
+                        <div class="col-12">
+                            <label asp-for="Description" class="tc-field-label form-label">Mô tả và quy mô</label>
+                            <textarea asp-for="Description" id="inputDescription" class="sc-input tc-textarea" maxlength="1000" placeholder="Thể lệ, số đội và yêu cầu tổ chức dự kiến..."></textarea>
                         </div>
-                      <div class="ps-md-4 mt-3 pt-3 border-top">
-                        <label class="small fw-semibold text-secondary mb-2 d-block"><i class="bi bi-box-seam me-1"></i>Dịch vụ đi kèm cho sân này:</label>
-                        <div class="row g-2">
-                          @{
-                            var cServices = ViewBag.ComplexServices as List<SportCourtManagement_FrontEnd.Models.DTOs.ComplexCourtTypeServiceDto>;
-                            var specificServices = cServices?.Where(cs => cs.CourtTypeId == c.CourtTypeId).ToList();
-                          }
-                          @if (specificServices != null && specificServices.Count > 0)
-                          {
-                            foreach (var s in specificServices)
-                            {
-                              <div class="col-sm-6 col-md-4">
-                                <div class="p-2 border rounded bg-light d-flex justify-content-between align-items-center">
-                                  <div>
-                                    <div class="small fw-bold text-dark text-truncate" style="max-width: 120px;" title="@s.ServiceName">@s.ServiceName</div>
-                                    <div class="text-primary" style="font-size: 0.75rem;">@s.Price.ToString("N0")đ</div>
-                                  </div>
-                                  <div style="width: 70px;">
-                                    <input type="number" class="form-control form-control-sm text-center fw-bold service-input" value="0" min="0" max="50" data-court-id="@c.CourtId" data-service-id="@s.ServiceId" data-service-name="@s.ServiceName" data-service-price="@s.Price" />
-                                  </div>
+                    </div>
+                </section>
+
+                <section class="tc-panel" aria-labelledby="scheduleHeading">
+                    <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+                        <h2 id="scheduleHeading" class="tc-section-title mb-0">
+                            <span class="tc-section-icon"><i class="bi bi-calendar2-week"></i></span>
+                            Chọn sân và khung giờ
+                        </h2>
+                        <span id="availableCounter" class="sc-badge sc-badge-green">Đang tải lịch...</span>
+                    </div>
+
+                    <div class="tc-date-toolbar">
+                        <div class="tc-date-wrap">
+                            <label for="builderDate" class="tc-field-label form-label"><i class="bi bi-calendar3 me-1"></i> Ngày thi đấu</label>
+                            <input type="date" class="sc-input" id="builderDate" min="@DateTime.Today.ToString("yyyy-MM-dd")" value="@DateTime.Today.AddDays(7).ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="tc-sync-meta">
+                            <button type="button" id="refreshAvailability" class="btn btn-link p-0 text-decoration-none" style="font-size: 12px;">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Làm mới
+                            </button>
+                            <div id="lastSyncedText" class="mt-1">Chưa đồng bộ</div>
+                        </div>
+                    </div>
+
+                    <div class="tc-filter-row" id="courtTypeFilters" aria-label="Lọc theo môn thể thao">
+                        <button type="button" class="tc-filter-btn is-active" data-filter="all">Tất cả sân</button>
+                        @foreach (var type in courtTypes)
+                        {
+                            <button type="button" class="tc-filter-btn" data-filter="@type">@type</button>
+                        }
+                    </div>
+
+                    <div class="tc-legend" aria-label="Chú thích trạng thái">
+                        <span class="tc-legend-item"><i class="tc-legend-dot available"></i> Còn trống</span>
+                        <span class="tc-legend-item"><i class="tc-legend-dot held"></i> Đang giữ thanh toán</span>
+                        <span class="tc-legend-item"><i class="tc-legend-dot booked"></i> Đã đặt</span>
+                        <span class="tc-legend-item"><i class="tc-legend-dot maintenance"></i> Bảo trì / đóng</span>
+                        <span class="tc-legend-item"><i class="tc-legend-dot selected"></i> Đang chọn</span>
+                        <span class="tc-legend-item"><i class="tc-legend-dot scheduled"></i> Đã thêm vào lịch</span>
+                    </div>
+
+                    <div id="courtContainer" class="tc-court-list" aria-live="polite">
+                        @if (courts.Count == 0)
+                        {
+                            <div class="tc-empty">
+                                <i class="bi bi-building-x fs-3 d-block mb-2"></i>
+                                Chưa có dữ liệu sân để tạo lịch thi đấu.
+                            </div>
+                        }
+                        @foreach (var court in courts)
+                        {
+                            var normalizedType = NormalizeCourtType(court.CourtTypeName);
+                            var courtServices = services.Where(s => s.CourtTypeId == court.CourtTypeId).ToList();
+                            <article class="tc-court-card court-item"
+                                     data-court-id="@court.CourtId"
+                                     data-court-name="@court.CourtName"
+                                     data-court-type="@normalizedType"
+                                     data-court-status="@court.Status">
+                                <div class="tc-court-head">
+                                    <div class="min-w-0">
+                                        <div class="tc-court-name">@court.CourtName</div>
+                                        <div class="tc-court-meta">
+                                            <span>@normalizedType</span>
+                                            @if (!string.IsNullOrWhiteSpace(court.Location))
+                                            {
+                                                <span> · @court.Location</span>
+                                            }
+                                            <span class="court-availability-copy"> · Đang kiểm tra...</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="tc-select-all" data-action="select-all" data-court-id="@court.CourtId" disabled>Chọn ca trống</button>
                                 </div>
-                              </div>
-                            }
-                          }
-                          else
-                          {
-                            <div class="col-12"><p class="text-muted small mb-0 fst-italic">Không có dịch vụ đi kèm nào.</p></div>
-                          }
+
+                                <div class="tc-slot-grid">
+                                    @foreach (var slot in timeSlots)
+                                    {
+                                        <div>
+                                            <input type="checkbox" class="tc-slot-input slot-checkbox"
+                                                   id="slot_@(slot.SlotId)_@(court.CourtId)"
+                                                   value="@slot.SlotId"
+                                                   data-court-id="@court.CourtId"
+                                                   data-slot-id="@slot.SlotId"
+                                                   data-slot-name="@slot.SlotName"
+                                                   data-price="0" disabled />
+                                            <label class="tc-slot-label status-loading" for="slot_@(slot.SlotId)_@(court.CourtId)" data-status="Loading">
+                                                <span class="tc-slot-copy">
+                                                    <span class="tc-slot-name">@slot.SlotName</span>
+                                                    <span class="tc-slot-state">Đang kiểm tra</span>
+                                                </span>
+                                                <span class="tc-slot-price">--</span>
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+
+                                <details class="tc-services">
+                                    <summary><i class="bi bi-plus-circle me-1"></i>Dịch vụ cho sân này (tùy chọn)</summary>
+                                    @if (courtServices.Count > 0)
+                                    {
+                                        <div class="tc-service-grid">
+                                            @foreach (var service in courtServices)
+                                            {
+                                                <div class="tc-service-item">
+                                                    <div class="min-w-0">
+                                                        <div class="tc-service-name" title="@service.ServiceName">@service.ServiceName</div>
+                                                        <div class="tc-service-price">@service.Price.ToString("N0")đ</div>
+                                                    </div>
+                                                    <input type="number" class="tc-service-input service-input" value="0" min="0" max="50"
+                                                           aria-label="Số lượng @service.ServiceName"
+                                                           data-court-id="@court.CourtId"
+                                                           data-service-id="@service.ServiceId"
+                                                           data-service-name="@service.ServiceName"
+                                                           data-service-price="@service.Price" />
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-sc-muted mt-2" style="font-size: 11px;">Sân này chưa có dịch vụ đi kèm.</div>
+                                    }
+                                </details>
+                            </article>
+                        }
+                    </div>
+
+                    <div class="tc-add-bar">
+                        <span id="selectionCount" class="tc-selection-count">Chưa chọn ca nào cho ngày này</span>
+                        <button type="button" id="btnAddSchedule" class="sc-btn sc-btn-primary" disabled>
+                            <i class="bi bi-plus-circle me-2"></i>Thêm vào lịch thi đấu
+                        </button>
+                    </div>
+                </section>
+
+                <section class="tc-panel" aria-labelledby="optionalHeading">
+                    <h2 id="optionalHeading" class="tc-section-title">
+                        <span class="tc-section-icon"><i class="bi bi-chat-square-text"></i></span>
+                        Ưu đãi và yêu cầu thêm
+                    </h2>
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label asp-for="PromotionCode" class="tc-field-label form-label">Mã ưu đãi</label>
+                            <input asp-for="PromotionCode" id="inputPromotionCode" class="sc-input text-uppercase" placeholder="Ví dụ: TOUR2026" />
                         </div>
-                      </div>
-                    </div> <!-- closes first ps-md-4 -->
-                  </div> <!-- closes card-body -->
-                </div> <!-- closes card -->
-                  index++;
-                }
-              }
-              else
-              {
-                <div class="text-center py-5 bg-light rounded-4">
-                  <i class="bi bi-exclamation-triangle-fill text-warning fs-1"></i>
-                  <p class="text-dark fw-bold mt-3 mb-1">Hệ thống chưa có dữ liệu sân thi đấu.</p>
-                  <p class="small text-muted mb-0">Vui lòng gọi API <code>POST /api/Seed/sample-data</code> trên Backend để khởi tạo ngay dữ liệu mẫu.</p>
+                        <div class="col-md-7">
+                            <label asp-for="Note" class="tc-field-label form-label">Ghi chú cho ban quản lý</label>
+                            <input asp-for="Note" id="inputNote" class="sc-input" placeholder="Âm thanh, bảng điểm, khu vực check-in..." />
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="col-lg-4">
+                <div class="sc-card tc-summary" aria-labelledby="summaryHeading">
+                    <div class="tc-summary-head">
+                        <div class="tc-eyebrow mb-1">Bước xác nhận</div>
+                        <h2 id="summaryHeading" class="font-outfit text-white fs-5 fw-bold mb-1">Lịch thi đấu của bạn</h2>
+                        <div class="text-sc-muted" style="font-size: 11px;">Suất được giữ 10 phút sau khi xác nhận.</div>
+                    </div>
+                    <div class="tc-summary-body">
+                        <div class="mb-3">
+                            <div class="tc-field-label mb-1">Tên giải đấu</div>
+                            <div id="summaryTourName" class="tc-summary-name">Chưa nhập tên giải</div>
+                        </div>
+
+                        <div id="summaryCourtsList" class="tc-schedule-list mb-3">
+                            <div class="tc-empty">Chọn sân và ca, sau đó bấm “Thêm vào lịch thi đấu”.</div>
+                        </div>
+
+                        <div class="tc-total-row">
+                            <span>Số sân / ca</span>
+                            <strong id="summaryCountBadge">0 sân · 0 ca</strong>
+                        </div>
+                        <div class="tc-total-row">
+                            <span>Tạm tính</span>
+                            <strong id="summaryTotalCost" class="tc-total-price">0đ</strong>
+                        </div>
+
+                        <p class="tc-submit-note">
+                            Giá cuối cùng và ưu đãi sẽ được backend xác nhận. Hệ thống kiểm tra lại toàn bộ lịch ngay trước khi tạo đơn.
+                        </p>
+                        <button type="submit" id="btnSubmitTournament" class="sc-btn sc-btn-primary tc-submit" disabled>
+                            <i class="bi bi-shield-check me-2"></i>Xác nhận và giữ chỗ
+                        </button>
+                        <a asp-action="MyTournaments" class="sc-btn sc-btn-secondary w-100 mt-2">Quay lại danh sách</a>
+                    </div>
                 </div>
-              }
-            </div>
-
-            <div class="text-end mb-4 pb-4 border-bottom">
-              <button type="button" id="btnAddSchedule" class="btn btn-primary px-4 py-2 rounded-pill shadow-sm fw-bold">
-                <i class="bi bi-plus-circle-fill me-2"></i>Thêm Vào Lịch Trình Tóm Tắt 👉
-              </button>
-            </div>
-
-            <!-- Removed Global Services Section -->
-
-            <!-- 4. Promotion & Notes -->
-            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-3-circle-fill text-primary me-2"></i>Khuyến Mãi & Ghi Chú</h5>
-            <div class="row g-3 mb-2">
-              <div class="col-md-6">
-                <label asp-for="PromotionCode" class="form-label fw-semibold text-dark">Mã ưu đãi (nếu có)</label>
-                <input asp-for="PromotionCode" id="inputPromotionCode" class="form-control text-uppercase rounded-3 shadow-sm" placeholder="Nhập mã ưu đãi..." />
-              </div>
-              <div class="col-md-6">
-                <label asp-for="Note" class="form-label fw-semibold text-dark">Ghi chú cho BQL sân</label>
-                <input asp-for="Note" id="inputNote" class="form-control rounded-3 shadow-sm" placeholder="Yêu cầu hỗ trợ âm thanh, cờ phướn..." />
-              </div>
-            </div>
-          </div>
+            </aside>
         </div>
-      </div>
+    </form>
+</main>
 
-      <!-- Right Column: Live Order Summary Box -->
-      <div class="col-lg-4">
-        <div class="card border-0 shadow-lg rounded-4 overflow-hidden sticky-summary">
-          <div class="bg-dark text-white p-4">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-receipt-cutoff text-warning me-2"></i>Tóm Tắt Đăng Ký</h5>
-            <p class="small text-white-50 mb-0 mt-1">Kiểm tra chi tiết sân & khung giờ trước khi xác nhận</p>
-          </div>
-          
-          <div class="card-body p-4 bg-white">
-            <div class="mb-3 pb-3 border-bottom">
-              <span class="text-muted small fw-semibold">TÊN GIẢI ĐẤU:</span>
-              <div class="fw-bold text-dark fs-6" id="summaryTourName">Chưa nhập tên giải...</div>
-            </div>
-            
-            <!-- Selected Courts & Slots List -->
-            <div class="mb-3">
-              <span class="text-muted small fw-semibold d-block mb-2">LỊCH THI ĐẤU ĐÃ THÊM:</span>
-              <div id="summaryCourtsList">
-                <div class="text-muted small fst-italic py-2 text-center bg-light rounded-3">Chưa có lịch nào được thêm</div>
-              </div>
-            </div>
-
-            <!-- Selected Services List -->
-            <div class="mb-4 pb-3 border-bottom">
-              <span class="text-muted small fw-semibold d-block mb-2">DỊCH VỤ ĐÃ THÊM THEO SÂN:</span>
-              <div id="summaryServicesList">
-                <div class="text-muted small fst-italic py-1">Không có dịch vụ</div>
-              </div>
-            </div>
-
-            <!-- Summary totals -->
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="fw-bold text-dark">Số lượng sân/ca:</span>
-              <span class="badge bg-primary rounded-pill fs-6 px-3 py-1" id="summaryCountBadge">0 ca</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-primary bg-opacity-10 rounded-3 border border-primary">
-              <span class="fw-bold text-primary fs-6 mb-0">Tạm tính chi phí:</span>
-              <span class="fw-black text-primary fs-4 mb-0" id="summaryTotalCost">0đ</span>
-            </div>
-
-            <div class="d-grid gap-2">
-              <button type="button" id="btnSubmitTournament" class="btn btn-primary py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center">
-                <i class="bi bi-check-circle-fill me-2 fs-5"></i>Xác Nhận Đăng Ký
-              </button>
-              <a asp-action="MyTournaments" class="btn btn-light py-2 rounded-pill text-muted small fw-semibold text-center">Quay lại danh sách giải</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </form>
-</div>
+<div id="tournamentToast" class="tc-toast" role="status" aria-live="polite"></div>
 
 @section Scripts {
-  <partial name="_ValidationScriptsPartial" />
-  <script>
-    /** @@type {string} */
-    let currentSportFilter = 'all';
-    /** @@type {string} */
-    let currentSvcCategory = 'all';
-
-    // The main cart storing added schedules
-    // format: { id: string, courtId: int, courtName: string, date: string, slotIds: int[], slotNames: string[], price: number }
-    let addedSchedules = [];
-
-    document.addEventListener('DOMContentLoaded', initTournamentCreatePage);
-
-    /**
-     * Initializes the tournament creation page and binds all event listeners.
-     */
-    function initTournamentCreatePage() {
-      setupDualFilters();
-      setupCheckboxSync();
-      setupSummaryListeners();
-      setupFormSubmitListener();
-
-      const btnAdd = document.getElementById('btnAddSchedule');
-      if (btnAdd) btnAdd.addEventListener('click', handleAddSchedule);
-
-      updateLiveSummary();
-    }
-
-    /**
-     * Sets up click events for court type buttons.
-     */
-    function setupDualFilters() {
-      document.querySelectorAll('.filter-tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.filter-tab-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          currentSportFilter = btn.getAttribute('data-filter') || 'all';
-          applyDualFilters();
-        });
-      });
-    }
-
-    /**
-     * Filters court cards based on active sport filter.
-     */
-    function applyDualFilters() {
-      document.querySelectorAll('.court-item').forEach(item => {
-        const courtType = item.getAttribute('data-court-type');
-        item.style.display = (currentSportFilter === 'all' || courtType === currentSportFilter) ? '' : 'none';
-      });
-    }
-
-    /**
-     * Syncs court checkboxes with slot checkboxes visually.
-     */
-    function setupCheckboxSync() {
-      document.querySelectorAll('.slot-checkbox').forEach(slot => {
-        slot.addEventListener('change', function () {
-          const courtId = this.getAttribute('data-court-id');
-          if (courtId) {
-            const courtCheckbox = document.querySelector(`.court-checkbox[data-court-id="${courtId}"]`);
-            if (courtCheckbox) {
-              const anySlotChecked = document.querySelectorAll(`.slot-checkbox[data-court-id="${courtId}"]:checked`).length > 0;
-              courtCheckbox.checked = anySlotChecked;
-            }
-          }
-        });
-      });
-
-      document.querySelectorAll('.court-checkbox').forEach(court => {
-        court.addEventListener('change', function () {
-          const courtId = this.getAttribute('data-court-id');
-          if (courtId) {
-            const isChecked = this.checked;
-            document.querySelectorAll(`.slot-checkbox[data-court-id="${courtId}"]`).forEach(s => {
-               if (!s.disabled) {
-                   s.checked = isChecked;
-               }
-            });
-          }
-        });
-      });
-    }
-
-    /**
-     * Binds input listeners for live summary updates.
-     */
-    function setupSummaryListeners() {
-      const inputName = document.getElementById('inputTournamentName');
-      if (inputName) inputName.addEventListener('input', updateLiveSummary);
-      document.querySelectorAll('.service-input').forEach(si => si.addEventListener('input', updateLiveSummary));
-    }
-
-    /**
-     * Handles adding selected courts and slots to the cart for a specific date.
-     */
-    function handleAddSchedule() {
-      const dateInput = document.getElementById('builderDate');
-      const dateVal = dateInput ? dateInput.value : '';
-      if (!dateVal) { alert('Vui lòng chọn ngày thi đấu trước khi thêm!'); return; }
-      
-      let addedAny = false;
-      let conflictDetected = false;
-      
-      document.querySelectorAll('.court-checkbox:checked').forEach(c => {
-        const courtId = parseInt(c.getAttribute('data-court-id'));
-        const courtName = c.getAttribute('data-court-name');
-        const courtPrice = parseFloat(c.getAttribute('data-court-price')) || 300000;
-        
-        const checkedSlots = document.querySelectorAll(`.slot-checkbox[data-court-id="${courtId}"]:checked`);
-        if (checkedSlots.length > 0) {
-          // Validate conflicts
-          let hasConflict = false;
-          let conflictNames = [];
-          
-          checkedSlots.forEach(s => {
-             const sId = parseInt(s.value);
-             addedSchedules.forEach(sched => {
-                if (sched.courtId === courtId && sched.date === dateVal && sched.slotIds.includes(sId)) {
-                   hasConflict = true;
-                   if (!conflictNames.includes(s.getAttribute('data-slot-name'))) {
-                       conflictNames.push(s.getAttribute('data-slot-name'));
-                   }
-                }
-             });
-          });
-          
-          if (hasConflict) {
-             alert(`⚠️ Không thể thêm! ${courtName} ngày ${dateVal} đã tồn tại các ca: ${conflictNames.join(', ')} trong lịch trình. Vui lòng chọn ca khác.`);
-             conflictDetected = true;
-             return; // Skip adding this court selection
-          }
-
-          const slotIds = [];
-          const slotNames = [];
-          checkedSlots.forEach(s => {
-            slotIds.push(parseInt(s.value));
-            slotNames.push(s.getAttribute('data-slot-name'));
-          });
-          
-          const services = [];
-          document.querySelectorAll(`.service-input[data-court-id="${courtId}"]`).forEach(sInp => {
-             const qty = parseInt(sInp.value) || 0;
-             if (qty > 0) {
-                const serviceId = parseInt(sInp.getAttribute('data-service-id')) || 0;
-                const serviceName = sInp.getAttribute('data-service-name') || '';
-                const servicePrice = parseFloat(sInp.getAttribute('data-service-price')) || 0;
-                services.push({ serviceId: serviceId, serviceName: serviceName, quantity: qty, price: servicePrice });
-                
-                // Reset visual inputs after capture
-                sInp.value = 0;
-             }
-          });
-          
-          const uniqueId = `sch_${Date.now()}_${Math.random().toString(36).substr(2,5)}`;
-          addedSchedules.push({
-            id: uniqueId,
-            courtId: courtId,
-            courtName: courtName,
-            date: dateVal,
-            slotIds: slotIds,
-            slotNames: slotNames,
-            services: services,
-            price: courtPrice * slotIds.length
-          });
-          addedAny = true;
-        }
-      });
-      
-      if (conflictDetected) {
-         return; // Do not show the empty selection alert if a conflict was shown
-      }
-
-      if (!addedAny) {
-        alert('Vui lòng tick chọn ít nhất 1 sân và 1 khung giờ thi đấu bên dưới để thêm vào lịch!');
-        return;
-      }
-      
-      // Clear visual selections after adding
-      document.querySelectorAll('.court-checkbox').forEach(c => c.checked = false);
-      document.querySelectorAll('.slot-checkbox').forEach(s => s.checked = false);
-      
-      updateLiveSummary();
-    }
-
-    /**
-     * Removes a schedule from the cart.
-     */
-    window.removeSchedule = function(id) {
-      addedSchedules = addedSchedules.filter(s => s.id !== id);
-      updateLiveSummary();
-    };
-
-    /**
-     * Recalculates selected slots count and estimated cost, updating summary DOM.
-     */
-    function updateLiveSummary() {
-      const inputName = document.getElementById('inputTournamentName');
-      if (inputName) document.getElementById('summaryTourName').textContent = inputName.value || 'Chưa nhập tên giải...';
-
-      let totalSlotsCount = 0;
-      let estimatedCost = 0;
-      let courtsHtml = '';
-
-      if (addedSchedules.length > 0) {
-        // Sort added schedules by Date then by CourtId
-        addedSchedules.sort((a, b) => {
-           if (a.date !== b.date) return a.date.localeCompare(b.date);
-           return a.courtId - b.courtId;
-        });
-
-        addedSchedules.forEach(s => {
-          totalSlotsCount += s.slotIds.length;
-          estimatedCost += s.price;
-          
-          const dateParts = s.date.split('-');
-          const displayDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : s.date;
-          
-          courtsHtml += `
-            <div class="p-2 mb-2 bg-light rounded-3 border-start border-primary border-4 shadow-sm position-relative">
-              <div class="fw-bold text-dark small">${s.courtName} <span class="text-secondary fw-normal ms-1">(${displayDate})</span></div>
-              <div class="text-primary mt-1" style="font-size: 0.8rem;"><i class="bi bi-clock-history me-1"></i>${s.slotNames.join(', ')}</div>
-              <button type="button" class="btn btn-sm btn-link text-danger position-absolute top-0 end-0 p-1 mt-1 me-1" onclick="removeSchedule('${s.id}')"><i class="bi bi-x-circle-fill fs-6"></i></button>
-            </div>
-          `;
-        });
-      }
-
-      const courtsContainer = document.getElementById('summaryCourtsList');
-      if (courtsContainer) courtsContainer.innerHTML = courtsHtml || '<div class="text-muted small fst-italic py-2 text-center bg-light rounded-3">Chưa có lịch nào được thêm</div>';
-
-      let servicesHtml = '';
-      if (addedSchedules.length > 0) {
-          addedSchedules.forEach(s => {
-              if (s.services && s.services.length > 0) {
-                  servicesHtml += `<div class="fw-bold text-dark small mt-2 border-top pt-1">${s.courtName} <span class="text-secondary fw-normal">(${s.date})</span>:</div>`;
-                  s.services.forEach(svc => {
-                      estimatedCost += (svc.quantity * svc.price);
-                      servicesHtml += `<div class="d-flex justify-content-between small ms-2"><span class="text-muted">- ${svc.serviceName}</span><span class="fw-bold text-primary">x${svc.quantity}</span></div>`;
-                  });
-              }
-          });
-      }
-
-      const servicesContainer = document.getElementById('summaryServicesList');
-      if (servicesContainer) servicesContainer.innerHTML = servicesHtml || '<div class="text-muted small fst-italic py-1">Không có dịch vụ</div>';
-
-      const countBadge = document.getElementById('summaryCountBadge');
-      const totalEl = document.getElementById('summaryTotalCost');
-      if (countBadge) countBadge.textContent = `${totalSlotsCount} ca`;
-      if (totalEl) totalEl.textContent = estimatedCost.toLocaleString('vi-VN') + 'đ';
-    }
-
-    /**
-     * Binds click listener to the submit button.
-     */
-    function setupFormSubmitListener() {
-      const btnSubmit = document.getElementById('btnSubmitTournament');
-      if (btnSubmit) {
-        btnSubmit.addEventListener('click', handleFormSubmit);
-      }
-    }
-
-    /**
-     * Handles tournament registration submission via AJAX Fetch API.
-     * @@param {Event} e The click event.
-     */
-    async function handleFormSubmit(e) {
-      e.preventDefault();
-      hideConflictBanner();
-
-      const inputName = document.getElementById('inputTournamentName');
-      if (!inputName || !inputName.value.trim()) {
-        alert('Vui lòng nhập tên giải đấu!');
-        if (inputName) inputName.focus();
-        return;
-      }
-
-      if (addedSchedules.length === 0) {
-        alert('Vui lòng dùng công cụ Thêm Lịch Thi Đấu (Schedule Builder) để chọn ít nhất 1 sân và khung giờ!');
-        return;
-      }
-
-      const payload = buildTournamentPayload();
-      await submitTournamentAjax(payload);
-    }
-
-    /**
-     * Collects form selections into a clean JSON payload matching CreateTournamentFormDto.
-     * @@returns {Object} The formatted payload object.
-     */
-    function buildTournamentPayload() {
-      const inputName = document.getElementById('inputTournamentName');
-      const inputPromo = document.getElementById('inputPromotionCode');
-      const inputNote = document.getElementById('inputNote');
-
-      // Map addedSchedules to CourtSelections array for the backend
-      const courtSelections = addedSchedules.map(s => ({
-        courtId: s.courtId,
-        bookingDate: s.date,
-        slotIds: s.slotIds,
-        services: s.services ? s.services.map(svc => ({ serviceId: svc.serviceId, quantity: svc.quantity })) : []
-      }));
-
-      return {
-        tournamentName: inputName ? inputName.value.trim() : '',
-        description: document.getElementById('inputDescription') ? document.getElementById('inputDescription').value.trim() : '',
-        promotionCode: inputPromo ? inputPromo.value.trim() : null,
-        note: inputNote ? inputNote.value.trim() : null,
-        courtSelections: courtSelections
-      };
-    }
-
-    /**
-     * Sends payload via fetch API to CreateJson endpoint.
-     * @@param {Object} payload The tournament payload object.
-     */
-    async function submitTournamentAjax(payload) {
-      const btnSubmit = document.getElementById('btnSubmitTournament');
-      const originalText = btnSubmit ? btnSubmit.innerHTML : 'Xác Nhận Đăng Ký';
-      if (btnSubmit) {
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Đang khóa ca & giữ chỗ...';
-      }
-
-      try {
-        const response = await fetch('/Tournaments/CreateJson', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': getAntiForgeryToken()
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-        if (response.ok && result.success) {
-          window.location.href = result.redirectUrl;
-        } else if (response.status === 409 || !result.success) {
-          handleBookingConflict(result.message || 'Khung giờ chọn đã bị trùng hoặc giữ chỗ.');
-        } else {
-          alert(result.message || 'Đã xảy ra lỗi không xác định.');
-        }
-      } catch (error) {
-        console.error('AJAX Error:', error);
-        alert('Không kết nối được đến máy chủ. Vui lòng kiểm tra lại mạng!');
-      } finally {
-        if (btnSubmit) {
-          btnSubmit.disabled = false;
-          btnSubmit.innerHTML = originalText;
-        }
-      }
-    }
-
-    /**
-     * Retrieves CSRF token from hidden form input.
-     * @@returns {string} The anti-forgery token value.
-     */
-    function getAntiForgeryToken() {
-      const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-      return tokenInput ? tokenInput.value : '';
-    }
-
-    /**
-     * Handles 409 Conflict without reloading page and highlights conflicting courts/slots in red.
-     * @@param {string} errorMessage The conflict error message from server.
-     */
-    function handleBookingConflict(errorMessage) {
-      const banner = document.getElementById('conflictAlertBanner');
-      const msgEl = document.getElementById('conflictAlertMessage');
-      if (banner && msgEl) {
-        msgEl.textContent = errorMessage;
-        banner.classList.remove('d-none');
-        banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-
-      document.querySelectorAll('.court-card').forEach(card => {
-        const courtName = card.getAttribute('data-court-name') || '';
-        if (errorMessage.includes(courtName)) {
-          card.classList.add('conflict-highlight');
-          card.querySelectorAll('.slot-checkbox').forEach(slot => {
-            const slotName = slot.getAttribute('data-slot-name') || '';
-            if (errorMessage.includes(slotName)) {
-              const label = document.getElementById(`label_slot_${slot.value}_${card.getAttribute('data-court-id')}`);
-              if (label) label.classList.add('conflict-slot');
-            }
-          });
-        }
-      });
-    }
-
-    /**
-     * Hides the conflict banner and removes red highlights.
-     */
-    function hideConflictBanner() {
-      const banner = document.getElementById('conflictAlertBanner');
-      if (banner) banner.classList.add('d-none');
-      document.querySelectorAll('.conflict-highlight').forEach(el => el.classList.remove('conflict-highlight'));
-      document.querySelectorAll('.conflict-slot').forEach(el => el.classList.remove('conflict-slot'));
-    }
-  </script>
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script>
+        window.TOURNAMENT_CREATE_CONFIG = {
+            apiBaseUrl: '@Configuration["ApiSettings:BaseUrl"]',
+            availabilityUrl: '@Url.Action("GetSlotAvailability", "Booking")',
+            createUrl: '@Url.Action("CreateJson", "Tournaments")',
+            pollIntervalMs: 15000
+        };
+    </script>
+    <script src="~/js/tournament-create.js" asp-append-version="true"></script>
 }

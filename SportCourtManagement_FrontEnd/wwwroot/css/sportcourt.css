@@ -259,6 +259,13 @@ a:hover {
     cursor: not-allowed;
 }
 
+.sc-slot-held {
+    background-color: rgba(245, 158, 11, 0.08);
+    color: var(--sc-amber-light);
+    border-color: rgba(245, 158, 11, 0.2);
+    cursor: not-allowed;
+}
+
 .sc-slot-maintenance {
     background-color: rgba(255, 255, 255, 0.03);
     color: var(--sc-text-secondary);

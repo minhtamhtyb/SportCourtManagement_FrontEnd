@@ -199,6 +199,7 @@ public class TournamentsController : Controller
 
   /// <summary>Creates tournament via AJAX JSON payload without reloading page.</summary>
   [HttpPost]
+  [ValidateAntiForgeryToken]
   public async Task<IActionResult> CreateJson([FromBody] CreateTournamentFormDto form)
   {
     if (!ModelState.IsValid)

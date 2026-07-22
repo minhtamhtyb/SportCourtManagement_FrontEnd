@@ -148,7 +148,7 @@
                                     @foreach (var s in b.Services)
                                     {
                                         <span class="type-badge" style="background: rgba(255,255,255,0.05); color: #94a3b8;">
-                                            @s.ServiceName (x@s.Quantity)
+                                            @s.ServiceName (@($"x{s.Quantity}"))
                                         </span>
                                     }
                                 </div>

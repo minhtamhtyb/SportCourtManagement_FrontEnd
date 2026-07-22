@@ -89,7 +89,7 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
                 if (availSlot != null)
                 {
-                    status = availSlot.Status; // Available | Booked | Maintenance
+                    status = availSlot.Status; // Available | Held | Booked | Maintenance | Inactive
                     price = availSlot.Price;
                 }
                 else if (pricing != null)
