@@ -346,8 +346,25 @@ public class TournamentsController : Controller
   private string? GetToken()
   {
     var token = HttpContext.Session.GetString(JwtForwardingHandler.SessionTokenKey);
+    if (!string.IsNullOrWhiteSpace(token))
+      return token;
+
+    try
+    {
+      token = Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.GetTokenAsync(HttpContext, "access_token").GetAwaiter().GetResult();
+    }
+    catch { }
+
     if (string.IsNullOrWhiteSpace(token))
+    {
       token = User.FindFirst(JwtForwardingHandler.AccessTokenClaimType)?.Value;
+    }
+
+    if (!string.IsNullOrWhiteSpace(token) && HttpContext.Session.IsAvailable)
+    {
+      HttpContext.Session.SetString(JwtForwardingHandler.SessionTokenKey, token);
+    }
+
     return token;
   }
 }

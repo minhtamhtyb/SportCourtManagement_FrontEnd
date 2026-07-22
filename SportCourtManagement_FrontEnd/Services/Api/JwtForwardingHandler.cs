@@ -60,18 +60,28 @@ public class JwtForwardingHandler(IHttpContextAccessor httpContextAccessor) : De
         HttpContext httpContext,
         CancellationToken cancellationToken = default)
     {
+        string? token = null;
+
         if (httpContext.Session.IsAvailable)
         {
             await httpContext.Session.LoadAsync(cancellationToken);
-            var sessionToken = httpContext.Session.GetString(SessionTokenKey);
-            if (!string.IsNullOrWhiteSpace(sessionToken))
-                return sessionToken;
+            token = httpContext.Session.GetString(SessionTokenKey);
+            if (!string.IsNullOrWhiteSpace(token))
+                return token;
         }
 
-        var authToken = await httpContext.GetTokenAsync("access_token");
-        if (!string.IsNullOrWhiteSpace(authToken))
-            return authToken;
+        token = await httpContext.GetTokenAsync("access_token");
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            token = httpContext.User.FindFirst(AccessTokenClaimType)?.Value;
+        }
 
-        return httpContext.User.FindFirst(AccessTokenClaimType)?.Value;
+        if (!string.IsNullOrWhiteSpace(token) && httpContext.Session.IsAvailable)
+        {
+            httpContext.Session.SetString(SessionTokenKey, token);
+            await httpContext.Session.CommitAsync(cancellationToken);
+        }
+
+        return token;
     }
 }

@@ -373,6 +373,21 @@ public class AccountController(IAuthService authService, IOptions<ApiSettings> a
     )
     {
         var currentUser = await authService.GetCurrentUserAsync();
+        if (currentUser is null && User.Identity?.IsAuthenticated == true)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdStr, out int userId);
+            currentUser = new UserDto
+            {
+                UserId = userId,
+                FullName = User.Identity.Name ?? User.FindFirst(ClaimTypes.Name)?.Value ?? "Người dùng",
+                Email = User.FindFirst(ClaimTypes.Email)?.Value ?? "",
+                Phone = User.FindFirst(ClaimTypes.MobilePhone)?.Value,
+                Role = User.FindFirst(ClaimTypes.Role)?.Value ?? "Customer",
+                IsActive = true
+            };
+        }
+
         if (currentUser is null)
             return null;
 
