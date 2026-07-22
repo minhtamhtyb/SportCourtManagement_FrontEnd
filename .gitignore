@@ -36,6 +36,7 @@ bld/
 # Secrets / local
 **/.env
 **/.env.*
+**/appsettings.json
 **/appsettings.*.local.json
 **/secrets.json
 
