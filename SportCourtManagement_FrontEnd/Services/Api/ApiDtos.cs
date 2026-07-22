@@ -33,4 +33,5 @@ internal class ApiCourtDto
     public string? CourtSize { get; set; }
     public List<string> ImageUrls { get; set; } = [];
     public DateTime CreatedAt { get; set; }
+    public List<CourtPricingInputDto>? Pricings { get; set; }
 }

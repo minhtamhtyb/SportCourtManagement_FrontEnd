@@ -124,17 +124,15 @@ public class ApiCourtService(ApiClient api) : ICourtService
 
     public async Task<CourtDto> CreateCourtAsync(CourtDto dto)
     {
-        var created = await api.PostDataAsync<ApiCourtDto>("api/courts", ToPayload(dto));
-        return created is null
-            ? throw new InvalidOperationException("Tạo sân thất bại.")
-            : MapCourt(created);
+        var (created, error, _) = await api.PostForResultAsync<ApiCourtDto>("api/courts", ToPayload(dto));
+        if (error != null)
+            throw new InvalidOperationException(error);
+        return created is null ? dto : MapCourt(created);
     }
 
     public async Task UpdateCourtAsync(int id, CourtDto dto)
     {
-        var updated = await api.PutDataAsync<ApiCourtDto>($"api/courts/{id}", ToPayload(dto));
-        if (updated is null)
-            throw new InvalidOperationException("Cập nhật sân thất bại.");
+        await api.PutDataAsync<object>($"api/courts/{id}", ToPayload(dto));
     }
 
     public async Task UpdateCourtStatusAsync(int id, string status)
@@ -164,7 +162,15 @@ public class ApiCourtService(ApiClient api) : ICourtService
         dto.CloseTime,
         dto.PricePerHour,
         dto.CourtSize,
-        ImageUrls = new List<string>()
+        ImageUrls = dto.ImageUrls ?? new List<string>(),
+        Pricings = dto.Pricings?.Select(p => new
+        {
+            p.SlotId,
+            p.SlotName,
+            p.StartTime,
+            p.EndTime,
+            p.Price
+        }).ToList()
     };
 
     private static CourtDto MapCourt(ApiCourtDto c) => new()
@@ -181,12 +187,14 @@ public class ApiCourtService(ApiClient api) : ICourtService
         Capacity = c.Capacity ?? 4,
         Surface = c.Surface,
         ImageUrl = c.ImageUrl ?? "",
+        ImageUrls = c.ImageUrls ?? [],
         Status = c.Status,
         OpenTime = c.OpenTime,
         CloseTime = c.CloseTime,
         PricePerHour = c.PricePerHour,
         CourtSize = c.CourtSize,
-        CreatedAt = c.CreatedAt
+        CreatedAt = c.CreatedAt,
+        Pricings = c.Pricings
     };
 
     private static UserDto MapUser(UserSummaryApi u) => new()

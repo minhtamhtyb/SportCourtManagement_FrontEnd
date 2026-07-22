@@ -97,6 +97,7 @@ public class CourtDto
     public int Capacity { get; set; } = 4;
     public string? Surface { get; set; }
     public string ImageUrl { get; set; } = "";
+    public List<string>? ImageUrls { get; set; }
     public string Status { get; set; } = "Available";
     public string OpenTime { get; set; } = "06:00";
     public string CloseTime { get; set; } = "22:00";
@@ -105,6 +106,16 @@ public class CourtDto
     public int ReviewCount { get; set; }
     public string? CourtSize { get; set; }
     public DateTime CreatedAt { get; set; }
+    public List<CourtPricingInputDto>? Pricings { get; set; }
+}
+
+public class CourtPricingInputDto
+{
+    public int SlotId { get; set; }
+    public string? SlotName { get; set; }
+    public string? StartTime { get; set; }
+    public string? EndTime { get; set; }
+    public decimal Price { get; set; }
 }
 
 public class ComplexStatsDto

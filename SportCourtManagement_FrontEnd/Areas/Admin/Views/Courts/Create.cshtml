@@ -13,7 +13,7 @@
 </div>
 
 <div class="admin-card p-4" style="max-width:800px">
-    <form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-complexId="@Model.ComplexId" asp-route-id="@Model.CourtId" method="post" class="form-dark">
+    <form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-complexId="@Model.ComplexId" asp-route-id="@Model.CourtId" method="post" enctype="multipart/form-data" class="form-dark">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="ComplexId" />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
@@ -71,8 +71,9 @@
                 <textarea asp-for="Description" class="form-control" rows="2"></textarea>
             </div>
             <div class="col-12">
-                <label asp-for="ImageUrl" class="form-label"></label>
-                <input asp-for="ImageUrl" class="form-control" placeholder="https://..." />
+                <label class="form-label">Tải lên nhiều ảnh sân</label>
+                <input type="file" name="ImageFiles" class="form-control" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
+                <div class="form-text text-secondary small">Chọn 1 hoặc nhiều ảnh từ máy. Tất cả ảnh tải lên sẽ lưu trên Cloudinary.</div>
             </div>
         </div>
 
