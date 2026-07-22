@@ -124,8 +124,14 @@
                 }
                 @if (isStaff)
                 {
+                    <a class="admin-nav-link @(controller=="StaffSchedule"?"active":"")" href="/staff/schedule">
+                        <i class="fa-solid fa-calendar-days"></i><span class="sidebar-text">Lịch làm việc</span>
+                    </a>
                     <a class="admin-nav-link @(controller=="StaffTask"?"active":"")" asp-area="" asp-controller="StaffTask" asp-action="Index">
                         <i class="fa-solid fa-list-check"></i><span class="sidebar-text">Công việc</span>
+                    </a>
+                    <a class="admin-nav-link @(controller=="StaffMaintenance"?"active":"")" href="/staff/maintenance">
+                        <i class="fa-solid fa-screwdriver-wrench"></i><span class="sidebar-text">Bảo trì được giao</span>
                     </a>
                 }
                 @if (isAdmin || isStaff || isManager)

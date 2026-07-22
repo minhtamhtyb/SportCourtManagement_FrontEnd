@@ -37,13 +37,9 @@ namespace SportCourtManagement_FrontEnd.Controllers
             AttachAuthToken();
 
             page = page < 1 ? 1 : page;
-            int pageSize = 10;
+            int pageSize = 100;
 
-            string url = $"{_apiBase}?page={page}&pageSize={pageSize}";
-            if (!string.IsNullOrEmpty(status))
-            {
-                url += $"&status={status}";
-            }
+            string url = $"{_apiBase}?page=1&pageSize={pageSize}";
 
             var model = new PagedTaskResponse();
             var response = await _client.GetAsync(url);
@@ -53,9 +49,40 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 model = JsonSerializer.Deserialize<PagedTaskResponse>(raw, _jsonOpts) ?? new PagedTaskResponse();
             }
 
+            ViewBag.PendingCount = model.Items.Count(t => t.Status == "Pending");
+            ViewBag.InProgressCount = model.Items.Count(t => t.Status == "InProgress");
+            ViewBag.CompletedCount = model.Items.Count(t => t.Status == "Completed");
+            ViewBag.ApprovedCount = model.Items.Count(t => t.Status == "Approved");
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                model.Items = model.Items.Where(t => t.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
+            // Paginate strictly 10 items per page
+            pageSize = 10;
+            int totalItems = model.Items.Count;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            totalPages = totalPages > 0 ? totalPages : 1;
+            page = page > totalPages ? totalPages : (page < 1 ? 1 : page);
+
+            var pagedItems = model.Items
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            model.Items = pagedItems;
+            model.Page = page;
+            model.PageSize = pageSize;
+            model.TotalCount = totalItems;
+            model.TotalPages = totalPages;
+
             ViewBag.SelectedStatus = status;
+            ViewBag.CurrentPage = page;
             return View(model);
         }
+
 
         // POST: /staff/tasks/{taskId}/start
         [HttpPost("{taskId:int}/start")]
@@ -77,13 +104,50 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
         // POST: /staff/tasks/{taskId}/complete
         [HttpPost("{taskId:int}/complete")]
-        public async Task<IActionResult> CompleteTask(int taskId, [FromQuery] string? status = null, [FromQuery] int page = 1)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CompleteTask(
+            int taskId, 
+            [FromForm] string resultNote, 
+            [FromForm] string? proofImageUrl, 
+            [FromForm] IFormFile? proofImageFile,
+            [FromQuery] string? status = null, 
+            [FromQuery] int page = 1)
         {
             AttachAuthToken();
-            var response = await _client.PutAsync($"{_apiBase}/{taskId}/complete", null);
+
+            string finalImageUrl = proofImageUrl?.Trim() ?? string.Empty;
+
+            if (proofImageFile != null && proofImageFile.Length > 0)
+            {
+                var uploadedUrl = await UploadImageToCloudinaryAsync(proofImageFile);
+                if (!string.IsNullOrEmpty(uploadedUrl))
+                {
+                    finalImageUrl = uploadedUrl;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(resultNote))
+            {
+                TempData["ErrorMessage"] = "Vui lòng nhập mô tả kết quả công việc.";
+                return RedirectToAction(nameof(Index), new { status, page });
+            }
+
+
+
+            var payload = new
+            {
+                resultNote = resultNote.Trim(),
+                proofImageUrl = string.IsNullOrWhiteSpace(finalImageUrl) ? null : finalImageUrl
+            };
+
+
+            var json = JsonSerializer.Serialize(payload, _jsonOpts);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _client.PutAsync($"{_apiBase}/{taskId}/complete", content);
             if (response.IsSuccessStatusCode)
             {
-                TempData["SuccessMessage"] = "Đã báo cáo hoàn thành công việc!";
+                TempData["SuccessMessage"] = "Đã gửi báo cáo hoàn thành công việc thành công!";
             }
             else
             {
@@ -92,6 +156,38 @@ namespace SportCourtManagement_FrontEnd.Controllers
             }
             return RedirectToAction(nameof(Index), new { status, page });
         }
+
+        private async Task<string?> UploadImageToCloudinaryAsync(IFormFile file)
+        {
+            try
+            {
+                using var content = new MultipartFormDataContent();
+                using var stream = file.OpenReadStream();
+                using var streamContent = new StreamContent(stream);
+                streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType ?? "image/jpeg");
+                content.Add(streamContent, "file", file.FileName);
+
+                AttachAuthToken();
+                var response = await _client.PostAsync($"{_baseUrl.TrimEnd('/')}/api/complexes/upload-image", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonStr = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(jsonStr);
+                    if (doc.RootElement.TryGetProperty("data", out var dataProp) && dataProp.TryGetProperty("url", out var urlProp))
+                    {
+                        return urlProp.GetString();
+                    }
+                    if (doc.RootElement.TryGetProperty("url", out var directUrlProp))
+                    {
+                        return directUrlProp.GetString();
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+
 
         private string ParseErrorMessage(string rawError, string fallback)
         {

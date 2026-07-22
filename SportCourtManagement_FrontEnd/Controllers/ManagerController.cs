@@ -55,18 +55,21 @@ namespace SportCourtManagement_FrontEnd.Controllers
         public async Task<IActionResult> Shifts([FromQuery] string? weekStart = null)
         {
             await LoadLayoutDataAsync();
-            if (string.IsNullOrEmpty(weekStart))
+
+            DateTime inputDate;
+            if (string.IsNullOrEmpty(weekStart) || !DateTime.TryParse(weekStart, out inputDate))
             {
-                weekStart = DateTime.Today.ToString("yyyy-MM-dd");
+                inputDate = DateTime.Today;
             }
 
+            int diffToMonday = (7 + (inputDate.DayOfWeek - DayOfWeek.Monday)) % 7;
+            DateTime mondayDate = inputDate.AddDays(-diffToMonday).Date;
+            weekStart = mondayDate.ToString("yyyy-MM-dd");
+
             var weeklyData = new WeeklyScheduleResponse();
-            var url = _apiBase + "/staff/shifts/weekly";
-            if (!string.IsNullOrEmpty(weekStart))
-            {
-                url += $"?weekStart={weekStart}";
-            }
+            var url = _apiBase + $"/staff/shifts/weekly?weekStart={weekStart}";
             var response = await _client.GetAsync(url);
+
             if (response.IsSuccessStatusCode)
             {
                 string rawJson = await response.Content.ReadAsStringAsync();

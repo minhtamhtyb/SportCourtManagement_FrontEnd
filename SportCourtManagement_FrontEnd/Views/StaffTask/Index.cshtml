@@ -3,145 +3,432 @@
     Layout = "_AdminLayout";
     ViewData["Title"] = "Công việc của tôi | ProCourt";
     string? selectedStatus = ViewBag.SelectedStatus as string;
+    int currentPage = ViewBag.CurrentPage ?? 1;
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/staff-tasks.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Manager/maintenance.css" asp-append-version="true" />
+    <style>
+        .btn-action-start {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.28);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+        }
+        .btn-action-start:hover {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+            box-shadow: 0 6px 18px rgba(56, 189, 248, 0.45);
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+        .btn-action-start:active {
+            transform: translateY(0);
+        }
+
+        .btn-action-complete {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(52, 211, 153, 0.28);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-action-complete:hover {
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            box-shadow: 0 6px 18px rgba(52, 211, 153, 0.45);
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+        .btn-action-complete:active {
+            transform: translateY(0);
+        }
+    </style>
 }
 
-<div class="tasks-wrapper">
+<div class="maintenance-container">
+
     <!-- Module Header -->
-    <div class="tasks-header">
-        <h2>Công việc của tôi</h2>
-        <p>Theo dõi, thực hiện và báo cáo tiến độ các công việc được phân công.</p>
+    <div class="module-header">
+        <div class="module-title">
+            <h3>📋 Công việc của tôi</h3>
+            <p>Theo dõi, tiếp nhận và báo cáo tiến độ các công việc được phân công vận hành tại cơ sở.</p>
+        </div>
     </div>
 
-    <!-- Filters -->
-    <div class="filters-section">
-        <a class="filter-tab @(string.IsNullOrEmpty(selectedStatus) ? "active" : "")" href="/staff/tasks">Tất cả</a>
-        <a class="filter-tab @(selectedStatus == "Pending" ? "active" : "")" href="/staff/tasks?status=Pending">Chờ thực hiện (Pending)</a>
-        <a class="filter-tab @(selectedStatus == "InProgress" ? "active" : "")" href="/staff/tasks?status=InProgress">Đang làm (InProgress)</a>
-        <a class="filter-tab @(selectedStatus == "Completed" ? "active" : "")" href="/staff/tasks?status=Completed">Chờ nghiệm thu (Completed)</a>
-        <a class="filter-tab @(selectedStatus == "Approved" ? "active" : "")" href="/staff/tasks?status=Approved">Đã duyệt (Approved)</a>
-    </div>
-
-    <!-- Tasks Grid -->
-    @if (Model.Items == null || !Model.Items.Any())
-    {
-        <div class="empty-state">
-            <span class="material-symbols-outlined empty-state-icon" style="font-size: 48px;">assignment_late</span>
-            <h4>Không tìm thấy công việc nào</h4>
-            <p>Bạn không có công việc nào thuộc danh mục này hoặc chưa được giao việc.</p>
-        </div>
-    }
-    else
-    {
-        <div class="tasks-grid">
-            @foreach (var task in Model.Items)
-            {
-                var priorityClass = task.Priority.ToLower() switch
-                {
-                    "high" => "priority-high",
-                    "medium" => "priority-medium",
-                    _ => "priority-low"
-                };
-
-                var statusClass = task.Status.ToLower() switch
-                {
-                    "pending" => "status-pending",
-                    "inprogress" => "status-inprogress",
-                    "completed" => "status-completed",
-                    "approved" => "status-approved",
-                    _ => "status-pending"
-                };
-
-                <div class="task-card">
-                    <div class="task-card-header">
-                        <div class="task-meta-top">
-                            <span class="badge-custom @priorityClass">@task.Priority</span>
-                            <span class="badge-custom @statusClass">@task.Status</span>
-                        </div>
-                        <div class="task-due-date">
-                            <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">event</span>
-                            <span>@task.DueDate.ToString("dd/MM/yyyy")</span>
-                        </div>
-                    </div>
-
-                    <div class="task-card-body">
-                        <h3 class="task-card-title">@task.Title</h3>
-                        <p class="task-card-desc">@task.Description</p>
-                    </div>
-
-                    <div class="task-card-footer">
-                        <span class="task-category">@task.Category</span>
-
-                        @if (task.Status == "Pending")
-                        {
-                            <form asp-controller="StaffTask" asp-action="StartTask" asp-route-taskId="@task.TaskId" asp-route-status="@selectedStatus" asp-route-page="@Model.Page" method="post" style="margin: 0;">
-                                <button type="submit" class="task-action-btn btn-start">
-                                    <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">play_arrow</span>
-                                    Bắt đầu làm
-                                </button>
-                            </form>
-                        }
-                        else if (task.Status == "InProgress")
-                        {
-                            <form asp-controller="StaffTask" asp-action="CompleteTask" asp-route-taskId="@task.TaskId" asp-route-status="@selectedStatus" asp-route-page="@Model.Page" method="post" style="margin: 0;">
-                                <button type="submit" class="task-action-btn btn-complete">
-                                    <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">done_all</span>
-                                    Hoàn thành
-                                </button>
-                            </form>
-                        }
-                        else if (task.Status == "Completed")
-                        {
-                            <span style="font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
-                                <span class="material-symbols-outlined" style="color: #10b981; font-size: 16px;">schedule</span>
-                                Chờ nghiệm thu
-                            </span>
-                        }
-                        else if (task.Status == "Approved")
-                        {
-                            <span style="font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
-                                <span class="material-symbols-outlined" style="color: #22c55e; font-size: 16px;">check_circle</span>
-                                Đã nghiệm thu
-                            </span>
-                        }
-                    </div>
-                </div>
-            }
-        </div>
-
-        <!-- Pagination -->
-        @if (Model.TotalPages > 1)
-        {
-            <div class="pagination-container">
-                <span class="pagination-info">Hiển thị trang @Model.Page / @Model.TotalPages (Tổng số @Model.TotalCount công việc)</span>
-                <div class="pagination-btns">
-                    <a class="page-btn @(Model.Page <= 1 ? "disabled" : "")" 
-                       href="@(Model.Page <= 1 ? "#" : $"/staff/tasks?status={selectedStatus}&page={Model.Page - 1}")"
-                       style="@(Model.Page <= 1 ? "pointer-events: none; opacity: 0.5;" : "")">
-                        <span class="material-symbols-outlined" style="font-size: 18px;">chevron_left</span>
-                    </a>
-                    
-                    @for (int i = 1; i <= Model.TotalPages; i++)
-                    {
-                        <a class="page-btn @(i == Model.Page ? "active" : "")" href="/staff/tasks?status=@selectedStatus&page=@i">@i</a>
-                    }
-
-                    <a class="page-btn @(Model.Page >= Model.TotalPages ? "disabled" : "")" 
-                       href="@(Model.Page >= Model.TotalPages ? "#" : $"/staff/tasks?status={selectedStatus}&page={Model.Page + 1}")"
-                       style="@(Model.Page >= Model.TotalPages ? "pointer-events: none; opacity: 0.5;" : "")">
-                        <span class="material-symbols-outlined" style="font-size: 18px;">chevron_right</span>
-                    </a>
-                </div>
+    <!-- Summary Stats -->
+    <div class="summary-stats">
+        <div class="stat-card glass-panel">
+            <div class="stat-icon orange">
+                <span class="material-symbols-outlined">pending_actions</span>
             </div>
-        }
+            <div class="stat-body">
+                <p class="stat-label">Pending</p>
+                <span class="stat-value orange">@(ViewBag.PendingCount ?? 0)</span>
+                <p class="stat-sub">Chờ bắt đầu</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon sky">
+                <span class="material-symbols-outlined">construction</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">In Progress</p>
+                <span class="stat-value sky">@(ViewBag.InProgressCount ?? 0)</span>
+                <p class="stat-sub">Đang thực hiện</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon emerald">
+                <span class="material-symbols-outlined">schedule</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Completed</p>
+                <span class="stat-value emerald">@(ViewBag.CompletedCount ?? 0)</span>
+                <p class="stat-sub">Chờ nghiệm thu</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.15); color: #22c55e;">
+                <span class="material-symbols-outlined">check_circle</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Approved</p>
+                <span class="stat-value" style="color: #22c55e;">@(ViewBag.ApprovedCount ?? 0)</span>
+                <p class="stat-sub">Đã duyệt hoàn thành</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar Filters -->
+    <div class="toolbar-container">
+        <div class="toolbar-filters">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" id="searchInput" placeholder="Tìm theo tiêu đề, mô tả công việc..." />
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">filter_list</span>
+                <select id="statusFilter">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Pending" selected="@(selectedStatus == "Pending")">Pending (Chờ bắt đầu)</option>
+                    <option value="InProgress" selected="@(selectedStatus == "InProgress")">In Progress (Đang làm)</option>
+                    <option value="Completed" selected="@(selectedStatus == "Completed")">Completed (Chờ duyệt)</option>
+                    <option value="Approved" selected="@(selectedStatus == "Approved")">Approved (Đã duyệt)</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">priority_high</span>
+                <select id="priorityFilter">
+                    <option value="">Tất cả mức ưu tiên</option>
+                    <option value="Urgent">Urgent (Khẩn cấp)</option>
+                    <option value="High">High (Cao)</option>
+                    <option value="Medium">Medium (Trung bình)</option>
+                    <option value="Low">Low (Thấp)</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">category</span>
+                <select id="categoryFilter">
+                    <option value="">Tất cả hạng mục</option>
+                    <option value="Cleanup">Cleanup (Dọn dẹp)</option>
+                    <option value="ServicePrep">ServicePrep (Dịch vụ)</option>
+                    <option value="Repair">Repair (Sửa chữa)</option>
+                    <option value="Complaint">Complaint (Khiếu nại)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Table Panel -->
+    <div class="table-panel glass-panel">
+        <table class="maintenance-table">
+            <thead>
+                <tr>
+                    <th>Tên công việc</th>
+                    <th>Hạng mục</th>
+                    <th>Mức ưu tiên</th>
+                    <th>Nội dung / Mô tả</th>
+                    <th>Hạn chót</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items == null || !Model.Items.Any())
+                {
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--on-surface-variant); font-style: italic;">
+                            Không có công việc nào được phân công.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var task in Model.Items)
+                    {
+                        var isPending = task.Status == "Pending";
+                        var isInProgress = task.Status == "InProgress";
+                        var isCompleted = task.Status == "Completed";
+                        var isApproved = task.Status == "Approved";
+
+                        var priorityBadgeClass = task.Priority.ToLower() switch
+                        {
+                            "urgent" => "emergency",
+                            "high" => "emergency",
+                            "medium" => "routine",
+                            _ => "upgrade"
+                        };
+
+                        var statusBadgeClass = task.Status.ToLower() switch
+                        {
+                            "inprogress" => "in-progress",
+                            "completed" => "done",
+                            "approved" => "done",
+                            _ => "pending"
+                        };
+
+                        <tr data-id="@task.TaskId"
+                            data-title="@task.Title"
+                            data-desc="@task.Description"
+                            data-priority="@task.Priority"
+                            data-category="@task.Category"
+                            data-status="@task.Status"
+                            data-image-proof="@(task.ImageProof ?? "")">
+                            <td>
+                                <div class="court-cell">
+                                    <div class="court-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
+                                        <span class="material-symbols-outlined">assignment</span>
+                                    </div>
+                                    <div>
+                                        <p class="court-name">@task.Title</p>
+                                        <p class="court-location">Giao bởi: @(string.IsNullOrEmpty(task.CreatedByName) ? "Hệ thống" : task.CreatedByName)</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="type-badge routine">@task.Category</span></td>
+                            <td><span class="type-badge @priorityBadgeClass">@task.Priority</span></td>
+                            <td class="reason-cell">@task.Description</td>
+                            <td>
+                                <p class="time-start" style="font-weight: 500;">
+                                    <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">event</span>
+                                    @task.DueDate.ToString("dd/MM/yyyy HH:mm")
+                                </p>
+                            </td>
+                            <td><span class="status-badge @statusBadgeClass">@task.Status</span></td>
+                            <td>
+                                <div class="actions-cell">
+                                    @if (isPending)
+                                    {
+                                        <form asp-controller="StaffTask" asp-action="StartTask" asp-route-taskId="@task.TaskId" asp-route-status="@selectedStatus" asp-route-page="@currentPage" method="post" style="margin: 0;">
+                                            <button type="submit" class="btn-action-start">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">play_arrow</span>
+                                                Bắt đầu làm
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (isInProgress)
+                                    {
+                                        <button type="button" 
+                                                class="btn-action-complete" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#completeTaskModal"
+                                                data-task-id="@task.TaskId"
+                                                data-task-title="@task.Title">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">done_all</span>
+                                            Báo cáo hoàn thành
+                                        </button>
+                                    }
+                                    <button type="button" 
+
+                                            class="btn-secondary-custom view-task-btn" 
+                                            style="padding: 6px 10px; font-size: 12px;" 
+                                            title="Xem chi tiết & Ảnh minh chứng"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#detailTaskModal"
+                                            data-title="@task.Title"
+                                            data-desc="@task.Description"
+                                            data-image-proof="@(task.ImageProof ?? "")">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Panel -->
+    @if (Model.TotalPages > 0)
+    {
+        <div class="pagination-panel">
+            <p class="pagination-info">
+                Hiển thị trang @Model.Page / @Model.TotalPages (Tổng số @Model.TotalCount công việc - 10 công việc / trang)
+            </p>
+            <div class="pagination-buttons">
+                @if (Model.Page > 1)
+                {
+                    <a class="pagination-btn" href="/staff/tasks?status=@selectedStatus&page=@(Model.Page - 1)">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </a>
+                }
+                else
+                {
+                    <button class="pagination-btn" disabled>
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                }
+
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a class="pagination-btn @(i == Model.Page ? "active" : "")" href="/staff/tasks?status=@selectedStatus&page=@i">@i</a>
+                }
+
+                @if (Model.Page < Model.TotalPages)
+                {
+                    <a class="pagination-btn" href="/staff/tasks?status=@selectedStatus&page=@(Model.Page + 1)">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </a>
+                }
+                else
+                {
+                    <button class="pagination-btn" disabled>
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                }
+            </div>
+        </div>
     }
+
+</div>
+
+<!-- Modal Chi Tiết Công Việc -->
+<div class="modal fade" id="detailTaskModal" tabindex="-1" aria-labelledby="detailTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 16px;">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h5 class="modal-title" id="detailTaskModalLabel">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; color: var(--sky-400);">info</span>
+                    Chi tiết công việc - <span id="detailTaskTitleDisplay"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" style="font-size: 13px; color: #94a3b8; font-weight: 600;">Mô tả công việc & Báo cáo kết quả:</label>
+                    <p id="detailTaskDescDisplay" style="background: #0f172a; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: #f8fafc; margin: 0;"></p>
+                </div>
+                <div class="mb-3" id="detailTaskImageProofContainer" style="display: none;">
+                    <label class="form-label" style="font-size: 13px; color: #94a3b8; font-weight: 600;">Hình ảnh minh chứng hoàn thành:</label>
+                    <div style="background: #0f172a; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                        <img id="detailTaskImageProofImg" src="" alt="Ảnh minh chứng" style="max-width: 100%; max-height: 280px; border-radius: 8px; object-fit: contain;" />
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="completeTaskModal" tabindex="-1" aria-labelledby="completeTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 16px;">
+            <form asp-controller="StaffTask" asp-action="CompleteTask" method="post" enctype="multipart/form-data" id="completeTaskForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="status" value="@selectedStatus" />
+                <input type="hidden" name="page" value="@currentPage" />
+
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h5 class="modal-title" id="completeTaskModalLabel">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; color: var(--emerald-400);">task_alt</span>
+                        Báo cáo hoàn thành công việc - <span id="modalTaskTitleDisplay"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: #cbd5e1;">Nội dung kết quả công việc *:</label>
+                        <textarea class="form-control" name="resultNote" rows="3" maxlength="500" placeholder="Mô tả chi tiết kết quả công việc đã thực hiện..." style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 10px;" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: #cbd5e1;">Tải ảnh minh chứng từ thiết bị (Không bắt buộc):</label>
+                        <input type="file" class="form-control" name="proofImageFile" accept="image/*" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 10px;" />
+                    </div>
+
+
+                </div>
+
+                <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">Hủy</button>
+                    <button type="submit" class="btn btn-success" style="border-radius: 10px; background: var(--emerald-500); border: none;">
+                        <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">send</span>
+                        Gửi báo cáo hoàn thành
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script>
+        // Detail Task Modal Event Listener
+        const detailTaskModal = document.getElementById('detailTaskModal');
+        if (detailTaskModal) {
+            detailTaskModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const title = button.getAttribute('data-title') || '';
+                const desc = button.getAttribute('data-desc') || 'Chưa có mô tả';
+                const imgProof = button.getAttribute('data-image-proof') || '';
+
+                document.getElementById('detailTaskTitleDisplay').textContent = title;
+                document.getElementById('detailTaskDescDisplay').textContent = desc;
+
+                const imgContainer = document.getElementById('detailTaskImageProofContainer');
+                const imgElem = document.getElementById('detailTaskImageProofImg');
+
+                if (imgProof && imgProof.trim() !== '' && imgProof !== 'null') {
+                    imgElem.src = imgProof;
+                    imgContainer.style.display = 'block';
+                } else {
+                    imgContainer.style.display = 'none';
+                    imgElem.src = '';
+                }
+
+            });
+        }
+        const completeTaskModal = document.getElementById('completeTaskModal');
+        if (completeTaskModal) {
+            completeTaskModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const taskId = button.getAttribute('data-task-id');
+                const taskTitle = button.getAttribute('data-task-title');
+
+                document.getElementById('modalTaskTitleDisplay').textContent = taskTitle || '';
+                document.getElementById('completeTaskForm').action = `/staff/tasks/${taskId}/complete?status=@selectedStatus&page=@currentPage`;
+            });
+        }
+
         // ── Toast Helper ──────────────────────────────────────────────────────
         function showToast(message, type = 'success') {
             document.querySelectorAll('.toast-notification').forEach(t => t.remove());
@@ -162,5 +449,64 @@
         {
             <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
         }
+
+        // ── Live Client-side Search & Filter Logic ────────────────────────────
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const priorityFilter = document.getElementById('priorityFilter');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const tableRows = document.querySelectorAll('.maintenance-table tbody tr');
+
+        function filterTable() {
+            const query = searchInput.value.toLowerCase().trim();
+            const status = statusFilter.value;
+            const priority = priorityFilter.value;
+            const category = categoryFilter.value;
+
+            tableRows.forEach(row => {
+                if (row.cells.length === 1 && row.cells[0].colSpan > 1) return; // Skip empty row
+
+                const title = row.dataset.title ? row.dataset.title.toLowerCase() : '';
+                const desc = row.dataset.desc ? row.dataset.desc.toLowerCase() : '';
+                const rowStatus = row.dataset.status || '';
+                const rowPriority = row.dataset.priority || '';
+                const rowCategory = row.dataset.category || '';
+
+                const matchesSearch = title.includes(query) || desc.includes(query);
+                const matchesStatus = !status || rowStatus.toLowerCase() === status.toLowerCase();
+                const matchesPriority = !priority || rowPriority.toLowerCase() === priority.toLowerCase();
+                const matchesCategory = !category || rowCategory.toLowerCase() === category.toLowerCase();
+
+                if (matchesSearch && matchesStatus && matchesPriority && matchesCategory) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            updatePaginationInfo();
+        }
+
+        searchInput.addEventListener('input', filterTable);
+        statusFilter.addEventListener('change', filterTable);
+        priorityFilter.addEventListener('change', filterTable);
+        categoryFilter.addEventListener('change', filterTable);
+
+        function updatePaginationInfo() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            const visibleRows = document.querySelectorAll('.maintenance-table tbody tr:not([style*="display: none"])');
+            const totalRows = document.querySelectorAll('.maintenance-table tbody tr');
+            
+            const isNoData = totalRows.length === 1 && totalRows[0].cells[0].colSpan > 1;
+            const activeCount = isNoData ? 0 : visibleRows.length;
+            const totalCount = isNoData ? 0 : totalRows.length;
+
+            const pageInfo = document.querySelector('.pagination-info');
+            if (pageInfo) {
+                pageInfo.textContent = `Lọc kết quả: ${activeCount} / ${totalCount} công việc`;
+            }
+        }
+
     </script>
 }

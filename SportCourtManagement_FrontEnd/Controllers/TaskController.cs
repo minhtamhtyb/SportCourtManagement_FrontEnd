@@ -46,13 +46,13 @@ namespace SportCourtManagement_FrontEnd.Controllers
             };
         }
 
-        // ── GET: Support multiple routes for ease of use
+        // ── GET: /manager/tasks ───────────────────
         [HttpGet]
-        public async Task<IActionResult> Tasks()
+        public async Task<IActionResult> Tasks([FromQuery] string? status = null, [FromQuery] int page = 1)
         {
             await LoadLayoutDataAsync();
             var model = new TaskViewModel();
-            
+            page = page < 1 ? 1 : page;
 
             // Fetch tasks list (all tasks by using a large page size)
             var taskResponse = await _client.GetAsync(_apiBase + "/tasks?pageSize=100");
@@ -71,6 +71,34 @@ namespace SportCourtManagement_FrontEnd.Controllers
             model.InProgressCount = model.Tasks.Items.Count(t => t.Status == "InProgress");
             model.CompletedCount = model.Tasks.Items.Count(t => t.Status == "Completed");
             model.ApprovedCount = model.Tasks.Items.Count(t => t.Status == "Approved");
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                model.Tasks.Items = model.Tasks.Items
+                    .Where(t => t.Status.Equals(status, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            // Paginate strictly 10 items per page
+            int pageSize = 10;
+            int totalItems = model.Tasks.Items.Count;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            totalPages = totalPages > 0 ? totalPages : 1;
+            page = page > totalPages ? totalPages : (page < 1 ? 1 : page);
+
+            var pagedItems = model.Tasks.Items
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            model.Tasks.Items = pagedItems;
+            model.Tasks.Page = page;
+            model.Tasks.PageSize = pageSize;
+            model.Tasks.TotalCount = totalItems;
+            model.Tasks.TotalPages = totalPages;
+
+            ViewBag.SelectedStatus = status;
+            ViewBag.CurrentPage = page;
 
             // Fetch staff members for complex 1
             var staffResponse = await _client.GetAsync(_apiBase + "/staff?pageSize=100");

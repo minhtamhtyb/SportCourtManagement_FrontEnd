@@ -1,0 +1,677 @@
+@model SportCourtManagement_FrontEnd.Models.Manager.StaffMaintenanceViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Bảo trì được giao | ProCourt";
+    string? selectedStatus = ViewBag.SelectedStatus as string;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Manager/maintenance.css" asp-append-version="true" />
+    <style>
+        .btn-action-start {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.28);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+        }
+        .btn-action-start:hover {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+            box-shadow: 0 6px 18px rgba(56, 189, 248, 0.45);
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+        .btn-action-start:active {
+            transform: translateY(0);
+        }
+
+        .btn-action-complete {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(52, 211, 153, 0.28);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-action-complete:hover {
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            box-shadow: 0 6px 18px rgba(52, 211, 153, 0.45);
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+        .btn-action-complete:active {
+            transform: translateY(0);
+        }
+
+        .btn-action-detail {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(100, 116, 139, 0.28);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+        }
+        .btn-action-detail:hover {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            box-shadow: 0 6px 18px rgba(100, 116, 139, 0.45);
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+        .btn-action-detail:active {
+            transform: translateY(0);
+        }
+    </style>
+}
+
+<div class="maintenance-container">
+
+    <!-- Module Header -->
+    <div class="module-header">
+        <div class="module-title">
+            <h3>🛠️ Nhiệm vụ Bảo trì được giao</h3>
+            <p>Theo dõi, tiếp nhận thi công và báo cáo kết quả bảo trì sân theo phân công vận hành tại cơ sở.</p>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="summary-stats">
+        <div class="stat-card glass-panel">
+            <div class="stat-icon orange">
+                <span class="material-symbols-outlined">pending_actions</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Pending</p>
+                <span class="stat-value orange">@Model.PendingCount</span>
+                <p class="stat-sub">Chờ bắt đầu</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon sky">
+                <span class="material-symbols-outlined">construction</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">In Progress</p>
+                <span class="stat-value sky">@Model.InProgressCount</span>
+                <p class="stat-sub">Đang thi công</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon emerald">
+                <span class="material-symbols-outlined">check_circle</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Completed</p>
+                <span class="stat-value emerald">@Model.CompletedCount</span>
+                <p class="stat-sub">Chờ nghiệm thu</p>
+            </div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon rose">
+                <span class="material-symbols-outlined">cancel</span>
+            </div>
+            <div class="stat-body">
+                <p class="stat-label">Cancelled</p>
+                <span class="stat-value rose">@Model.CancelledCount</span>
+                <p class="stat-sub">Đã hủy / Từ chối</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar Filters -->
+    <div class="toolbar-container">
+        <div class="toolbar-filters">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" id="searchInput" placeholder="Tìm theo tên sân, lý do bảo trì..." />
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">filter_list</span>
+                <select id="statusFilter">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Scheduled" selected="@(selectedStatus == "Scheduled" || selectedStatus == "Pending")">Scheduled (Chờ bắt đầu)</option>
+                    <option value="InProgress" selected="@(selectedStatus == "InProgress")">In Progress (Đang làm)</option>
+                    <option value="Completed" selected="@(selectedStatus == "Completed")">Completed (Chờ duyệt)</option>
+                    <option value="Cancelled" selected="@(selectedStatus == "Cancelled")">Cancelled (Bị hủy)</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <span class="material-symbols-outlined">build</span>
+                <select id="typeFilter">
+                    <option value="">Tất cả loại bảo trì</option>
+                    <option value="Routine">Routine (Định kỳ)</option>
+                    <option value="Emergency">Emergency (Khẩn cấp)</option>
+                    <option value="Upgrade">Upgrade (Nâng cấp)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Table Panel -->
+    <div class="table-panel glass-panel">
+        <table class="maintenance-table">
+            <thead>
+                <tr>
+                    <th>Sân bóng</th>
+                    <th>Loại bảo trì</th>
+                    <th>Lý do / Nội dung công việc</th>
+                    <th>Thời gian thi công</th>
+                    <th>Trạng thái</th>
+                    <th>Kết quả / Ghi chú</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Schedules?.Items == null || !Model.Schedules.Items.Any())
+                {
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--on-surface-variant); font-style: italic;">
+                            Không có lịch bảo trì nào được phân công.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model.Schedules.Items)
+                    {
+                        var isPending = item.Status == "Scheduled" || item.Status == "Pending";
+                        var isInProgress = item.Status == "InProgress";
+                        var isCompleted = item.Status == "Completed";
+                        var isCancelled = item.Status == "Cancelled";
+
+                        var typeBadgeClass = item.MaintenanceType.ToLower() switch
+                        {
+                            "emergency" => "emergency",
+                            "upgrade" => "upgrade",
+                            _ => "routine"
+                        };
+
+                        var statusBadgeClass = item.Status.ToLower() switch
+                        {
+                            "inprogress" => "in-progress",
+                            "completed" => "done",
+                            "cancelled" => "cancelled",
+                            _ => "pending"
+                        };
+
+                        <tr data-id="@item.MaintenanceId"
+                            data-court-id="@item.CourtId"
+                            data-court-name="@item.CourtName"
+                            data-complex-name="@item.ComplexName"
+                            data-type="@item.MaintenanceType"
+                            data-reason="@item.Reason"
+                            data-start="@item.StartDateTime.ToString("dd/MM/yyyy HH:mm")"
+                            data-end="@item.EndDateTime.ToString("dd/MM/yyyy HH:mm")"
+                            data-created="@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")"
+                            data-status="@item.Status"
+                            data-staff-id="@item.AssignedStaffId"
+                            data-staff-name="@(string.IsNullOrEmpty(item.AssignedStaffName) ? "Chưa phân công" : item.AssignedStaffName)"
+                            data-result="@(string.IsNullOrWhiteSpace(item.Result) || item.Result == "–" ? "Chưa có kết quả" : item.Result)"
+                            data-image="@(item.ImageProof ?? "")">
+                            <td>
+                                <div class="court-cell">
+                                    <div class="court-icon">
+                                        <span class="material-symbols-outlined">sports_tennis</span>
+                                    </div>
+                                    <div>
+                                        <p class="court-name">@item.CourtName</p>
+                                        <p class="court-location">@item.ComplexName</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="type-badge @typeBadgeClass">@item.MaintenanceType</span></td>
+                            <td class="reason-cell">@item.Reason</td>
+                            <td>
+                                <p class="time-start">Từ: @item.StartDateTime.ToString("dd/MM/yyyy HH:mm")</p>
+                                <p class="time-end">Đến: @item.EndDateTime.ToString("dd/MM/yyyy HH:mm")</p>
+                            </td>
+                            <td><span class="status-badge @statusBadgeClass">@item.Status</span></td>
+                            <td class="reason-cell" style="font-style: italic; color: #a7f3d0;">
+                                @(string.IsNullOrWhiteSpace(item.Result) || item.Result == "–" ? "Chưa có kết quả" : item.Result)
+                                @if (!string.IsNullOrWhiteSpace(item.ImageProof))
+                                {
+                                    <div class="mt-1">
+                                        <a href="@item.ImageProof" target="_blank" rel="noopener noreferrer" style="color: var(--sky-400); font-size: 12px; font-style: normal; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                            <span class="material-symbols-outlined" style="font-size: 14px;">image</span> Xem ảnh minh chứng
+                                        </a>
+                                    </div>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="actions-cell">
+                                    <button type="button" 
+                                            class="btn-action-detail"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#detailModal"
+                                            data-id="@item.MaintenanceId"
+                                            data-court-name="@item.CourtName"
+                                            data-complex-name="@item.ComplexName"
+                                            data-type="@item.MaintenanceType"
+                                            data-start="@item.StartDateTime.ToString("dd/MM/yyyy HH:mm")"
+                                            data-end="@item.EndDateTime.ToString("dd/MM/yyyy HH:mm")"
+                                            data-created="@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")"
+                                            data-reason="@item.Reason"
+                                            data-status="@item.Status"
+                                            data-staff-name="@(string.IsNullOrEmpty(item.AssignedStaffName) ? "Chưa phân công" : item.AssignedStaffName)"
+                                            data-result="@(string.IsNullOrWhiteSpace(item.Result) || item.Result == "–" ? "Chưa có kết quả" : item.Result)"
+                                            data-image="@(item.ImageProof ?? "")">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+                                        Chi tiết
+                                    </button>
+                                    @if (isPending)
+                                    {
+                                        <form asp-controller="StaffMaintenance" asp-action="StartMaintenance" asp-route-id="@item.MaintenanceId" asp-route-status="@selectedStatus" asp-route-page="@currentPage" method="post" style="margin: 0;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="courtId" value="@item.CourtId" />
+                                            <input type="hidden" name="maintenanceType" value="@item.MaintenanceType" />
+                                            <input type="hidden" name="startDateTime" value="@item.StartDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+                                            <input type="hidden" name="endDateTime" value="@item.EndDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+                                            <input type="hidden" name="reason" value="@item.Reason" />
+                                            <input type="hidden" name="assignedStaffId" value="@item.AssignedStaffId" />
+                                            <button type="submit" class="btn-action-start">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">play_arrow</span>
+                                                Bắt đầu bảo trì
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (isInProgress)
+                                    {
+                                        <button type="button" 
+                                                class="btn-action-complete"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#completeModal"
+                                                data-id="@item.MaintenanceId"
+                                                data-court-id="@item.CourtId"
+                                                data-type="@item.MaintenanceType"
+                                                data-start="@item.StartDateTime.ToString("yyyy-MM-ddTHH:mm")"
+                                                data-end="@item.EndDateTime.ToString("yyyy-MM-ddTHH:mm")"
+                                                data-reason="@item.Reason"
+                                                data-court-name="@item.CourtName"
+                                                data-staff-id="@item.AssignedStaffId">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">check_circle</span>
+                                            Báo cáo hoàn thành
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Panel -->
+    @if (Model.Schedules?.TotalPages > 0)
+    {
+        <div class="pagination-panel">
+            <p class="pagination-info">
+                Hiển thị trang @Model.Schedules.Page / @Model.Schedules.TotalPages (Tổng số @Model.Schedules.TotalCount bản ghi - 10 bản ghi / trang)
+            </p>
+            <div class="pagination-buttons">
+                @if (Model.Schedules.Page > 1)
+                {
+                    <a class="pagination-btn" href="/staff/maintenance?status=@selectedStatus&page=@(Model.Schedules.Page - 1)">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </a>
+                }
+                else
+                {
+                    <button class="pagination-btn" disabled>
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                }
+
+                @for (int i = 1; i <= Model.Schedules.TotalPages; i++)
+                {
+                    <a class="pagination-btn @(i == Model.Schedules.Page ? "active" : "")" href="/staff/maintenance?status=@selectedStatus&page=@i">@i</a>
+                }
+
+                @if (Model.Schedules.Page < Model.Schedules.TotalPages)
+                {
+                    <a class="pagination-btn" href="/staff/maintenance?status=@selectedStatus&page=@(Model.Schedules.Page + 1)">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </a>
+                }
+                else
+                {
+                    <button class="pagination-btn" disabled>
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                }
+            </div>
+        </div>
+    }
+
+
+</div>
+
+<!-- Modal Báo Cáo Hoàn Thành -->
+<div class="modal fade" id="completeModal" tabindex="-1" aria-labelledby="completeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 16px;">
+            <form asp-controller="StaffMaintenance" asp-action="CompleteMaintenance" method="post" enctype="multipart/form-data" id="completeForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="modalMaintId" name="id" />
+                <input type="hidden" id="modalCourtId" name="courtId" />
+                <input type="hidden" id="modalMaintType" name="maintenanceType" />
+                <input type="hidden" id="modalStart" name="startDateTime" />
+                <input type="hidden" id="modalEnd" name="endDateTime" />
+                <input type="hidden" id="modalReason" name="reason" />
+                <input type="hidden" id="modalStaffId" name="assignedStaffId" />
+                <input type="hidden" name="status" value="@selectedStatus" />
+                <input type="hidden" name="page" value="@currentPage" />
+
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h5 class="modal-title" id="completeModalLabel">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; color: var(--emerald-400);">task_alt</span>
+                        Báo cáo hoàn thành bảo trì - <span id="modalCourtNameTitle"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: #cbd5e1;">Nội dung kết quả / Ghi chú hoàn thành *:</label>
+                        <textarea class="form-control" name="resultNote" rows="3" maxlength="500" placeholder="Mô tả chi tiết các hạng mục đã hoàn thành (ví dụ: Đã sửa xong hệ thống đèn chiếu sáng, vệ sinh mặt sân và căng lại lưới...)" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 10px;" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: #cbd5e1;">Tải ảnh minh chứng từ thiết bị (Không bắt buộc):</label>
+                        <input type="file" class="form-control" name="proofImageFile" accept="image/*" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 10px;" />
+                    </div>
+
+
+                </div>
+
+
+                <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">Hủy</button>
+                    <button type="submit" class="btn btn-success" style="border-radius: 10px; background: var(--emerald-500); border: none;">
+                        <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">send</span>
+                        Gửi báo cáo nghiệm thu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xem Chi Tiết Bảo Trì -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.12); color: #fff; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 18px 24px;">
+                <h5 class="modal-title" id="detailModalLabel" style="font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-outlined" style="color: var(--sky-400);">info</span>
+                    Chi tiết lịch bảo trì <span id="detailMaintIdTitle" style="color: var(--sky-400);"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <div class="row g-3">
+                    <!-- Sân & Cơ sở -->
+                    <div class="col-md-6">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); height: 100%;">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Sân bóng & Cơ sở</p>
+                            <p style="font-size: 16px; font-weight: 700; color: #f8fafc; margin-bottom: 4px;" id="detailCourtName"></p>
+                            <p style="font-size: 13px; color: #cbd5e1; margin: 0;" id="detailComplexName"></p>
+                        </div>
+                    </div>
+                    <!-- Trạng thái & Loại -->
+                    <div class="col-md-6">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); height: 100%;">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Phân loại & Trạng thái</p>
+                            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                                <span id="detailTypeBadge" class="type-badge"></span>
+                                <span id="detailStatusBadge" class="status-badge"></span>
+                            </div>
+                            <p style="font-size: 13px; color: #cbd5e1; margin: 0;">
+                                <strong>Nhân viên:</strong> <span id="detailStaffName"></span>
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Thời gian thi công -->
+                    <div class="col-12">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Thời gian thi công</p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <span style="font-size: 12px; color: #64748b;">Thời gian bắt đầu:</span>
+                                    <p style="font-size: 14px; font-weight: 600; color: #38bdf8; margin: 2px 0 0 0;" id="detailStart"></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <span style="font-size: 12px; color: #64748b;">Thời gian kết thúc:</span>
+                                    <p style="font-size: 14px; font-weight: 600; color: #f43f5e; margin: 2px 0 0 0;" id="detailEnd"></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <span style="font-size: 12px; color: #64748b;">Ngày khởi tạo:</span>
+                                    <p style="font-size: 14px; font-weight: 500; color: #cbd5e1; margin: 2px 0 0 0;" id="detailCreated"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Nội dung / Lý do bảo trì -->
+                    <div class="col-12">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Lý do / Nội dung công việc</p>
+                            <p style="font-size: 14px; color: #e2e8f0; margin: 0; line-height: 1.5;" id="detailReason"></p>
+                        </div>
+                    </div>
+                    <!-- Kết quả hoàn thành -->
+                    <div class="col-12">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Kết quả / Ghi chú hoàn thành</p>
+                            <p style="font-size: 14px; color: #34d399; margin: 0; line-height: 1.5; font-style: italic;" id="detailResult"></p>
+                        </div>
+                    </div>
+                    <!-- Ảnh minh chứng -->
+                    <div class="col-12">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Hình ảnh minh chứng</p>
+                            <div id="detailImageContainer">
+                                <!-- Dynamic JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); padding: 14px 24px;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px; padding: 8px 20px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Detail Modal Event Listener
+        const detailModal = document.getElementById('detailModal');
+        if (detailModal) {
+            detailModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const maintId = button.getAttribute('data-id');
+                const courtName = button.getAttribute('data-court-name') || '';
+                const complexName = button.getAttribute('data-complex-name') || '';
+                const type = button.getAttribute('data-type') || 'Routine';
+                const start = button.getAttribute('data-start') || '';
+                const end = button.getAttribute('data-end') || '';
+                const created = button.getAttribute('data-created') || '';
+                const reason = button.getAttribute('data-reason') || '';
+                const status = button.getAttribute('data-status') || 'Pending';
+                const staffName = button.getAttribute('data-staff-name') || 'Chưa phân công';
+                const result = button.getAttribute('data-result') || 'Chưa có kết quả';
+                const image = button.getAttribute('data-image') || '';
+
+                document.getElementById('detailMaintIdTitle').textContent = `#${maintId}`;
+                document.getElementById('detailCourtName').textContent = courtName;
+                document.getElementById('detailComplexName').textContent = complexName;
+                document.getElementById('detailStaffName').textContent = staffName;
+                document.getElementById('detailStart').textContent = start;
+                document.getElementById('detailEnd').textContent = end;
+                document.getElementById('detailCreated').textContent = created;
+                document.getElementById('detailReason').textContent = reason;
+                document.getElementById('detailResult').textContent = result;
+
+                // Type Badge
+                const typeBadge = document.getElementById('detailTypeBadge');
+                typeBadge.textContent = type;
+                typeBadge.className = 'type-badge ' + (type.toLowerCase() === 'emergency' ? 'emergency' : (type.toLowerCase() === 'upgrade' ? 'upgrade' : 'routine'));
+
+                // Status Badge
+                const statusBadge = document.getElementById('detailStatusBadge');
+                statusBadge.textContent = status;
+                statusBadge.className = 'status-badge ' + (status.toLowerCase() === 'inprogress' ? 'in-progress' : (status.toLowerCase() === 'completed' ? 'done' : (status.toLowerCase() === 'cancelled' ? 'cancelled' : 'pending')));
+
+                // Image Container
+                const imgContainer = document.getElementById('detailImageContainer');
+                if (image && image.trim() !== '') {
+                    imgContainer.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+                            <a href="${image}" target="_blank" rel="noopener noreferrer">
+                                <img src="${image}" alt="Minh chứng bảo trì" style="max-width: 100%; max-height: 250px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); object-fit: cover;" />
+                            </a>
+                            <a href="${image}" target="_blank" rel="noopener noreferrer" style="color: var(--sky-400); font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span> Xem ảnh phóng to
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    imgContainer.innerHTML = `<p style="font-size: 13px; color: #64748b; font-style: italic; margin: 0;">Không có hình ảnh minh chứng.</p>`;
+                }
+            });
+        }
+
+        // Modal Complete Event Listener
+        const completeModal = document.getElementById('completeModal');
+        if (completeModal) {
+            completeModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const maintId = button.getAttribute('data-id');
+                const courtId = button.getAttribute('data-court-id');
+                const type = button.getAttribute('data-type');
+                const start = button.getAttribute('data-start');
+                const end = button.getAttribute('data-end');
+                const reason = button.getAttribute('data-reason');
+                const courtName = button.getAttribute('data-court-name');
+                const staffId = button.getAttribute('data-staff-id');
+
+                document.getElementById('modalMaintId').value = maintId;
+                document.getElementById('modalCourtId').value = courtId;
+                document.getElementById('modalMaintType').value = type;
+                document.getElementById('modalStart').value = start;
+                document.getElementById('modalEnd').value = end;
+                document.getElementById('modalReason').value = reason;
+                document.getElementById('modalStaffId').value = staffId || '';
+                document.getElementById('modalCourtNameTitle').textContent = courtName;
+                document.getElementById('completeForm').action = `/staff/maintenance/${maintId}/complete?status=@selectedStatus&page=@currentPage`;
+            });
+        }
+
+        // Toast Helper
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            const icon = type === 'error' ? 'error' : (type === 'info' ? 'info' : 'check_circle');
+            toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span><div>${message}</div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');</text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
+        }
+
+        // Live Client-side Search & Filter Logic
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const typeFilter = document.getElementById('typeFilter');
+        const tableRows = document.querySelectorAll('.maintenance-table tbody tr');
+
+        function filterTable() {
+            const query = searchInput.value.toLowerCase().trim();
+            const status = statusFilter.value;
+            const type = typeFilter.value;
+
+            tableRows.forEach(row => {
+                if (row.cells.length === 1 && row.cells[0].colSpan > 1) return; // Skip empty row
+
+                const courtName = row.dataset.courtName ? row.dataset.courtName.toLowerCase() : '';
+                const reason = row.dataset.reason ? row.dataset.reason.toLowerCase() : '';
+                const rowStatus = row.dataset.status || '';
+                const rowType = row.dataset.type || '';
+
+                const matchesSearch = courtName.includes(query) || reason.includes(query);
+                
+                let matchesStatus = true;
+                if (status) {
+                    if (status.toLowerCase() === 'scheduled' || status.toLowerCase() === 'pending') {
+                        matchesStatus = rowStatus.toLowerCase() === 'scheduled' || rowStatus.toLowerCase() === 'pending';
+                    } else {
+                        matchesStatus = rowStatus.toLowerCase() === status.toLowerCase();
+                    }
+                }
+
+                const matchesType = !type || rowType.toLowerCase() === type.toLowerCase();
+
+                if (matchesSearch && matchesStatus && matchesType) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            updatePaginationInfo();
+        }
+
+        searchInput.addEventListener('input', filterTable);
+        statusFilter.addEventListener('change', filterTable);
+        typeFilter.addEventListener('change', filterTable);
+
+        function updatePaginationInfo() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            const visibleRows = document.querySelectorAll('.maintenance-table tbody tr:not([style*="display: none"])');
+            const totalRows = document.querySelectorAll('.maintenance-table tbody tr');
+            
+            const isNoData = totalRows.length === 1 && totalRows[0].cells[0].colSpan > 1;
+            const activeCount = isNoData ? 0 : visibleRows.length;
+            const totalCount = isNoData ? 0 : totalRows.length;
+
+            const pageInfo = document.querySelector('.pagination-info');
+            if (pageInfo) {
+                pageInfo.textContent = `Lọc kết quả: ${activeCount} / ${totalCount} bản ghi`;
+            }
+        }
+
+    </script>
+}
