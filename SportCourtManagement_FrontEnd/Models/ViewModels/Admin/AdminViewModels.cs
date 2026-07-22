@@ -305,7 +305,7 @@ public class UserFormViewModel
     [Display(Name = "Đang hoạt động")]
     public bool IsActive { get; set; } = true;
 
-    public List<string> RoleOptions { get; set; } = ["Admin", "Manager", "Staff", "Coach", "Customer"];
+    public List<string> RoleOptions { get; set; } = ["Admin", "Manager", "Staff", "Customer"];
     public List<string> GenderOptions { get; set; } = ["Male", "Female", "Other"];
     public List<string> SkillLevelOptions { get; set; } = ["Beginner", "Intermediate", "Advanced", "Professional"];
     
