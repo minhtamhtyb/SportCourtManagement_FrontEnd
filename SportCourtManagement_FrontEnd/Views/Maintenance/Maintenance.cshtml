@@ -206,12 +206,18 @@
                                             <span class="material-symbols-outlined">how_to_reg</span>
                                         </button>
                                     }
-                                    <button class="action-icon-btn edit" title="Chỉnh sửa">
-                                        <span class="material-symbols-outlined">edit</span>
-                                    </button>
-                                    <button class="action-icon-btn delete" title="Xóa">
-                                        <span class="material-symbols-outlined">delete</span>
-                                    </button>
+                                    @if (!isCompleted)
+                                    {
+                                        <button class="action-icon-btn edit" title="Chỉnh sửa">
+                                            <span class="material-symbols-outlined">edit</span>
+                                        </button>
+                                    }
+                                    @if (!isCompleted)
+                                    {
+                                        <button class="action-icon-btn delete" title="Xóa">
+                                            <span class="material-symbols-outlined">delete</span>
+                                        </button>
+                                    }
                                 </div>
                             </td>
                         </tr>
