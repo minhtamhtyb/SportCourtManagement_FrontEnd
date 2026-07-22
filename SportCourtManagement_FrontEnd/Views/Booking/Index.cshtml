@@ -1187,10 +1187,21 @@
                 const bar = $('<div class="slot-timeline-bar"></div>');
 
                 recSlotsData.forEach(function (slot) {
-                    const priceDisplay = Number(slot.price).toLocaleString('vi-VN') + 'đ';
+                    const isMaintenance = slot.status === 'Maintenance' || slot.status === 'Inactive';
+                    
+                    let statusClass = 'slot-available';
+                    let statusText = 'Định kỳ';
+                    let statusBadgeStyle = 'background: rgba(245,158,11,0.15); color: #F59E0B;';
+
+                    if (isMaintenance) {
+                        statusClass = 'slot-maintenance';
+                        statusText = slot.status === 'Inactive' ? 'Tạm đóng' : 'Bảo trì';
+                    }
+
+                    const priceDisplay = !isMaintenance ? (Number(slot.price).toLocaleString('vi-VN') + 'đ') : '';
 
                     const segment = $(`
-                        <div class="slot-segment slot-available"
+                        <div class="slot-segment ${statusClass}"
                              data-slot-id="${slot.slotId}"
                              data-slot-name="${slot.slotName}"
                              data-start-time="${slot.startTime}"
@@ -1198,14 +1209,16 @@
                              data-price="${slot.price}">
                             <div class="slot-time">${slot.startTime} - ${slot.endTime}</div>
                             <div class="slot-name">${slot.slotName}</div>
-                            <div class="slot-price">${priceDisplay}</div>
-                            <span class="slot-status-badge" style="background: rgba(245,158,11,0.15); color: #F59E0B;">Định kỳ</span>
+                            ${priceDisplay ? `<div class="slot-price">${priceDisplay}</div>` : ''}
+                            <span class="slot-status-badge" style="${statusBadgeStyle}">${statusText}</span>
                         </div>
                     `);
 
-                    segment.on('click', function () {
-                        handleRecSlotClick(slot.slotId);
-                    });
+                    if (!isMaintenance) {
+                        segment.on('click', function () {
+                            handleRecSlotClick(slot.slotId);
+                        });
+                    }
 
                     bar.append(segment);
                 });
@@ -1232,6 +1245,19 @@
                     const startIndex = recSlotsData.findIndex(s => s.slotId === recSelectionStart);
                     let fromIdx = Math.min(startIndex, clickedIndex);
                     let toIdx = Math.max(startIndex, clickedIndex);
+
+                    let hasBlocker = false;
+                    for (let i = fromIdx; i <= toIdx; i++) {
+                        if (recSlotsData[i].status === 'Maintenance' || recSlotsData[i].status === 'Inactive') {
+                            hasBlocker = true;
+                            break;
+                        }
+                    }
+
+                    if (hasBlocker) {
+                        alert('Không thể chọn khoảng thời gian có chứa khung giờ tạm đóng hoặc bảo trì.');
+                        return;
+                    }
 
                     recSelectionStart = recSlotsData[fromIdx].slotId;
                     recSelectionEnd = recSlotsData[toIdx].slotId;
