@@ -1,0 +1,832 @@
+@model SportCourtManagement_FrontEnd.Models.Manager.WeeklyScheduleResponse
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Lịch làm việc hàng tuần | ProCourt Staff";
+
+    string rawWeekStart = ViewBag.RawWeekStart as string ?? "";
+    string prevWeekStart = ViewBag.PrevWeekStart as string ?? "";
+    string nextWeekStart = ViewBag.NextWeekStart as string ?? "";
+    string weekStartText = ViewBag.WeekStart as string ?? "";
+    string weekEndText = ViewBag.WeekEnd as string ?? "";
+    bool isCurrentWeek = ViewBag.IsCurrentWeek ?? false;
+    string activeFilter = ViewBag.Filter as string ?? "my";
+    string userEmail = ViewBag.UserEmail as string ?? "";
+    string userName = ViewBag.UserName as string ?? "";
+
+    var myTodayShift = ViewBag.MyTodayShift as SportCourtManagement_FrontEnd.Models.Manager.StaffShiftResponse;
+}
+
+@section Styles {
+    <style>
+        .schedule-container {
+            padding: 24px;
+            color: #f8fafc;
+        }
+
+        .page-header-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .header-title-section h3 {
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0 0 6px 0;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title-section p {
+            font-size: 13px;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        .week-nav-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(15, 23, 42, 0.7);
+            padding: 6px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-week-nav {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f1f5f9;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-week-nav:hover {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .week-date-range {
+            font-size: 14px;
+            font-weight: 600;
+            color: #38bdf8;
+            padding: 0 8px;
+        }
+
+        .btn-today {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-today:hover {
+            background: #38bdf8;
+            color: #0f172a;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card-item {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-icon-wrap {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon-wrap.sky { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+        .stat-icon-wrap.emerald { background: rgba(52, 211, 153, 0.15); color: #34d399; }
+        .stat-icon-wrap.purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+        .stat-icon-wrap.amber { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+
+        .stat-content p {
+            margin: 0;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .stat-content h4 {
+            margin: 2px 0 0 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* Filter Pills */
+        .filter-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-tab-btn {
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #94a3b8;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-tab-btn:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .filter-tab-btn.active {
+            color: #ffffff;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border-color: #38bdf8;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        /* Timetable Grid */
+        .timetable-wrapper {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            overflow-x: auto;
+            backdrop-filter: blur(12px);
+        }
+
+        .timetable-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(200px, 1fr));
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.06);
+            min-width: 1400px;
+        }
+
+        .day-header-col {
+            background: #1e293b;
+            padding: 14px 12px;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .day-header-col.is-today {
+            background: linear-gradient(180deg, rgba(14, 165, 233, 0.25) 0%, rgba(30, 41, 59, 0.9) 100%);
+            border-bottom-color: #38bdf8;
+        }
+
+        .day-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .day-header-col.is-today .day-name {
+            color: #38bdf8;
+        }
+
+        .day-date {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 2px;
+        }
+
+        .today-tag {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            background: #0284c7;
+            color: #ffffff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        .day-content-col {
+            background: #0f172a;
+            padding: 12px;
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .day-content-col.is-today {
+            background: rgba(14, 165, 233, 0.03);
+        }
+
+        /* Shift Card */
+        .shift-card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .shift-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+        }
+
+        .shift-card.is-my-shift {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(30, 41, 59, 0.95) 100%);
+            border: 1.5px solid #38bdf8;
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.18);
+        }
+
+        .shift-card.is-my-shift::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #38bdf8;
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+        }
+
+        .shift-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .shift-type-badge.morning {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .shift-type-badge.afternoon {
+            background: rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .shift-type-badge.evening {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .shift-time-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .shift-staff-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .staff-avatar-sm {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #0284c7;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .staff-avatar-sm img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .staff-name-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f1f5f9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .my-shift-pill {
+            font-size: 10px;
+            font-weight: 700;
+            color: #0f172a;
+            background: #38bdf8;
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+
+        /* Attendance Badge */
+        .attendance-status {
+            margin-top: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .attendance-status.checked-in { color: #34d399; }
+        .attendance-status.checked-out { color: #38bdf8; }
+        .attendance-status.pending { color: #fbbf24; }
+
+        /* Action Buttons for Check-in / Check-out */
+        .shift-action-btn-group {
+            margin-top: 10px;
+        }
+
+        .btn-checkin-action {
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-checkin-action:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-checkout-action {
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-checkout-action:hover {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        }
+
+        .no-shift-msg {
+            font-size: 12px;
+            color: #64748b;
+            font-style: italic;
+            text-align: center;
+            padding: 20px 0;
+        }
+    </style>
+}
+
+<div class="schedule-container">
+
+    <!-- Page Header -->
+    <div class="page-header-box">
+        <div class="header-title-section">
+            <h3>📅 Lịch Làm Việc Hàng Tuần</h3>
+            <p>Theo dõi ca trực được phân công, thông tin đồng nghiệp và thực hiện chấm công ca làm tại cơ sở.</p>
+        </div>
+
+        <div class="week-nav-group">
+            <a class="btn-week-nav" href="/staff/schedule?weekStart=@prevWeekStart&filter=@activeFilter" title="Tuần trước">
+                <span class="material-symbols-outlined">chevron_left</span>
+            </a>
+            <span class="week-date-range">@weekStartText - @weekEndText</span>
+            <a class="btn-week-nav" href="/staff/schedule?weekStart=@nextWeekStart&filter=@activeFilter" title="Tuần sau">
+                <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            @if (!isCurrentWeek)
+            {
+                <a class="btn-today" href="/staff/schedule?filter=@activeFilter">Hôm nay</a>
+            }
+        </div>
+    </div>
+
+    @if (ViewBag.MyTotalShifts == 0)
+    {
+        <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 24px; color: #fbbf24;">
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                <span class="material-symbols-outlined" style="font-size: 24px; margin-top: 2px;">warning</span>
+                <div>
+                    <h5 style="margin: 0 0 6px 0; font-weight: 700; color: #ffffff; font-size: 15px;">Không tìm thấy lịch trực tuần này</h5>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Summary KPI Cards -->
+    <div class="stats-grid">
+        <div class="stat-card-item">
+            <div class="stat-icon-wrap sky">
+                <span class="material-symbols-outlined">calendar_month</span>
+            </div>
+            <div class="stat-content">
+                <p>Tổng ca làm tuần này</p>
+                <h4>@ViewBag.MyTotalShifts Ca</h4>
+            </div>
+        </div>
+
+        <div class="stat-card-item">
+            <div class="stat-icon-wrap emerald">
+                <span class="material-symbols-outlined">task_alt</span>
+            </div>
+            <div class="stat-content">
+                <p>Ca đã hoàn thành</p>
+                <h4>@ViewBag.MyCompletedShifts / @ViewBag.MyTotalShifts Ca</h4>
+            </div>
+        </div>
+
+        <div class="stat-card-item">
+            <div class="stat-icon-wrap purple">
+                <span class="material-symbols-outlined">schedule</span>
+            </div>
+            <div class="stat-content">
+                <p>Tổng giờ làm dự kiến</p>
+                <h4>@ViewBag.MyWorkHours Giờ</h4>
+            </div>
+        </div>
+
+        <div class="stat-card-item">
+            <div class="stat-icon-wrap amber">
+                <span class="material-symbols-outlined">badge</span>
+            </div>
+            <div class="stat-content">
+                <p>Ca trực hôm nay</p>
+                @if (myTodayShift != null)
+                {
+                    <h4 style="font-size: 15px; color: #fbbf24;">
+                        @myTodayShift.ShiftType (@myTodayShift.StartTime - @myTodayShift.EndTime)
+                    </h4>
+                }
+                else
+                {
+                    <h4 style="font-size: 14px; color: #94a3b8; font-weight: 500;">Không có ca</h4>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Timetable Grid -->
+    <div class="timetable-wrapper">
+        <div class="timetable-grid">
+
+            @if (Model.Days != null && Model.Days.Any())
+            {
+                @foreach (var day in Model.Days)
+                {
+                    bool isTodayDate = false;
+                    DateTime parsedDayDate;
+                    if (DateTime.TryParse(day.Date, out parsedDayDate))
+                    {
+                        isTodayDate = parsedDayDate.Date == DateTime.Today;
+                    }
+
+                    // Filter shifts based on tab
+                    var displayShifts = day.Shifts ?? new List<SportCourtManagement_FrontEnd.Models.Manager.StaffShiftResponse>();
+                    if (activeFilter == "my")
+                    {
+                        displayShifts = displayShifts
+                            .Where(s => (!string.IsNullOrEmpty(s.StaffEmail) && s.StaffEmail.Equals(userEmail, StringComparison.OrdinalIgnoreCase)) ||
+                                        (!string.IsNullOrEmpty(s.StaffName) && s.StaffName.Equals(userName, StringComparison.OrdinalIgnoreCase)))
+                            .ToList();
+                    }
+
+                    <div class="day-column-item">
+                        <!-- Column Header -->
+                        <div class="day-header-col @(isTodayDate ? "is-today" : "")">
+                            <div class="day-name">@day.DayName</div>
+                            <div class="day-date">
+                                @(DateTime.TryParse(day.Date, out var dVal) ? dVal.ToString("dd/MM") : day.Date)
+                            </div>
+                            @if (isTodayDate)
+                            {
+                                <span class="today-tag">HÔM NAY</span>
+                            }
+                        </div>
+
+                        <!-- Column Content -->
+                        <div class="day-content-col @(isTodayDate ? "is-today" : "")">
+                            @if (!displayShifts.Any())
+                            {
+                                <div class="no-shift-msg">Không có ca</div>
+                            }
+                            else
+                            {
+                                @foreach (var shift in displayShifts)
+                                {
+                                    bool isMyShift = (!string.IsNullOrEmpty(shift.StaffEmail) && shift.StaffEmail.Equals(userEmail, StringComparison.OrdinalIgnoreCase)) ||
+                                                     (!string.IsNullOrEmpty(shift.StaffName) && shift.StaffName.Equals(userName, StringComparison.OrdinalIgnoreCase));
+
+                                    string typeClass = shift.ShiftType.ToLower() switch
+                                    {
+                                        "morning" => "morning",
+                                        "afternoon" => "afternoon",
+                                        "evening" => "evening",
+                                        _ => "morning"
+                                    };
+
+                                    string typeLabel = shift.ShiftType switch
+                                    {
+                                        "Morning" => "Ca Sáng",
+                                        "Afternoon" => "Ca Chiều",
+                                        "Evening" => "Ca Đêm",
+                                        _ => shift.ShiftType
+                                    };
+
+                                    <div class="shift-card @(isMyShift ? "is-my-shift" : "")"
+                                         data-bs-toggle="modal"
+                                         data-bs-target="#shiftDetailModal"
+                                         data-id="@shift.ShiftId"
+                                         data-staff-name="@shift.StaffName"
+                                         data-staff-email="@shift.StaffEmail"
+                                         data-type-label="@typeLabel"
+                                         data-type-raw="@shift.ShiftType"
+                                         data-date="@shift.ShiftDate"
+                                         data-start="@shift.StartTime"
+                                         data-end="@shift.EndTime"
+                                         data-checkin="@(shift.CheckInTime.HasValue ? shift.CheckInTime.Value.ToString("dd/MM/yyyy HH:mm") : "Chưa check-in")"
+                                         data-checkout="@(shift.CheckOutTime.HasValue ? shift.CheckOutTime.Value.ToString("dd/MM/yyyy HH:mm") : "Chưa check-out")"
+                                         data-complex="@shift.ComplexName"
+                                         data-note="@shift.Note">
+
+                                        <!-- Shift Type Badge -->
+                                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                                            <span class="shift-type-badge @typeClass">
+                                                <span class="material-symbols-outlined" style="font-size: 13px;">schedule</span>
+                                                @typeLabel
+                                            </span>
+                                            @if (isMyShift)
+                                            {
+                                                <span class="my-shift-pill">BẠN</span>
+                                            }
+                                        </div>
+
+                                        <!-- Shift Time -->
+                                        <div class="shift-time-text">
+                                            <span class="material-symbols-outlined" style="font-size: 14px;">access_time</span>
+                                            @shift.StartTime - @shift.EndTime
+                                        </div>
+
+                                        <!-- Staff Info -->
+                                        <div class="shift-staff-info">
+                                            <div class="staff-avatar-sm">
+                                                @if (!string.IsNullOrEmpty(shift.AvatarUrl))
+                                                {
+                                                    <img src="@shift.AvatarUrl" alt="@shift.StaffName" />
+                                                }
+                                                else
+                                                {
+                                                    @(string.IsNullOrEmpty(shift.StaffName) ? "S" : shift.StaffName[0].ToString().ToUpper())
+                                                }
+                                            </div>
+                                            <span class="staff-name-text">@shift.StaffName</span>
+                                        </div>
+
+                                        <!-- Attendance Status -->
+                                        @if (shift.CheckOutTime.HasValue)
+                                        {
+                                            <div class="attendance-status checked-out">
+                                                <span class="material-symbols-outlined" style="font-size: 14px;">check_circle</span>
+                                                Đã ra ca (@shift.CheckOutTime.Value.ToString("HH:mm"))
+                                            </div>
+                                        }
+                                        else if (shift.CheckInTime.HasValue)
+                                        {
+                                            <div class="attendance-status checked-in">
+                                                <span class="material-symbols-outlined" style="font-size: 14px;">login</span>
+                                                Đã vào ca (@shift.CheckInTime.Value.ToString("HH:mm"))
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="attendance-status pending">
+                                                <span class="material-symbols-outlined" style="font-size: 14px;">hourglass_empty</span>
+                                                Chưa chấm công
+                                            </div>
+                                        }
+
+                                        <!-- Quick Action Buttons for Logged-in Staff on Today's shift -->
+                                        @if (isMyShift && isTodayDate && shift.CheckInTime.HasValue && !shift.CheckOutTime.HasValue)
+                                        {
+                                            <div class="shift-action-btn-group" onclick="event.stopPropagation();">
+                                                <form asp-controller="StaffSchedule" asp-action="CheckOut" method="post" style="margin:0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="shiftId" value="@shift.ShiftId" />
+                                                    <input type="hidden" name="weekStart" value="@rawWeekStart" />
+                                                    <input type="hidden" name="filter" value="@activeFilter" />
+                                                    <button type="submit" class="btn-checkout-action">
+                                                        <span class="material-symbols-outlined" style="font-size: 16px;">logout</span>
+                                                        Chấm công Ra
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal Chi Tiết Ca Trực -->
+<div class="modal fade" id="shiftDetailModal" tabindex="-1" aria-labelledby="shiftDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.12); color: #fff; border-radius: 16px;">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 16px 20px;">
+                <h5 class="modal-title" id="shiftDetailModalLabel" style="font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-outlined" style="color: var(--sky-400);">badge</span>
+                    Chi tiết ca làm việc <span id="modalShiftIdTitle" style="color: var(--sky-400);"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div class="d-flex align-items-center gap-3 mb-3 p-3 rounded" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.06);">
+                    <div class="staff-avatar-sm" style="width: 44px; height: 44px; font-size: 18px;">
+                        <span id="modalStaffInitial">S</span>
+                    </div>
+                    <div>
+                        <h6 style="margin: 0; font-weight: 700; color: #f8fafc;" id="modalStaffName"></h6>
+                        <p style="margin: 2px 0 0 0; font-size: 13px; color: #94a3b8;" id="modalStaffEmail"></p>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                            <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">LOẠI CA TRỰC</span>
+                            <p style="font-size: 14px; font-weight: 700; color: #38bdf8; margin: 4px 0 0 0;" id="modalShiftType"></p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                            <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">KHUNG GIỜ</span>
+                            <p style="font-size: 14px; font-weight: 700; color: #fbbf24; margin: 4px 0 0 0;" id="modalShiftTime"></p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                            <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">GIỜ CHECK-IN THỰC TẾ</span>
+                            <p style="font-size: 13px; font-weight: 600; color: #34d399; margin: 4px 0 0 0;" id="modalCheckInTime"></p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                            <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">GIỜ CHECK-OUT THỰC TẾ</span>
+                            <p style="font-size: 13px; font-weight: 600; color: #38bdf8; margin: 4px 0 0 0;" id="modalCheckOutTime"></p>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                            <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">CƠ SỞ TRỰC</span>
+                            <p style="font-size: 14px; color: #f1f5f9; margin: 4px 0 0 0;" id="modalComplexName"></p>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                            <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">GHI CHÚ / NHIỆM VỤ</span>
+                            <p style="font-size: 13px; color: #cbd5e1; margin: 4px 0 0 0; font-style: italic;" id="modalShiftNote"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); padding: 12px 20px;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Modal Event Listener
+        const shiftDetailModal = document.getElementById('shiftDetailModal');
+        if (shiftDetailModal) {
+            shiftDetailModal.addEventListener('show.bs.modal', function (event) {
+                const card = event.relatedTarget;
+                const shiftId = card.getAttribute('data-id');
+                const staffName = card.getAttribute('data-staff-name') || '';
+                const staffEmail = card.getAttribute('data-staff-email') || '';
+                const typeLabel = card.getAttribute('data-type-label') || '';
+                const date = card.getAttribute('data-date') || '';
+                const start = card.getAttribute('data-start') || '';
+                const end = card.getAttribute('data-end') || '';
+                const checkin = card.getAttribute('data-checkin') || 'Chưa check-in';
+                const checkout = card.getAttribute('data-checkout') || 'Chưa check-out';
+                const complex = card.getAttribute('data-complex') || '';
+                const note = card.getAttribute('data-note') || 'Không có ghi chú';
+
+                document.getElementById('modalShiftIdTitle').textContent = `#${shiftId}`;
+                document.getElementById('modalStaffName').textContent = staffName;
+                document.getElementById('modalStaffEmail').textContent = staffEmail;
+                document.getElementById('modalStaffInitial').textContent = staffName ? staffName[0].toUpperCase() : 'S';
+                document.getElementById('modalShiftType').textContent = typeLabel;
+                document.getElementById('modalShiftTime').textContent = `${start} - ${end} (${date})`;
+                document.getElementById('modalCheckInTime').textContent = checkin;
+                document.getElementById('modalCheckOutTime').textContent = checkout;
+                document.getElementById('modalComplexName').textContent = complex;
+                document.getElementById('modalShiftNote').textContent = note;
+            });
+        }
+
+        // Toast Helper
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            const icon = type === 'error' ? 'error' : (type === 'info' ? 'info' : 'check_circle');
+            toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span><div>${message}</div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');</text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
+        }
+    </script>
+}
