@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace SportCourtManagement_FrontEnd.Controllers
 {
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Manager,Admin")]
     [Route("manager/maintenance")]
     public class MaintenanceController : Controller
     {

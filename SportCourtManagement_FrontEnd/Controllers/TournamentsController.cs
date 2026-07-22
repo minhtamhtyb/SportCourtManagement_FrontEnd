@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SportCourtManagement_FrontEnd.Models.Tournaments;
 using SportCourtManagement_FrontEnd.Services;
+using SportCourtManagement_FrontEnd.Services.Api;
 
 namespace SportCourtManagement_FrontEnd.Controllers;
 
@@ -260,6 +261,10 @@ public class TournamentsController : Controller
       return RedirectToAction(nameof(MyDetail), new { id = tour.TournamentId });
     }
 
+    var token = GetToken();
+    var wallet = await _apiService.GetWalletBalanceAsync(token);
+    ViewBag.Wallet = wallet;
+
     var qrCode = await _apiService.GetSePayQrCodeAsync($"TM-{id}");
     ViewBag.QrCode = qrCode;
 
@@ -317,5 +322,31 @@ public class TournamentsController : Controller
       return RedirectToAction(nameof(MyTournaments));
     }
     return View(tour);
+  }
+
+  // POST: /Tournaments/PayWithWallet
+  [HttpPost]
+  [ValidateAntiForgeryToken]
+  public async Task<IActionResult> PayWithWallet(int tournamentId)
+  {
+    var token = GetToken();
+    if (string.IsNullOrEmpty(token))
+      return Json(new { success = false, message = "Bạn cần đăng nhập." });
+
+    var (success, msg) = await _apiService.PayTournamentWithWalletAsync(tournamentId, token);
+    if (success)
+    {
+      TempData["SuccessMessage"] = "Thanh toán giải đấu thành công!";
+      return Json(new { success = true, redirectUrl = Url.Action(nameof(PaymentSuccess), new { id = tournamentId }) });
+    }
+    return Json(new { success = false, message = msg });
+  }
+
+  private string? GetToken()
+  {
+    var token = HttpContext.Session.GetString(JwtForwardingHandler.SessionTokenKey);
+    if (string.IsNullOrWhiteSpace(token))
+      token = User.FindFirst(JwtForwardingHandler.AccessTokenClaimType)?.Value;
+    return token;
   }
 }

@@ -1288,4 +1288,30 @@ public class CourtApiService : ICourtApiService
             return (false, "Lỗi kết nối máy chủ.");
         }
     }
+
+    public async Task<(bool Success, string Message)> PayTournamentWithWalletAsync(int tournamentId, string? token)
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Post, "api/wallet/pay-tournament", token);
+            req.Content = JsonContent.Create(new { TournamentId = tournamentId }, null, _jsonOptions);
+            var res = await _httpClient.SendAsync(req);
+            var body = await res.Content.ReadAsStringAsync();
+            if (res.IsSuccessStatusCode)
+                return (true, "Thanh toán giải đấu bằng ví thành công.");
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                if (doc.RootElement.TryGetProperty("message", out var m))
+                    return (false, m.GetString() ?? "Thanh toán thất bại.");
+            }
+            catch { }
+            return (false, body);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error PayTournamentWithWalletAsync");
+            return (false, "Lỗi kết nối máy chủ.");
+        }
+    }
 }

@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace SportCourtManagement_FrontEnd.Controllers
 {
-    [Authorize(Roles = "Staff")]
+    [Authorize(Roles = "Staff,Admin")]
     [Route("staff/tasks")]
     public class StaffTaskController : Controller
     {
