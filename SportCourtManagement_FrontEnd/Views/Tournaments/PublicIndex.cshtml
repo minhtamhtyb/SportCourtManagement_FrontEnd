@@ -1,90 +1,255 @@
 @model SportCourtManagement_FrontEnd.Models.Tournaments.PublicTournamentListViewModel
 @{
-  ViewData["Title"] = "Các Giải Đấu Sắp Diễn Ra";
+    ViewData["Title"] = "Khám phá giải đấu";
+    var items = Model.PagedData.Items ?? new List<SportCourtManagement_FrontEnd.Models.Tournaments.TournamentPublicDto>();
+    var sessionCount = items.Sum(item => item.Courts?.Count ?? 0);
+    var venueCount = items
+        .SelectMany(item => item.Courts ?? new List<SportCourtManagement_FrontEnd.Models.Tournaments.CourtSlotPublicDto>())
+        .Select(court => court.CourtId)
+        .Distinct()
+        .Count();
 }
 
-<!-- Hero Banner -->
-<div class="bg-dark text-white py-5 mb-5 shadow" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
-  <div class="container py-3 text-center">
-    <h1 class="display-4 fw-bold mb-3"><i class="bi bi-trophy-fill text-warning me-3"></i>Lịch Thi Đấu & Giải Đấu Công Khai</h1>
-    <p class="lead mb-4 mx-auto" style="max-width: 700px;">Cập nhật lịch thi đấu, giao lưu thể thao và các giải đấu lớn nhỏ đang tổ chức tại các cụm sân của chúng tôi.</p>
-    
-    <form method="get" asp-action="PublicIndex" class="d-flex justify-content-center">
-      <div class="input-group input-group-lg shadow-sm" style="max-width: 600px;">
-        <input type="text" name="keyword" value="@Model.Keyword" class="form-control" placeholder="Tìm tên giải đấu hoặc ban tổ chức..." />
-        <button type="submit" class="btn btn-warning fw-bold px-4">Tìm kiếm <i class="bi bi-search ms-1"></i></button>
-      </div>
-    </form>
-  </div>
-</div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/tournament-public.css" asp-append-version="true" />
+}
 
-<div class="container pb-5">
-  <div class="row g-4">
-    @if (Model.PagedData.Items != null && Model.PagedData.Items.Count > 0)
-    {
-      foreach (var item in Model.PagedData.Items)
-      {
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden transition-all">
-            <div class="card-header bg-primary text-white p-4 d-flex justify-content-between align-items-center">
-              <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold"><i class="bi bi-star-fill me-1"></i>Giải đấu</span>
-              <small class="text-white-50">@item.CreatedAt.ToString("dd/MM/yyyy")</small>
+<main class="sc-container tournament-public-page">
+    <nav class="sc-breadcrumb" aria-label="Điều hướng">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span>›</span>
+        <span class="text-white fw-medium">Giải đấu</span>
+    </nav>
+
+    <header class="tp-hero">
+        <div class="tp-hero-grid" aria-hidden="true"></div>
+        <div class="tp-glow tp-glow-one" aria-hidden="true"></div>
+        <div class="tp-glow tp-glow-two" aria-hidden="true"></div>
+
+        <div class="tp-hero-content">
+            <div class="tp-kicker">
+                <span class="tp-live-dot"></span>
+                Sân chơi cộng đồng
             </div>
-            <div class="card-body p-4 d-flex flex-column">
-              <h4 class="card-title fw-bold text-dark mb-2">@item.TournamentName</h4>
-              <p class="text-muted small mb-3 flex-grow-1">@(item.Description ?? "Giải đấu thể thao giao lưu, kính mời các vận động viên và khán giả tham gia cổ vũ.")</p>
-              
-              <div class="border-top pt-3 mt-auto">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <span class="text-secondary small"><i class="bi bi-person-fill me-1"></i>BTC:</span>
-                  <span class="fw-semibold text-primary">@item.OrganizerName</span>
-                </div>
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                  <span class="text-secondary small"><i class="bi bi-geo-alt-fill me-1"></i>Quy mô:</span>
-                  <span class="badge bg-light text-dark border">@item.Courts.Count sân thi đấu</span>
-                </div>
-                
-                <a asp-action="PublicDetail" asp-route-id="@item.TournamentId" class="btn btn-outline-primary w-100 rounded-pill fw-semibold py-2">
-                  Xem chi tiết lịch thi đấu <i class="bi bi-arrow-right ms-1"></i>
+            <h1 class="font-outfit">Nơi mọi trận đấu<br /><span>trở thành dấu ấn.</span></h1>
+            <p>Khám phá lịch thi đấu công khai, theo dõi những cuộc tranh tài sắp tới và tìm cảm hứng cho giải đấu của riêng bạn.</p>
+
+            <form method="get" asp-action="PublicIndex" class="tp-search" role="search">
+                <label class="visually-hidden" for="tournamentKeyword">Tìm kiếm giải đấu</label>
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input id="tournamentKeyword" type="search" name="keyword" value="@Model.Keyword"
+                       placeholder="Tên giải đấu hoặc ban tổ chức..." autocomplete="off" />
+                @if (!string.IsNullOrWhiteSpace(Model.Keyword))
+                {
+                    <a asp-action="PublicIndex" class="tp-search-clear" aria-label="Xóa tìm kiếm">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+                <button type="submit">Khám phá <i class="bi bi-arrow-up-right"></i></button>
+            </form>
+
+            <div class="tp-hero-actions">
+                <a asp-action="Create" class="tp-link-primary">
+                    <i class="bi bi-plus-circle-fill"></i>Tổ chức giải đấu
                 </a>
-              </div>
+                <a asp-action="MyTournaments" class="tp-link-quiet">
+                    Giải đấu của tôi <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
-          </div>
         </div>
-      }
-    }
-    else
-    {
-      <div class="col-12 text-center py-5">
-        <div class="card border-0 shadow-sm rounded-4 p-5 bg-light">
-          <i class="bi bi-calendar2-x fs-1 text-muted mb-3"></i>
-          <h4 class="fw-bold text-secondary">Hiện chưa có giải đấu công khai nào</h4>
-          <p class="text-muted">Bạn muốn đăng ký tổ chức giải đấu? Hãy đặt lịch ngay hôm nay.</p>
-          <div>
-            <a asp-action="Create" class="btn btn-primary rounded-pill px-4 py-2 mt-2">Đăng ký tổ chức giải đấu</a>
-          </div>
-        </div>
-      </div>
-    }
-  </div>
 
-  @if (Model.PagedData.TotalPages > 1)
-  {
-    <div class="d-flex justify-content-center mt-5">
-      <ul class="pagination pagination-lg">
-        <li class="page-item @(Model.PagedData.PageNumber <= 1 ? "disabled" : "")">
-          <a class="page-link rounded-start-pill px-4" asp-action="PublicIndex" asp-route-page="@(Model.PagedData.PageNumber - 1)">Trang trước</a>
-        </li>
-        @for (int i = 1; i <= Model.PagedData.TotalPages; i++)
+        <div class="tp-hero-art" aria-hidden="true">
+            <div class="tp-orbit tp-orbit-outer"></div>
+            <div class="tp-orbit tp-orbit-inner"></div>
+            <div class="tp-emblem">
+                <div class="tp-emblem-shine"></div>
+                <i class="bi bi-trophy-fill"></i>
+            </div>
+            <span class="tp-orbit-node tp-node-one"><i class="bi bi-lightning-charge-fill"></i></span>
+            <span class="tp-orbit-node tp-node-two"><i class="bi bi-stars"></i></span>
+            <span class="tp-orbit-node tp-node-three"><i class="bi bi-people-fill"></i></span>
+        </div>
+
+        <div class="tp-metrics">
+            <div class="tp-metric">
+                <strong>@Model.PagedData.TotalCount</strong>
+                <span>Giải đấu công khai</span>
+            </div>
+            <div class="tp-metric">
+                <strong>@sessionCount</strong>
+                <span>Ca thi đấu trên trang</span>
+            </div>
+            <div class="tp-metric">
+                <strong>@venueCount</strong>
+                <span>Sân đang góp mặt</span>
+            </div>
+        </div>
+    </header>
+
+    <section class="tp-discovery" aria-labelledby="tournamentListTitle">
+        <div class="tp-section-heading">
+            <div>
+                <div class="tp-overline">Lịch tranh tài</div>
+                <h2 id="tournamentListTitle" class="font-outfit">
+                    @(string.IsNullOrWhiteSpace(Model.Keyword) ? "Giải đấu đang được quan tâm" : $"Kết quả cho “{Model.Keyword}”")
+                </h2>
+            </div>
+            <div class="tp-section-tools">
+                <span class="tp-sort-note"><i class="bi bi-sort-down"></i>Lịch gần nhất trước</span>
+                <span class="tp-result-count">
+                    <i class="bi bi-grid-3x3-gap-fill"></i>
+                    @Model.PagedData.TotalCount kết quả
+                </span>
+            </div>
+        </div>
+
+        @if (items.Count > 0)
         {
-          <li class="page-item @(i == Model.PagedData.PageNumber ? "active" : "")">
-            <a class="page-link" asp-action="PublicIndex" asp-route-page="@i">@i</a>
-          </li>
+            <div class="tp-card-grid">
+                @{
+                    var cardIndex = 0;
+                }
+                @foreach (var item in items)
+                {
+                    var schedules = (item.Courts ?? new List<SportCourtManagement_FrontEnd.Models.Tournaments.CourtSlotPublicDto>())
+                        .Where(court => !string.Equals(court.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+                        .OrderBy(court => court.BookingDate)
+                        .ThenBy(court => court.StartTime)
+                        .ToList();
+                    var firstSchedule = schedules.FirstOrDefault();
+                    var lastSchedule = schedules.LastOrDefault();
+                    var courtCount = schedules.Select(court => court.CourtId).Distinct().Count();
+                    var isFeatured = cardIndex == 0 && items.Count > 1;
+                    var isConfirmed = string.Equals(item.Status, "Confirmed", StringComparison.OrdinalIgnoreCase);
+                    var isPaid = string.Equals(item.Status, "Paid", StringComparison.OrdinalIgnoreCase);
+                    var statusClass = isConfirmed || isPaid ? "tp-status-live" : "tp-status-upcoming";
+                    var statusLabel = isConfirmed ? "Đã xác nhận" : isPaid ? "Sẵn sàng thi đấu" : "Sắp diễn ra";
+
+                    <article class="tp-card @(isFeatured ? "tp-card-featured" : "")" style="--tp-card-index: @(cardIndex % 4);">
+                        <div class="tp-card-visual">
+                            <div class="tp-card-pattern" aria-hidden="true"></div>
+                            <div class="tp-card-topline">
+                                <span class="tp-status @statusClass"><i class="bi bi-broadcast-pin"></i>@statusLabel</span>
+                                <span class="tp-code">TOURNAMENT / @item.TournamentId.ToString("D4")</span>
+                            </div>
+                            <div class="tp-card-mark" aria-hidden="true">
+                                <span>@(cardIndex + 1 < 10 ? $"0{cardIndex + 1}" : (cardIndex + 1).ToString())</span>
+                                <i class="bi bi-trophy"></i>
+                            </div>
+                            @if (firstSchedule != null)
+                            {
+                                <div class="tp-date-block">
+                                    <strong>@firstSchedule.BookingDate.ToString("dd")</strong>
+                                    <span>Tháng @firstSchedule.BookingDate.ToString("MM") · @firstSchedule.BookingDate.ToString("yyyy")</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="tp-date-block tp-date-pending">
+                                    <i class="bi bi-calendar2-plus"></i>
+                                    <span>Lịch đang cập nhật</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="tp-card-body">
+                            <div class="tp-organizer"><i class="bi bi-patch-check-fill"></i>@item.OrganizerName</div>
+                            <h3 class="font-outfit">@item.TournamentName</h3>
+                            <p>@(string.IsNullOrWhiteSpace(item.Description)
+                                ? "Một sân chơi thể thao đầy năng lượng đang chờ bạn khám phá và cổ vũ."
+                                : item.Description)</p>
+
+                            <div class="tp-card-meta">
+                                <span><i class="bi bi-geo-alt-fill"></i><strong>@courtCount</strong> sân</span>
+                                <span><i class="bi bi-calendar2-week-fill"></i><strong>@schedules.Count</strong> ca đấu</span>
+                                @if (firstSchedule != null)
+                                {
+                                    <span>
+                                        <i class="bi bi-clock-fill"></i>
+                                        <strong>@firstSchedule.StartTime</strong>
+                                        @if (lastSchedule != null && lastSchedule.BookingDate != firstSchedule.BookingDate)
+                                        {
+                                            <text> · @lastSchedule.BookingDate.ToString("dd/MM")</text>
+                                        }
+                                    </span>
+                                }
+                            </div>
+
+                            @if (schedules.Count > 0)
+                            {
+                                <div class="tp-schedule-preview" aria-label="Lịch thi đấu nổi bật">
+                                    @foreach (var schedule in schedules.Take(2))
+                                    {
+                                        <span>
+                                            <b>@schedule.BookingDate.ToString("dd/MM")</b>
+                                            @schedule.CourtName · @schedule.StartTime
+                                        </span>
+                                    }
+                                    @if (schedules.Count > 2)
+                                    {
+                                        <span class="tp-more-schedules">+@(schedules.Count - 2) lịch khác</span>
+                                    }
+                                </div>
+                            }
+
+                            <a asp-action="PublicDetail" asp-route-id="@item.TournamentId" class="tp-card-action">
+                                <span>Xem lịch thi đấu</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </article>
+
+                    cardIndex++;
+                }
+            </div>
         }
-        <li class="page-item @(Model.PagedData.PageNumber >= Model.PagedData.TotalPages ? "disabled" : "")">
-          <a class="page-link rounded-end-pill px-4" asp-action="PublicIndex" asp-route-page="@(Model.PagedData.PageNumber + 1)">Trang sau</a>
-        </li>
-      </ul>
-    </div>
-  }
-</div>
+        else
+        {
+            <div class="tp-empty">
+                <div class="tp-empty-icon"><i class="bi bi-trophy"></i></div>
+                <div class="tp-overline">Chưa tìm thấy giải đấu</div>
+                <h2 class="font-outfit">Sân khấu đang chờ người mở màn.</h2>
+                <p>
+                    @(string.IsNullOrWhiteSpace(Model.Keyword)
+                        ? "Hiện chưa có giải đấu công khai. Hãy trở thành người đầu tiên tạo nên cuộc tranh tài mới."
+                        : $"Không có kết quả phù hợp với “{Model.Keyword}”. Thử một từ khóa khác nhé.")
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    @if (!string.IsNullOrWhiteSpace(Model.Keyword))
+                    {
+                        <a asp-action="PublicIndex" class="sc-btn sc-btn-secondary"><i class="bi bi-arrow-counterclockwise me-2"></i>Xem tất cả</a>
+                    }
+                    <a asp-action="Create" class="sc-btn sc-btn-primary"><i class="bi bi-plus-circle me-2"></i>Tổ chức giải đấu</a>
+                </div>
+            </div>
+        }
+    </section>
+
+    @if (Model.PagedData.TotalPages > 1)
+    {
+        <nav class="tp-pagination-shell" aria-label="Phân trang giải đấu">
+            <span>Trang @Model.PagedData.PageNumber / @Model.PagedData.TotalPages</span>
+            <ul class="pagination tp-pagination">
+                <li class="page-item @(Model.PagedData.PageNumber <= 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="PublicIndex" asp-route-keyword="@Model.Keyword"
+                       asp-route-page="@(Model.PagedData.PageNumber - 1)" aria-label="Trang trước">
+                        <i class="bi bi-arrow-left"></i>
+                    </a>
+                </li>
+                @for (var pageNumber = 1; pageNumber <= Model.PagedData.TotalPages; pageNumber++)
+                {
+                    <li class="page-item @(pageNumber == Model.PagedData.PageNumber ? "active" : "")">
+                        <a class="page-link" asp-action="PublicIndex" asp-route-keyword="@Model.Keyword"
+                           asp-route-page="@pageNumber">@pageNumber</a>
+                    </li>
+                }
+                <li class="page-item @(Model.PagedData.PageNumber >= Model.PagedData.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="PublicIndex" asp-route-keyword="@Model.Keyword"
+                       asp-route-page="@(Model.PagedData.PageNumber + 1)" aria-label="Trang sau">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+</main>

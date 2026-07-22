@@ -3,6 +3,13 @@
     var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
     Layout = "_AdminLayout";
     ViewData["Title"] = "Quản lý Giải đấu";
+    var activeFilterCount = (!string.IsNullOrWhiteSpace(Model.Keyword) ? 1 : 0)
+        + (Model.FromDate.HasValue ? 1 : 0) + (Model.ToDate.HasValue ? 1 : 0)
+        + (!string.IsNullOrWhiteSpace(Model.Status) ? 1 : 0);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-filter.css" asp-append-version="true" />
 }
 
 <div class="page-header">
@@ -27,35 +34,49 @@
     </div>
 }
 
-<div class="admin-card p-4 mb-4">
-    <form method="get" asp-action="AdminIndex" class="row g-3 align-items-end">
-        <div class="col-md-4">
-            <label class="form-label small text-secondary fw-semibold">Từ khóa (Tên giải, Khách hàng...)</label>
-            <input type="text" name="keyword" value="@Model.Keyword" class="form-control bg-dark text-white border-secondary" placeholder="Tìm giải đấu..." />
+<section class="af-shell" aria-label="Bộ lọc giải đấu">
+    <div class="af-heading">
+        <div class="af-title-wrap">
+            <span class="af-title-icon"><i class="fa-solid fa-sliders"></i></span>
+            <div><h2 class="af-title">Trung tâm lọc giải đấu</h2><p class="af-subtitle">Khoanh vùng yêu cầu cần duyệt theo người tổ chức, thời gian và trạng thái</p></div>
         </div>
-        <div class="col-md-2">
-            <label class="form-label small text-secondary fw-semibold">Từ ngày tạo</label>
-            <input type="date" name="fromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control bg-dark text-white border-secondary" />
+        <span class="af-state @(activeFilterCount > 0 ? "is-filtered" : "")">
+            <i class="fa-solid fa-circle"></i>@(activeFilterCount > 0 ? $"{activeFilterCount} bộ lọc đang áp dụng" : "Đang hiển thị tất cả")
+        </span>
+    </div>
+    <form method="get" asp-action="AdminIndex" class="af-form">
+        <div class="af-grid">
+            <div class="af-field">
+                <label class="af-label" for="tournamentKeyword"><i class="fa-solid fa-magnifying-glass"></i>Tên giải / người tổ chức</label>
+                <div class="af-control"><i class="fa-solid fa-trophy"></i><input id="tournamentKeyword" type="search" name="keyword" value="@Model.Keyword" class="form-control" placeholder="Tìm giải đấu hoặc khách hàng..." /></div>
+            </div>
+            <div class="af-field">
+                <label class="af-label" for="tournamentFrom"><i class="fa-regular fa-calendar"></i>Tạo từ ngày</label>
+                <div class="af-control"><i class="fa-solid fa-calendar-day"></i><input id="tournamentFrom" type="date" name="fromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control" /></div>
+            </div>
+            <div class="af-field">
+                <label class="af-label" for="tournamentTo"><i class="fa-regular fa-calendar-check"></i>Đến ngày</label>
+                <div class="af-control"><i class="fa-solid fa-calendar-check"></i><input id="tournamentTo" type="date" name="toDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" class="form-control" /></div>
+            </div>
         </div>
-        <div class="col-md-2">
-            <label class="form-label small text-secondary fw-semibold">Đến ngày</label>
-            <input type="date" name="toDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" class="form-control bg-dark text-white border-secondary" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label small text-secondary fw-semibold">Trạng thái</label>
-            <select name="status" class="form-select bg-dark text-white border-secondary">
-                <option value="">-- Tất cả --</option>
-                <option value="Pending" selected="@(Model.Status == "Pending")">Chờ duyệt</option>
-                <option value="Confirmed" selected="@(Model.Status == "Confirmed")">Đã duyệt</option>
-                <option value="Paid" selected="@(Model.Status == "Paid")">Đã thanh toán</option>
-                <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Đã hủy</option>
-            </select>
-        </div>
-        <div class="col-md-2 d-flex gap-2">
-            <button type="submit" class="btn btn-primary w-100 fw-semibold"><i class="fa-solid fa-filter me-1"></i> Lọc</button>
+        <div class="af-bottom">
+            <div class="af-status-group">
+                <span class="af-status-caption">Trạng thái xử lý</span>
+                <div class="af-segments">
+                    <label class="af-segment af-muted"><input type="radio" name="status" value="" checked="@string.IsNullOrWhiteSpace(Model.Status)" /><span>Tất cả</span></label>
+                    <label class="af-segment af-warning"><input type="radio" name="status" value="Pending" checked="@(Model.Status == "Pending")" /><span>Chờ duyệt</span></label>
+                    <label class="af-segment af-info"><input type="radio" name="status" value="Confirmed" checked="@(Model.Status == "Confirmed")" /><span>Đã duyệt</span></label>
+                    <label class="af-segment"><input type="radio" name="status" value="Paid" checked="@(Model.Status == "Paid")" /><span>Đã thanh toán</span></label>
+                    <label class="af-segment af-danger"><input type="radio" name="status" value="Cancelled" checked="@(Model.Status == "Cancelled")" /><span>Đã hủy</span></label>
+                </div>
+            </div>
+            <div class="af-actions">
+                <a asp-action="AdminIndex" class="af-reset"><i class="fa-solid fa-arrow-rotate-left"></i>Đặt lại</a>
+                <button type="submit" class="af-submit"><i class="fa-solid fa-wand-magic-sparkles"></i>Áp dụng bộ lọc</button>
+            </div>
         </div>
     </form>
-</div>
+</section>
 
 @if (Model.PagedData.Items == null || !Model.PagedData.Items.Any())
 {
@@ -152,7 +173,10 @@ else
         <div class="pagination-custom mt-4">
             @for (int i = 1; i <= Model.PagedData.TotalPages; i++)
             {
-                <a asp-action="AdminIndex" asp-route-page="@i" asp-route-keyword="@Model.Keyword" asp-route-status="@Model.Status" class="@(i == Model.PagedData.PageNumber ? "active" : "")">@i</a>
+                <a asp-action="AdminIndex" asp-route-page="@i" asp-route-keyword="@Model.Keyword"
+                   asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")"
+                   asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
+                   asp-route-status="@Model.Status" class="@(i == Model.PagedData.PageNumber ? "active" : "")">@i</a>
             }
         </div>
     }

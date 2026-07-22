@@ -3,6 +3,14 @@
     var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
     Layout = "_AdminLayout";
     ViewData["Title"] = "Quản lý Đơn đặt sân";
+    var activeFilterCount = (!string.IsNullOrWhiteSpace(Model.Keyword) ? 1 : 0)
+        + (Model.CourtTypeId.HasValue ? 1 : 0)
+        + (Model.FromDate.HasValue ? 1 : 0) + (Model.ToDate.HasValue ? 1 : 0)
+        + (!string.IsNullOrWhiteSpace(Model.Status) ? 1 : 0);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-filter.css" asp-append-version="true" />
 }
 
 <div class="page-header">
@@ -27,49 +35,65 @@
     </div>
 }
 
-<div class="admin-card p-4 mb-4">
-    <form method="get" asp-action="AdminIndex" class="row g-3 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label small text-secondary fw-semibold">Từ khóa (Mã đơn, Tên KH...)</label>
-            <input type="text" name="keyword" value="@Model.Keyword" class="form-control bg-dark text-white border-secondary" placeholder="Tìm kiếm nhanh..." />
+<section class="af-shell" aria-label="Bộ lọc đơn đặt sân">
+    <div class="af-heading">
+        <div class="af-title-wrap">
+            <span class="af-title-icon"><i class="fa-solid fa-sliders"></i></span>
+            <div><h2 class="af-title">Điều phối đơn đặt sân</h2><p class="af-subtitle">Tìm nhanh giao dịch theo khách hàng, loại sân, ngày chơi và tiến độ xử lý</p></div>
         </div>
-        <div class="col-md-2">
-            <label class="form-label small text-secondary fw-semibold">Loại sân</label>
-            <select name="courtTypeId" class="form-select bg-dark text-white border-secondary">
-                <option value="">-- Tất cả --</option>
-                @if (ViewBag.CourtTypes != null)
-                {
-                    foreach (var ct in ViewBag.CourtTypes)
-                    {
-                        <option value="@ct.CourtTypeId" selected="@(Model.CourtTypeId == ct.CourtTypeId)">@ct.TypeName</option>
-                    }
-                }
-            </select>
+        <span class="af-state @(activeFilterCount > 0 ? "is-filtered" : "")">
+            <i class="fa-solid fa-circle"></i>@(activeFilterCount > 0 ? $"{activeFilterCount} bộ lọc đang áp dụng" : "Đang hiển thị tất cả")
+        </span>
+    </div>
+    <form method="get" asp-action="AdminIndex" class="af-form">
+        <div class="af-grid af-grid-bookings">
+            <div class="af-field">
+                <label class="af-label" for="bookingKeyword"><i class="fa-solid fa-magnifying-glass"></i>Mã đơn / khách hàng</label>
+                <div class="af-control"><i class="fa-solid fa-receipt"></i><input id="bookingKeyword" type="search" name="keyword" value="@Model.Keyword" class="form-control" placeholder="Mã đơn, tên, số điện thoại hoặc sân..." /></div>
+            </div>
+            <div class="af-field">
+                <label class="af-label" for="bookingCourtType"><i class="fa-solid fa-layer-group"></i>Loại sân</label>
+                <div class="af-control">
+                    <i class="fa-solid fa-volleyball"></i>
+                    <select id="bookingCourtType" name="courtTypeId" class="form-select">
+                        <option value="">Tất cả loại sân</option>
+                        @if (ViewBag.CourtTypes != null)
+                        {
+                            foreach (var ct in ViewBag.CourtTypes)
+                            {
+                                <option value="@ct.CourtTypeId" selected="@(Model.CourtTypeId == ct.CourtTypeId)">@ct.TypeName</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="af-field">
+                <label class="af-label" for="bookingFrom"><i class="fa-regular fa-calendar"></i>Ngày chơi từ</label>
+                <div class="af-control"><i class="fa-solid fa-calendar-day"></i><input id="bookingFrom" type="date" name="fromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control" /></div>
+            </div>
+            <div class="af-field">
+                <label class="af-label" for="bookingTo"><i class="fa-regular fa-calendar-check"></i>Đến ngày</label>
+                <div class="af-control"><i class="fa-solid fa-calendar-check"></i><input id="bookingTo" type="date" name="toDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" class="form-control" /></div>
+            </div>
         </div>
-        <div class="col-md-2">
-            <label class="form-label small text-secondary fw-semibold">Từ ngày</label>
-            <input type="date" name="fromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control bg-dark text-white border-secondary" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label small text-secondary fw-semibold">Đến ngày</label>
-            <input type="date" name="toDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" class="form-control bg-dark text-white border-secondary" />
-        </div>
-        <div class="col-md-3">
-            <label class="form-label small text-secondary fw-semibold">Trạng thái đơn</label>
-            <select name="status" class="form-select bg-dark text-white border-secondary">
-                <option value="">-- Tất cả trạng thái --</option>
-                <option value="Pending" selected="@(Model.Status == "Pending")">Chờ xử lý / Thanh toán</option>
-                <option value="Confirmed" selected="@(Model.Status == "Confirmed")">Đã duyệt (Confirmed)</option>
-                <option value="Paid" selected="@(Model.Status == "Paid")">Đã thanh toán (Paid)</option>
-                <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Đã hủy</option>
-            </select>
-        </div>
-        <div class="col-12 d-flex justify-content-end gap-2 mt-3">
-            <a asp-action="AdminIndex" class="btn-ghost text-secondary text-decoration-none px-3 py-2">Đặt lại</a>
-            <button type="submit" class="btn btn-primary px-4 fw-semibold"><i class="fa-solid fa-filter me-1"></i> Lọc danh sách</button>
+        <div class="af-bottom">
+            <div class="af-status-group">
+                <span class="af-status-caption">Trạng thái đơn</span>
+                <div class="af-segments">
+                    <label class="af-segment af-muted"><input type="radio" name="status" value="" checked="@string.IsNullOrWhiteSpace(Model.Status)" /><span>Tất cả</span></label>
+                    <label class="af-segment af-warning"><input type="radio" name="status" value="Pending" checked="@(Model.Status == "Pending")" /><span>Chờ xử lý</span></label>
+                    <label class="af-segment af-info"><input type="radio" name="status" value="Confirmed" checked="@(Model.Status == "Confirmed")" /><span>Đã xác nhận</span></label>
+                    <label class="af-segment"><input type="radio" name="status" value="Paid" checked="@(Model.Status == "Paid")" /><span>Đã thanh toán</span></label>
+                    <label class="af-segment af-danger"><input type="radio" name="status" value="Cancelled" checked="@(Model.Status == "Cancelled")" /><span>Đã hủy</span></label>
+                </div>
+            </div>
+            <div class="af-actions">
+                <a asp-action="AdminIndex" class="af-reset"><i class="fa-solid fa-arrow-rotate-left"></i>Đặt lại</a>
+                <button type="submit" class="af-submit"><i class="fa-solid fa-wand-magic-sparkles"></i>Áp dụng bộ lọc</button>
+            </div>
         </div>
     </form>
-</div>
+</section>
 
 @if (Model.PagedData.Items == null || !Model.PagedData.Items.Any())
 {
@@ -200,7 +224,9 @@ else
         <div class="pagination-custom mt-4">
             @if (startPage > 1)
             {
-                <a asp-action="AdminIndex" asp-route-page="1" asp-route-keyword="@Model.Keyword" asp-route-status="@Model.Status" asp-route-courtTypeId="@Model.CourtTypeId">1</a>
+                <a asp-action="AdminIndex" asp-route-page="1" asp-route-keyword="@Model.Keyword" asp-route-status="@Model.Status"
+                   asp-route-courtTypeId="@Model.CourtTypeId" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")"
+                   asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")">1</a>
                 @if (startPage > 2)
                 {
                     <span class="text-secondary px-2">...</span>
@@ -209,7 +235,9 @@ else
 
             @for (int i = startPage; i <= endPage; i++)
             {
-                <a asp-action="AdminIndex" asp-route-page="@i" asp-route-keyword="@Model.Keyword" asp-route-status="@Model.Status" asp-route-courtTypeId="@Model.CourtTypeId" class="@(i == currentPage ? "active" : "")">@i</a>
+                <a asp-action="AdminIndex" asp-route-page="@i" asp-route-keyword="@Model.Keyword" asp-route-status="@Model.Status"
+                   asp-route-courtTypeId="@Model.CourtTypeId" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")"
+                   asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")" class="@(i == currentPage ? "active" : "")">@i</a>
             }
 
             @if (endPage < totalPages)
@@ -218,7 +246,9 @@ else
                 {
                     <span class="text-secondary px-2">...</span>
                 }
-                <a asp-action="AdminIndex" asp-route-page="@totalPages" asp-route-keyword="@Model.Keyword" asp-route-status="@Model.Status" asp-route-courtTypeId="@Model.CourtTypeId">@totalPages</a>
+                <a asp-action="AdminIndex" asp-route-page="@totalPages" asp-route-keyword="@Model.Keyword" asp-route-status="@Model.Status"
+                   asp-route-courtTypeId="@Model.CourtTypeId" asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")"
+                   asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")">@totalPages</a>
             }
         </div>
     }

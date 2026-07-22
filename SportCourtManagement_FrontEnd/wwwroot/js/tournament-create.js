@@ -178,8 +178,9 @@
 
     function renderCourtError(card) {
         card.querySelectorAll(".slot-checkbox").forEach(function (input) {
-            const key = availabilityKey(input.dataset.courtId, elements.date.value, input.dataset.slotId);
-            if (!state.availability.has(key)) applySlotStatus(input, "Error", 0, elements.date.value);
+            // Fail closed: a stale "Available" value must never remain selectable
+            // when the latest availability request fails.
+            applySlotStatus(input, "Error", 0, elements.date.value);
         });
         const copy = card.querySelector(".court-availability-copy");
         if (copy) copy.textContent = " · Chưa tải được lịch";

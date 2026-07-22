@@ -84,7 +84,9 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 var availSlot = availability?.Slots?.FirstOrDefault(s => s.SlotId == ts.SlotId);
                 var pricing = court?.Pricings?.FirstOrDefault(p => p.SlotId == ts.SlotId);
 
-                string status = "Available";
+                // Never advertise a slot as available when the backend omitted it
+                // or the availability request failed.
+                string status = availability == null ? "Error" : "Inactive";
                 decimal price = 0;
 
                 if (availSlot != null)
