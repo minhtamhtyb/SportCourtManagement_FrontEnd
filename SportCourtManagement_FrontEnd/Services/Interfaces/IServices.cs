@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using SportCourtManagement_FrontEnd.Models.Api;
 using SportCourtManagement_FrontEnd.Models.DTOs;
+using SportCourtManagement_FrontEnd.Models.ViewModels.Auth;
 
 namespace SportCourtManagement_FrontEnd.Services.Interfaces;
 
@@ -11,13 +12,20 @@ public interface IAuthService
     Task VerifyEmailAsync(VerifyEmailRequest request);
     Task LogoutAsync();
     Task<UserDto?> GetCurrentUserAsync();
+    Task<UserDto> UpdateProfileAsync(UpdateProfileViewModel request);
+    Task ChangePasswordAsync(ChangePasswordViewModel request);
     Task<AuthLoginResult> GoogleLoginAsync(string idToken);
 }
 
 public interface ICourtService
 {
     Task<ComplexStatsDto> GetStatsAsync();
-    Task<PagedResult<CourtComplexDto>> GetComplexesAsync(string? search, int? courtTypeId, int page, int pageSize);
+    Task<PagedResult<CourtComplexDto>> GetComplexesAsync(
+        string? search,
+        int? courtTypeId,
+        int page,
+        int pageSize
+    );
     Task<CourtComplexDto?> GetComplexByIdAsync(int id);
     Task<CourtComplexDto> CreateComplexAsync(CourtComplexDto dto);
     Task UpdateComplexAsync(int id, CourtComplexDto dto);
@@ -46,8 +54,15 @@ public interface IServiceCatalogService
 public interface IComplexServiceOfferingService
 {
     Task<List<ComplexCourtTypeServiceDto>> GetByComplexAsync(int complexId);
-    Task<List<ComplexCourtTypeServiceDto>> GetByComplexAndCourtTypeAsync(int complexId, int courtTypeId);
-    Task<ComplexCourtTypeServiceDto> CreateAsync(int complexId, int courtTypeId, ComplexCourtTypeServiceDto dto);
+    Task<List<ComplexCourtTypeServiceDto>> GetByComplexAndCourtTypeAsync(
+        int complexId,
+        int courtTypeId
+    );
+    Task<ComplexCourtTypeServiceDto> CreateAsync(
+        int complexId,
+        int courtTypeId,
+        ComplexCourtTypeServiceDto dto
+    );
     Task UpdateAsync(int offeringId, ComplexCourtTypeServiceDto dto);
     Task DeleteAsync(int offeringId);
 }

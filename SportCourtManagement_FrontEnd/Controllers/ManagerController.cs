@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace SportCourtManagement_FrontEnd.Controllers
 {
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Manager,Admin")]
     [Route("manager")]
     public class ManagerController : Controller
     {

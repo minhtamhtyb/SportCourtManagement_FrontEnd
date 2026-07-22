@@ -13,16 +13,19 @@ else
         var isAvailable = slot.Status.Equals("Available", StringComparison.OrdinalIgnoreCase);
         var isMaintenance = slot.Status.Equals("Maintenance", StringComparison.OrdinalIgnoreCase);
         var isBooked = slot.Status.Equals("Booked", StringComparison.OrdinalIgnoreCase);
+        var isHeld = slot.Status.Equals("Held", StringComparison.OrdinalIgnoreCase);
+        var isInactive = slot.Status.Equals("Inactive", StringComparison.OrdinalIgnoreCase);
 
         string statusClass = "sc-slot-available";
         if (isBooked) statusClass = "sc-slot-booked";
-        if (isMaintenance) statusClass = "sc-slot-maintenance";
+        if (isHeld) statusClass = "sc-slot-held";
+        if (isMaintenance || isInactive) statusClass = "sc-slot-maintenance";
 
         <div class="sc-slot-btn @statusClass" 
              data-slot-id="@slot.SlotId" 
              data-slot-name="@slot.SlotName (@slot.StartTime.ToString("hh\\:mm") - @slot.EndTime.ToString("hh\\:mm"))"
              data-price="@slot.Price"
-             title="@(isAvailable ? "Còn trống" : (isBooked ? "Đã đặt" : (isMaintenance ? "Bảo trì" : slot.Status)))">
+             title="@(isAvailable ? "Còn trống" : (isHeld ? "Đang giữ thanh toán" : (isBooked ? "Đã đặt" : (isMaintenance ? "Bảo trì" : (isInactive ? "Tạm đóng" : slot.Status)))))">
             <div>@slot.StartTime.ToString("hh\\:mm") - @slot.EndTime.ToString("hh\\:mm")</div>
             <div style="font-size: 10px; opacity: 0.8; margin-top: 2px;">
                 @if (isAvailable)
@@ -31,7 +34,7 @@ else
                 }
                 else
                 {
-                    @slot.Status
+                    @(isHeld ? "Đang giữ" : (isInactive ? "Tạm đóng" : slot.Status))
                 }
             </div>
         </div>

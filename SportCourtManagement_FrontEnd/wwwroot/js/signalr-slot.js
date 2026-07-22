@@ -36,7 +36,7 @@ $(document).ready(function () {
         if ($slotBtn.length === 0) return;
 
         // Update classes and text based on new status
-        $slotBtn.removeClass('sc-slot-available sc-slot-booked sc-slot-maintenance sc-slot-selected');
+        $slotBtn.removeClass('sc-slot-available sc-slot-held sc-slot-booked sc-slot-maintenance sc-slot-selected');
         
         const $priceLabel = $slotBtn.find('div').eq(1);
         const originalPrice = $slotBtn.data('price');
@@ -49,6 +49,16 @@ $(document).ready(function () {
             } else {
                 $priceLabel.text("Còn trống");
             }
+        } else if (newStatus === "Held") {
+            $slotBtn.addClass('sc-slot-held');
+            $slotBtn.attr('title', 'Đang giữ thanh toán');
+            $priceLabel.text("Đang giữ");
+            $slotBtn.off('click');
+
+            if ($('#selected-slot-id').val() === slotId.toString()) {
+                $('#selected-slot-id').val('');
+                $('#selected-slot-label').text('-- Chưa chọn --');
+            }
         } else if (newStatus === "Booked") {
             $slotBtn.addClass('sc-slot-booked');
             $slotBtn.attr('title', 'Đã đặt');
@@ -60,10 +70,11 @@ $(document).ready(function () {
                 $('#selected-slot-id').val('');
                 $('#selected-slot-label').text('-- Chưa chọn --');
             }
-        } else if (newStatus === "Maintenance") {
+        } else if (newStatus === "Maintenance" || newStatus === "Inactive") {
             $slotBtn.addClass('sc-slot-maintenance');
-            $slotBtn.attr('title', 'Bảo trì');
-            $priceLabel.text("Bảo trì");
+            const unavailableText = newStatus === "Inactive" ? "Tạm đóng" : "Bảo trì";
+            $slotBtn.attr('title', unavailableText);
+            $priceLabel.text(unavailableText);
             $slotBtn.off('click'); // Disable clicking
 
             if ($('#selected-slot-id').val() === slotId.toString()) {

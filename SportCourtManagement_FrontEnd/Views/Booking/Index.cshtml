@@ -511,6 +511,18 @@
             color: #EF4444;
         }
 
+        /* Held while another customer completes payment */
+        .slot-segment.slot-held {
+            background: rgba(245, 158, 11, 0.07);
+            border: 1.5px solid rgba(245, 158, 11, 0.22);
+            cursor: not-allowed;
+            opacity: 0.82;
+        }
+        .slot-segment.slot-held .slot-time,
+        .slot-segment.slot-held .slot-name {
+            color: #F7B955 !important;
+        }
+
         /* Maintenance */
         .slot-segment.slot-maintenance {
             background: rgba(245, 158, 11, 0.05);
@@ -810,19 +822,24 @@
                 slotsData.forEach(function (slot) {
                     const isAvailable = slot.status === 'Available';
                     const isBooked = slot.status === 'Booked';
-                    const isMaintenance = slot.status === 'Maintenance';
+                    const isHeld = slot.status === 'Held';
+                    const isMaintenance = slot.status === 'Maintenance' || slot.status === 'Inactive';
 
                     let statusClass = 'slot-available';
                     let statusText = 'Trống';
                     let statusBadgeStyle = 'background: rgba(16,185,129,0.12); color: #10B981;';
 
-                    if (isBooked) {
+                    if (isHeld) {
+                        statusClass = 'slot-held';
+                        statusText = 'Đang giữ';
+                        statusBadgeStyle = 'background: rgba(245,158,11,0.15); color: #F59E0B;';
+                    } else if (isBooked) {
                         statusClass = 'slot-booked';
                         statusText = 'Đã đặt';
                         statusBadgeStyle = 'background: rgba(239,68,68,0.15); color: #EF4444;';
                     } else if (isMaintenance) {
                         statusClass = 'slot-maintenance';
-                        statusText = 'Bảo trì';
+                        statusText = slot.status === 'Inactive' ? 'Tạm đóng' : 'Bảo trì';
                         statusBadgeStyle = 'background: rgba(245,158,11,0.15); color: #F59E0B;';
                     }
 

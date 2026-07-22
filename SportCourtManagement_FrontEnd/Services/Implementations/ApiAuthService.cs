@@ -1,4 +1,5 @@
 using SportCourtManagement_FrontEnd.Models.DTOs;
+using SportCourtManagement_FrontEnd.Models.ViewModels.Auth;
 using SportCourtManagement_FrontEnd.Services.Api;
 using SportCourtManagement_FrontEnd.Services.Interfaces;
 
@@ -10,12 +11,18 @@ public class ApiAuthService(ApiClient api) : IAuthService
     {
         try
         {
-            var (data, error, statusCode) = await api.PostForResultAsync<AuthResponse>("api/auth/login", request);
+            var (data, error, statusCode) = await api.PostForResultAsync<AuthResponse>(
+                "api/auth/login",
+                request
+            );
 
             if (data is not null)
                 return AuthLoginResult.Ok(data);
 
-            if (statusCode == 403 && error?.Contains("xác thực", StringComparison.OrdinalIgnoreCase) == true)
+            if (
+                statusCode == 403
+                && error?.Contains("xác thực", StringComparison.OrdinalIgnoreCase) == true
+            )
                 return AuthLoginResult.Fail(error, requiresVerification: true);
 
             return AuthLoginResult.Fail(error ?? "Email hoặc mật khẩu không đúng.");
@@ -44,14 +51,44 @@ public class ApiAuthService(ApiClient api) : IAuthService
         }
     }
 
-    public Task<UserDto?> GetCurrentUserAsync() =>
-        api.GetDataAsync<UserDto>("api/auth/me");
+    public Task<UserDto?> GetCurrentUserAsync() => api.GetDataAsync<UserDto>("api/auth/me");
+
+    public async Task<UserDto> UpdateProfileAsync(UpdateProfileViewModel request)
+    {
+        var payload = new
+        {
+            request.FullName,
+            request.Phone,
+            request.AvatarUrl,
+            request.DateOfBirth,
+            request.Gender,
+            request.SkillLevel,
+        };
+
+        return await api.PutDataAsync<UserDto>("api/users/profile", payload)
+            ?? throw new InvalidOperationException("Cập nhật hồ sơ thất bại.");
+    }
+
+    public async Task ChangePasswordAsync(ChangePasswordViewModel request)
+    {
+        var payload = new
+        {
+            OldPassword = request.OldPassword,
+            NewPassword = request.NewPassword,
+            ConfirmNewPassword = request.ConfirmPassword,
+        };
+
+        await api.PostOrThrowAsync("api/users/change-password", payload);
+    }
 
     public async Task<AuthLoginResult> GoogleLoginAsync(string idToken)
     {
         try
         {
-            var (data, error, statusCode) = await api.PostForResultAsync<AuthResponse>("api/auth/google", new { IdToken = idToken });
+            var (data, error, statusCode) = await api.PostForResultAsync<AuthResponse>(
+                "api/auth/google",
+                new { IdToken = idToken }
+            );
 
             if (data is not null)
                 return AuthLoginResult.Ok(data);

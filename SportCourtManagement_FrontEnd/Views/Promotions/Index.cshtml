@@ -3,6 +3,11 @@
     var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
     Layout = "_AdminLayout";
     ViewData["Title"] = "Quản lý Chương trình Khuyến mãi";
+    var activeFilterCount = (!string.IsNullOrWhiteSpace(Model.Keyword) ? 1 : 0) + (Model.IsActive.HasValue ? 1 : 0);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-filter.css" asp-append-version="true" />
 }
 
 <div class="page-header">
@@ -30,26 +35,43 @@
     </div>
 }
 
-<div class="admin-card p-4 mb-4">
-    <form method="get" asp-action="Index" class="row g-3 align-items-end">
-        <div class="col-md-5">
-            <label class="form-label small text-secondary fw-semibold">Từ khóa tìm kiếm</label>
-            <input type="text" name="keyword" value="@Model.Keyword" class="form-control bg-dark text-white border-secondary" placeholder="Mã khuyến mãi hoặc tên chương trình..." />
+<section class="af-shell" aria-label="Bộ lọc khuyến mãi">
+    <div class="af-heading">
+        <div class="af-title-wrap">
+            <span class="af-title-icon"><i class="fa-solid fa-sliders"></i></span>
+            <div><h2 class="af-title">Tìm đúng chiến dịch</h2><p class="af-subtitle">Lọc nhanh theo mã, tên chương trình hoặc trạng thái phát hành</p></div>
         </div>
-        <div class="col-md-4">
-            <label class="form-label small text-secondary fw-semibold">Trạng thái hoạt động</label>
-            <select name="isActive" class="form-select bg-dark text-white border-secondary">
-                <option value="">-- Tất cả trạng thái --</option>
-                <option value="true" selected="@(Model.IsActive == true)">Đang kích hoạt</option>
-                <option value="false" selected="@(Model.IsActive == false)">Đã khóa / Hết hạn</option>
-            </select>
+        <span class="af-state @(activeFilterCount > 0 ? "is-filtered" : "")">
+            <i class="fa-solid fa-circle"></i>@(activeFilterCount > 0 ? $"{activeFilterCount} bộ lọc đang áp dụng" : "Đang hiển thị tất cả")
+        </span>
+    </div>
+    <form method="get" asp-action="Index" class="af-form">
+        <div class="af-grid af-grid-single">
+            <div class="af-field">
+                <label class="af-label" for="promotionKeyword"><i class="fa-solid fa-magnifying-glass"></i>Từ khóa tìm kiếm</label>
+                <div class="af-control">
+                    <i class="fa-solid fa-ticket"></i>
+                    <input id="promotionKeyword" type="search" name="keyword" value="@Model.Keyword" class="form-control"
+                           placeholder="Nhập mã khuyến mãi hoặc tên chương trình..." autocomplete="off" />
+                </div>
+            </div>
         </div>
-        <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-primary w-100 fw-semibold"><i class="fa-solid fa-filter me-1"></i> Lọc</button>
-            <a asp-action="Index" class="btn-ghost text-secondary text-decoration-none px-3 py-2">Đặt lại</a>
+        <div class="af-bottom">
+            <div class="af-status-group">
+                <span class="af-status-caption">Trạng thái phát hành</span>
+                <div class="af-segments">
+                    <label class="af-segment af-muted"><input type="radio" name="isActive" value="" checked="@(!Model.IsActive.HasValue)" /><span>Tất cả</span></label>
+                    <label class="af-segment"><input type="radio" name="isActive" value="true" checked="@(Model.IsActive == true)" /><span>Đang kích hoạt</span></label>
+                    <label class="af-segment af-danger"><input type="radio" name="isActive" value="false" checked="@(Model.IsActive == false)" /><span>Đã khóa / hết hạn</span></label>
+                </div>
+            </div>
+            <div class="af-actions">
+                <a asp-action="Index" class="af-reset"><i class="fa-solid fa-arrow-rotate-left"></i>Đặt lại</a>
+                <button type="submit" class="af-submit"><i class="fa-solid fa-wand-magic-sparkles"></i>Áp dụng bộ lọc</button>
+            </div>
         </div>
     </form>
-</div>
+</section>
 
 @if (Model.PagedData.Items == null || !Model.PagedData.Items.Any())
 {
