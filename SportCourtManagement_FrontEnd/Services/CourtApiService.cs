@@ -88,14 +88,21 @@ public class CourtApiService : ICourtApiService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<CourtDetailDto>(
-                $"api/courts/{id}",
-                _jsonOptions
-            );
-            if (response != null)
+            var res = await _httpClient.GetAsync($"api/courts/{id}");
+            if (!res.IsSuccessStatusCode) return null;
+
+            var json = await res.Content.ReadAsStringAsync();
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            if (root.ValueKind == System.Text.Json.JsonValueKind.Object &&
+                root.TryGetProperty("data", out var dataProp) &&
+                dataProp.ValueKind == System.Text.Json.JsonValueKind.Object)
             {
-                return response;
+                return System.Text.Json.JsonSerializer.Deserialize<CourtDetailDto>(dataProp.GetRawText(), _jsonOptions);
             }
+
+            return System.Text.Json.JsonSerializer.Deserialize<CourtDetailDto>(json, _jsonOptions);
         }
         catch (Exception ex)
         {

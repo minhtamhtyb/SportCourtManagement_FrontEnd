@@ -66,7 +66,7 @@
 
         <div class="d-flex align-items-center gap-2 mb-3" style="font-size: 13px; color: var(--sc-text-secondary);">
             <span><i class="bi bi-clock"></i></span>
-            <span>@Model.OpenTime.ToString("hh\\:mm") - @Model.CloseTime.ToString("hh\\:mm")</span>
+            <span>@(Model.OpenTime != null && Model.OpenTime.Length >= 5 ? Model.OpenTime[..5] : Model.OpenTime) - @(Model.CloseTime != null && Model.CloseTime.Length >= 5 ? Model.CloseTime[..5] : Model.CloseTime)</span>
         </div>
 
         <div style="height: 1px; background-color: rgba(255,255,255,0.05); margin-bottom: 14px;"></div>

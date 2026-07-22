@@ -134,11 +134,17 @@ public class CourtFormViewModel
     [Display(Name = "Mặt sân")]
     public string? Surface { get; set; }
 
-    [Display(Name = "URL ảnh")]
-    public string ImageUrl { get; set; } = "";
+    [Display(Name = "URL ảnh chính")]
+    public string? ImageUrl { get; set; }
 
-    [Display(Name = "Ảnh sân")]
+    [Display(Name = "Danh sách URL ảnh")]
+    public List<string>? ImageUrls { get; set; } = [];
+
+    [Display(Name = "Ảnh sân (chọn 1 hoặc nhiều ảnh)")]
     public IFormFile? ImageFile { get; set; }
+
+    [Display(Name = "Tải lên nhiều ảnh sân")]
+    public List<IFormFile>? ImageFiles { get; set; }
 
     [Display(Name = "Trạng thái")]
     public string Status { get; set; } = "Available";
@@ -158,6 +164,7 @@ public class CourtFormViewModel
 
     public List<CourtTypeDto> CourtTypes { get; set; } = [];
     public List<string> StatusOptions { get; set; } = ["Available", "Maintenance", "Inactive", "Booked", "InUse"];
+    public List<CourtPricingInputDto> Pricings { get; set; } = [];
 }
 
 public class ServiceListViewModel

@@ -14,8 +14,8 @@ public class CourtDetailDto
     public string? Surface { get; set; }
     public int? Capacity { get; set; }
     public string? ImageUrl { get; set; }
-    public TimeSpan OpenTime { get; set; }
-    public TimeSpan CloseTime { get; set; }
+    public string OpenTime { get; set; } = string.Empty;
+    public string CloseTime { get; set; } = string.Empty;
     public decimal PricePerHour { get; set; }
     public string? CourtSize { get; set; }
     public string Status { get; set; } = string.Empty;
@@ -41,8 +41,8 @@ public class CourtPricingDto
     public int PricingId { get; set; }
     public int SlotId { get; set; }
     public string SlotName { get; set; } = string.Empty;
-    public TimeSpan StartTime { get; set; }
-    public TimeSpan EndTime { get; set; }
+    public string StartTime { get; set; } = string.Empty;
+    public string EndTime { get; set; } = string.Empty;
     public string DayType { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public decimal PeakMultiplier { get; set; } = 1.0m;

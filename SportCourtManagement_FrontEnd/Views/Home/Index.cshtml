@@ -541,29 +541,17 @@
                             courts = data.Items;
                         }
 
-                        // Kiểm tra xem hệ thống đã có đánh giá nào chưa
-                        const hasAnyReviews = courts.some(function(court) {
-                            const reviews = court.reviewCount !== undefined ? court.reviewCount : (court.ReviewCount || 0);
-                            return reviews > 0;
-                        });
-
-                        let filteredCourts = [];
-                        if (hasAnyReviews) {
-                            // Nếu đã có đánh giá trong hệ thống, chỉ hiển thị các sân có điểm từ 3.5 sao trở lên
-                            filteredCourts = courts.filter(function(court) {
-                                const rating = court.averageRating !== undefined ? court.averageRating : (court.AverageRating || 0.0);
-                                return rating >= 3.5;
-                            }).slice(0, 3);
-                        } else {
-                            // Nếu hệ thống chưa có bất kỳ đánh giá nào (sân mới tinh), hiển thị 3 sân bất kỳ để tránh trang chủ trống
-                            filteredCourts = courts.slice(0, 3);
-                        }
+                        // Lọc các sân có đánh giá từ 4.0 sao trở lên, lấy tối đa 3 sân
+                        const filteredCourts = courts.filter(function(court) {
+                            const rating = court.averageRating !== undefined ? court.averageRating : (court.AverageRating || 0.0);
+                            return rating >= 4.0;
+                        }).slice(0, 3);
 
                         const container = $('#courts-container');
                         container.empty();
 
                         if (filteredCourts.length === 0) {
-                            container.html('<div class="col-12 text-center py-5"><p class="text-sc-muted">Không có sân nào trong hệ thống.</p></div>');
+                            container.html('<div class="col-12 text-center py-5"><p class="text-sc-muted">Không có sân nào được đánh giá từ 4 sao trở lên.</p></div>');
                             return;
                         }
 

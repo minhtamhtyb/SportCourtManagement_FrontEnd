@@ -15,8 +15,8 @@ public class CourtListDto
     public int? Capacity { get; set; }
     public string? CourtSize { get; set; }
     public string Status { get; set; } = string.Empty;
-    public TimeSpan OpenTime { get; set; }
-    public TimeSpan CloseTime { get; set; }
+    public string OpenTime { get; set; } = string.Empty;
+    public string CloseTime { get; set; } = string.Empty;
     public decimal PricePerHour { get; set; }
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }

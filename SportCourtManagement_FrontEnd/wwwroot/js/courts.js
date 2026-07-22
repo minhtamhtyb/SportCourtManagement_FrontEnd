@@ -202,26 +202,105 @@ $(document).ready(function () {
 
   function bindImagePreview() {
     const fileInput = document.getElementById("courtImageFile");
-    const preview = document.getElementById("courtImagePreview");
-    if (!fileInput || !preview) return;
+    const galleryPreview = document.getElementById("courtImageGalleryPreview");
+    if (!galleryPreview) return;
 
-    fileInput.addEventListener("change", function () {
-      const file = fileInput.files && fileInput.files[0];
-      if (!file) return;
+    // Handle selecting primary image by clicking thumbnail
+    $(galleryPreview).on("click", ".img-thumb-item", function (e) {
+      if ($(e.target).hasClass("btn-remove-existing-img")) return;
 
-      if (file.size > 5 * 1024 * 1024) {
-        showToast("Ảnh không được vượt quá 5MB.", "error");
-        fileInput.value = "";
-        return;
+      galleryPreview.querySelectorAll(".img-thumb-item").forEach(item => {
+        item.classList.remove("is-primary-thumb");
+        const img = item.querySelector("img");
+        if (img) {
+          img.classList.remove("border-success", "border-2");
+          img.classList.add("border-secondary");
+        }
+        const badge = item.querySelector(".primary-badge");
+        if (badge) badge.classList.add("d-none");
+      });
+
+      this.classList.add("is-primary-thumb");
+      const clickedImg = this.querySelector("img");
+      if (clickedImg) {
+        clickedImg.classList.remove("border-secondary");
+        clickedImg.classList.add("border", "border-2", "border-success");
       }
+      const clickedBadge = this.querySelector(".primary-badge");
+      if (clickedBadge) clickedBadge.classList.remove("d-none");
 
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        preview.src = e.target.result;
-        preview.classList.remove("d-none");
-      };
-      reader.readAsDataURL(file);
+      const url = $(this).data("url");
+      const courtImageUrlInput = document.getElementById("courtImageUrl");
+      if (courtImageUrlInput && url) {
+        courtImageUrlInput.value = url;
+      }
     });
+
+    // Handle removing existing image thumbnail
+    $(galleryPreview).on("click", ".btn-remove-existing-img", function (e) {
+      e.stopPropagation();
+      const urlToRemove = $(this).data("url");
+      const thumbItem = $(this).closest(".img-thumb-item");
+      const wasPrimary = thumbItem.hasClass("is-primary-thumb");
+      thumbItem.remove();
+      // Remove matching hidden input
+      $(`.existing-image-url-input[value="${urlToRemove}"]`).remove();
+
+      // If removed image was primary, set first remaining image as primary
+      if (wasPrimary) {
+        const firstRemaining = galleryPreview.querySelector(".img-thumb-item");
+        if (firstRemaining) {
+          firstRemaining.click();
+        } else {
+          const courtImageUrlInput = document.getElementById("courtImageUrl");
+          if (courtImageUrlInput) courtImageUrlInput.value = "";
+        }
+      }
+    });
+
+    if (fileInput) {
+      fileInput.addEventListener("change", function () {
+        const files = Array.from(fileInput.files || []);
+        if (files.length === 0) return;
+
+        const existingCount = galleryPreview.querySelectorAll(".existing-img-thumb").length;
+        if (existingCount + files.length > 3) {
+          showToast(`Mỗi sân chỉ được chọn tối đa 3 ảnh mô tả. Đã có ${existingCount} ảnh, bạn chọn thêm ${files.length} ảnh.`, "error");
+          fileInput.value = "";
+          return;
+        }
+
+        // Clear previous new image preview thumbnails
+        galleryPreview.querySelectorAll(".new-img-thumb").forEach(el => el.remove());
+
+        for (let file of files) {
+          if (file.size > 5 * 1024 * 1024) {
+            showToast(`Ảnh ${file.name} vượt quá 5MB.`, "error");
+            fileInput.value = "";
+            return;
+          }
+        }
+
+        const hasExisting = galleryPreview.querySelectorAll(".img-thumb-item").length > 0;
+
+        files.forEach((file, index) => {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const isFirst = !hasExisting && index === 0;
+            const thumb = document.createElement("div");
+            thumb.className = `position-relative img-thumb-item new-img-thumb ${isFirst ? "is-primary-thumb" : ""}`;
+            thumb.style.cssText = "width: 110px; height: 80px; cursor: pointer;";
+            thumb.setAttribute("title", "Bấm để chọn làm ảnh chính");
+            thumb.innerHTML = `
+              <img src="${e.target.result}" class="rounded w-100 h-100 object-fit-cover ${isFirst ? "border border-2 border-success" : "border border-secondary"}" />
+              <span class="badge bg-success position-absolute bottom-0 start-0 m-1 primary-badge ${isFirst ? "" : "d-none"}" style="font-size: 10px;">Ảnh chính</span>
+            `;
+            galleryPreview.appendChild(thumb);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+    }
   }
 
   function bindFormSubmit() {
@@ -232,14 +311,12 @@ $(document).ready(function () {
       e.preventDefault();
       const submitBtn = document.getElementById("courtFormSubmit");
       const fileInput = document.getElementById("courtImageFile");
+      const galleryPreview = document.getElementById("courtImageGalleryPreview");
 
-      if (
-        fileInput &&
-        fileInput.files &&
-        fileInput.files[0] &&
-        fileInput.files[0].size > 5 * 1024 * 1024
-      ) {
-        showToast("Ảnh không được vượt quá 5MB.", "error");
+      const existingCount = galleryPreview ? galleryPreview.querySelectorAll(".existing-img-thumb").length : 0;
+      const newFilesCount = fileInput && fileInput.files ? fileInput.files.length : 0;
+      if (existingCount + newFilesCount > 3) {
+        showToast("Mỗi sân chỉ được có tối đa 3 ảnh mô tả.", "error");
         return;
       }
 

@@ -53,8 +53,8 @@ public class BookingsController : Controller
                 {
                     SlotId = courtPricing.SlotId,
                     SlotName = courtPricing.SlotName,
-                    StartTime = courtPricing.StartTime,
-                    EndTime = courtPricing.EndTime,
+                    StartTime = TimeSpan.TryParse(courtPricing.StartTime, out var st) ? st : TimeSpan.Zero,
+                    EndTime = TimeSpan.TryParse(courtPricing.EndTime, out var et) ? et : TimeSpan.Zero,
                     Price = finalPrice,
                     Status = "Available"
                 };
@@ -154,7 +154,7 @@ public class BookingsController : Controller
                     if (pricing != null)
                     {
                         slotPrice = pricing.Price;
-                        slotName = $"{pricing.StartTime.ToString(@"hh\:mm")} - {pricing.EndTime.ToString(@"hh\:mm")}";
+                        slotName = $"{pricing.StartTime} - {pricing.EndTime}";
                     }
                 }
 
@@ -303,7 +303,7 @@ public class BookingsController : Controller
                         var isWeekend = parsedDate.DayOfWeek == DayOfWeek.Saturday || parsedDate.DayOfWeek == DayOfWeek.Sunday;
                         var basePrice = pricing.Price;
                         slotPrice = isWeekend ? basePrice * pricing.PeakMultiplier : basePrice;
-                        slotName = $"{pricing.StartTime.ToString(@"hh\:mm")} - {pricing.EndTime.ToString(@"hh\:mm")}";
+                        slotName = $"{pricing.StartTime} - {pricing.EndTime}";
                     }
                 }
 
