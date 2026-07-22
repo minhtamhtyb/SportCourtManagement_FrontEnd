@@ -299,50 +299,45 @@ public class CourtsController(ICourtService courtService) : Controller
             string typeName = courtType.TypeName.ToLowerInvariant().Trim();
             string code = model.CourtCode.Trim().ToUpperInvariant();
             
-            bool isValid = false;
             string requiredPrefix = "";
-            string suggestion = "";
-            
-            if (typeName.Contains("cầu lông"))
+            string pattern = "";
+            string example = "";
+
+            if (typeName.Contains("bóng đá") || typeName.Contains("football"))
             {
-                requiredPrefix = "CL";
-                isValid = code.StartsWith("CL");
-                suggestion = "CL-01 hoặc CL-A1";
+                requiredPrefix = "FB";
+                pattern = @"^FB\d{4}$";
+                example = "FB0001";
             }
-            else if (typeName.Contains("bóng đá"))
+            else if (typeName.Contains("pickleball") || typeName.Contains("pickle"))
             {
-                requiredPrefix = "BD";
-                isValid = code.StartsWith("BD");
-                suggestion = "BD-01 hoặc BD-A1";
+                requiredPrefix = "PI";
+                pattern = @"^PI\d{4}$";
+                example = "PI0001";
             }
-            else if (typeName.Contains("pickleball"))
+            else if (typeName.Contains("cầu lông") || typeName.Contains("badminton"))
             {
-                requiredPrefix = "PB, PK hoặc PCK";
-                isValid = code.StartsWith("PB") || code.StartsWith("PK") || code.StartsWith("PCK");
-                suggestion = "PB-01, PK-A1 hoặc PCK-A1";
-            }
-            else if (typeName.Contains("tennis"))
-            {
-                requiredPrefix = "TN hoặc TEN";
-                isValid = code.StartsWith("TN") || code.StartsWith("TEN");
-                suggestion = "TN-01 hoặc TEN-A1";
-            }
-            else if (typeName.Contains("bóng rổ"))
-            {
-                requiredPrefix = "BR";
-                isValid = code.StartsWith("BR");
-                suggestion = "BR-01 hoặc BR-A1";
+                requiredPrefix = "BA";
+                pattern = @"^BA\d{4}$";
+                example = "BA0001";
             }
             else
             {
-                isValid = code.Length >= 2 && char.IsLetter(code[0]) && char.IsLetter(code[1]);
-                requiredPrefix = "ít nhất 2 chữ cái";
-                suggestion = "VD: SAN-01";
+                requiredPrefix = "2 chữ cái viết hoa";
+                pattern = @"^[A-Z]{2}\d{4}$";
+                example = "XX0001";
             }
 
-            if (!isValid)
+            if (!System.Text.RegularExpressions.Regex.IsMatch(code, pattern))
             {
-                ModelState.AddModelError(nameof(model.CourtCode), $"Mã sân của loại '{courtType.TypeName}' phải bắt đầu bằng '{requiredPrefix}' (Ví dụ: {suggestion}).");
+                if (requiredPrefix.Length == 2)
+                {
+                    ModelState.AddModelError(nameof(model.CourtCode), $"Mã sân cho loại '{courtType.TypeName}' phải bắt đầu bằng '{requiredPrefix}' và 4 chữ số (Ví dụ: {example}).");
+                }
+                else
+                {
+                    ModelState.AddModelError(nameof(model.CourtCode), $"Mã sân phải gồm 2 chữ cái viết hoa và 4 chữ số (Ví dụ: {example}).");
+                }
             }
         }
     }

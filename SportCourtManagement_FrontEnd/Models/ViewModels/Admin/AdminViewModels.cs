@@ -238,7 +238,7 @@ public class UserListViewModel
     public int Page { get; set; } = 1;
     public int TotalCount { get; set; }
     public int TotalPages { get; set; }
-    public List<string> RoleOptions { get; set; } = ["Admin", "Staff", "Coach", "Customer"];
+    public List<string> RoleOptions { get; set; } = ["Admin", "Manager", "Staff", "Customer"];
 }
 
 public class UserEditRolesViewModel
@@ -251,7 +251,7 @@ public class UserEditRolesViewModel
     [Display(Name = "Vai trò")]
     public string Role { get; set; } = "Customer";
 
-    public List<string> RoleOptions { get; set; } = ["Admin", "Staff", "Coach", "Customer"];
+    public List<string> RoleOptions { get; set; } = ["Admin", "Manager", "Staff", "Customer"];
     public bool IsActive { get; set; } = true;
     public bool IsSelf { get; set; }
 }
@@ -305,7 +305,7 @@ public class UserFormViewModel
     [Display(Name = "Đang hoạt động")]
     public bool IsActive { get; set; } = true;
 
-    public List<string> RoleOptions { get; set; } = ["Admin", "Staff", "Coach", "Customer"];
+    public List<string> RoleOptions { get; set; } = ["Admin", "Manager", "Staff", "Customer"];
     public List<string> GenderOptions { get; set; } = ["Male", "Female", "Other"];
     public List<string> SkillLevelOptions { get; set; } = ["Beginner", "Intermediate", "Advanced", "Professional"];
     

@@ -16,7 +16,7 @@ public class UsersController(IUserService userService, IRoleService roleService)
         try
         {
             var result = await userService.GetUsersAsync(search, role, page, 10);
-            var roles = (await roleService.GetRolesAsync()).Select(r => r.RoleName).ToList();
+            var roles = (await roleService.GetRolesAsync()).Select(r => r.RoleName).Where(r => !string.Equals(r, "Coach", StringComparison.OrdinalIgnoreCase)).ToList();
 
             var vm = new UserListViewModel
             {
@@ -216,7 +216,7 @@ public class UsersController(IUserService userService, IRoleService roleService)
     }
 
     private async Task<List<string>> GetRoleOptionsAsync() =>
-        (await roleService.GetRolesAsync()).Select(r => r.RoleName).ToList();
+        (await roleService.GetRolesAsync()).Select(r => r.RoleName).Where(r => !string.Equals(r, "Coach", StringComparison.OrdinalIgnoreCase)).ToList();
 
     private int? GetCurrentUserId()
     {

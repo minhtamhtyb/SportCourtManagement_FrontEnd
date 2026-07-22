@@ -3,14 +3,6 @@
 @{
     ViewData["Title"] = "Đăng nhập";
     Layout = "_AuthLayout";
-
-    var useMock = Configuration.GetValue<bool>("ApiSettings:UseMockData", true);
-    var customerEmail = useMock ? "customer@gmail.com" : "customer@sportcourt.vn";
-    var customerPwd = useMock ? "Customer@123" : "customer123";
-    var adminEmail = useMock ? "admin@sportscourtms.vn" : "admin@sportcourt.vn";
-    var adminPwd = useMock ? "Admin@123" : "admin123";
-    var staffEmail = useMock ? "staff@sportscourtms.vn" : "staff@sportcourt.vn";
-    var staffPwd = useMock ? "Staff@123" : "Staff@123";
 }
 
 <div class="auth-wrapper">
@@ -91,29 +83,7 @@
             <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
         </form>
 
-        <div class="mt-4 pt-3 border-top border-secondary">
-            <p class="text-center text-secondary small text-uppercase fw-semibold mb-2">Tài khoản thử nghiệm nhanh</p>
-            <div class="row g-2">
-                <div class="col-4">
-                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="fillLogin('@customerEmail','@customerPwd')">👤 Khách</button>
-                </div>
-                <div class="col-4">
-                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="fillLogin('@adminEmail','@adminPwd')">🛡️ Admin</button>
-                </div>
-                <div class="col-4">
-                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="fillLogin('@staffEmail','@staffPwd')">👷 NV</button>
-                </div>
-            </div>
-            <form asp-action="DevLoginAdmin" method="post" class="mt-2">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
-                    ⚡ Vào thẳng Admin
-                </button>
-            </form>
-            <p class="text-secondary small text-center mt-1 mb-0">Gọi API login thật với tài khoản Admin seed</p>
-        </div>
-
-        <p class="text-center text-secondary small mt-3 mb-0">
+        <p class="text-center text-secondary small mt-4 mb-0">
             Chưa có tài khoản? <a asp-action="Register" class="text-success fw-semibold">Đăng ký ngay</a>
         </p>
     </div>
@@ -123,11 +93,6 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
-        function fillLogin(email, password) {
-            document.getElementById('Email').value = email;
-            document.getElementById('Password').value = password;
-        }
-
         function handleCredentialResponse(response) {
             if (response && response.credential) {
                 document.getElementById('googleIdToken').value = response.credential;

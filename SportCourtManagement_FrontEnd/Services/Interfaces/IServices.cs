@@ -92,4 +92,5 @@ public interface IRoleService
 {
     Task<List<RoleDto>> GetRolesAsync();
     Task<List<PermissionMatrixRow>> GetPermissionMatrixAsync();
+    Task UpdatePermissionMatrixAsync(List<PermissionMatrixRow> matrix);
 }

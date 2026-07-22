@@ -29,32 +29,97 @@
 </div>
 
 <div class="admin-card p-4">
-    <h2 class="h6 text-white mb-3">Ma trận phân quyền (tóm tắt)</h2>
-    <div class="table-responsive">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Chức năng</th>
-                    <th class="text-center">Admin</th>
-                    <th class="text-center">Manager</th>
-                    <th class="text-center">Staff</th>
-                    <th class="text-center">Coach</th>
-                    <th class="text-center">Customer</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var row in Model.PermissionMatrix)
-                {
-                    <tr>
-                        <td>@row.Feature</td>
-                        <td class="text-center">@(row.Admin ? "✅" : "—")</td>
-                        <td class="text-center">@(row.Manager ? "✅" : "—")</td>
-                        <td class="text-center">@(row.Staff ? "✅" : "—")</td>
-                        <td class="text-center">@(row.Coach ? "✅" : "—")</td>
-                        <td class="text-center">@(row.Customer ? "✅" : "—")</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h6 text-white mb-0"><i class="fa-solid fa-shield-cat me-2 text-warning"></i>Ma trận phân quyền (Cho phép chỉnh sửa trực tiếp)</h2>
+        <button type="button" id="btnSavePermissions" class="btn-primary-custom btn-sm">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Lưu thay đổi phân quyền
+        </button>
     </div>
+    <form id="permissionForm">
+        @Html.AntiForgeryToken()
+        <div class="table-responsive">
+            <table class="admin-table text-center align-middle" id="permissionTable">
+                <thead>
+                    <tr>
+                        <th class="text-start">Chức năng</th>
+                        <th>Admin</th>
+                        <th>Manager</th>
+                        <th>Staff</th>
+                        <th>Customer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.PermissionMatrix.Count; i++)
+                    {
+                        var row = Model.PermissionMatrix[i];
+                        <tr data-feature="@row.Feature">
+                            <td class="text-start fw-semibold text-white">@row.Feature</td>
+                            <td>
+                                <input type="checkbox" class="form-check-input permission-chk" data-role="Admin" @(row.Admin ? "checked" : "") />
+                            </td>
+                            <td>
+                                <input type="checkbox" class="form-check-input permission-chk" data-role="Manager" @(row.Manager ? "checked" : "") />
+                            </td>
+                            <td>
+                                <input type="checkbox" class="form-check-input permission-chk" data-role="Staff" @(row.Staff ? "checked" : "") />
+                            </td>
+                            <td>
+                                <input type="checkbox" class="form-check-input permission-chk" data-role="Customer" @(row.Customer ? "checked" : "") />
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </form>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('btnSavePermissions')?.addEventListener('click', async function() {
+            var btn = this;
+            var originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Đang lưu...';
+
+            var rows = [];
+            document.querySelectorAll('#permissionTable tbody tr').forEach(function(tr) {
+                var feature = tr.getAttribute('data-feature');
+                var getChk = function(role) {
+                    return tr.querySelector('.permission-chk[data-role="' + role + '"]')?.checked || false;
+                };
+                rows.push({
+                    feature: feature,
+                    admin: getChk('Admin'),
+                    manager: getChk('Manager'),
+                    staff: getChk('Staff'),
+                    customer: getChk('Customer')
+                });
+            });
+
+            var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            try {
+                var res = await fetch('/Admin/Roles/UpdatePermissionMatrix', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(rows)
+                });
+                var result = await res.json();
+                if (result.success) {
+                    alert(result.message || 'Cập nhật ma trận phân quyền thành công!');
+                } else {
+                    alert('Lỗi: ' + (result.message || 'Cập nhật thất bại'));
+                }
+            } catch (err) {
+                alert('Có lỗi xảy ra: ' + err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+    </script>
+}
