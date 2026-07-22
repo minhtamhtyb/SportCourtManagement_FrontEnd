@@ -197,20 +197,25 @@
                                 <div class="row g-3">
                                     @foreach (var service in Model.Services)
                                     {
+                                        var isOutOfStock = service.StockQty <= 0;
+                                        var maxQty = isOutOfStock ? 0 : Math.Min(service.StockQty, 20);
                                         <div class="col-sm-6">
                                             <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background-color: rgba(255, 255, 255, 0.01); border: 1px solid var(--sc-border);">
                                                 <div>
                                                     <div class="text-white fw-bold" style="font-size: 14px;">@service.ServiceName</div>
                                                     <div class="text-sc-green fw-medium" style="font-size: 12px;">@service.Price.ToString("N0")đ / @(service.Unit ?? "đơn vị")</div>
+                                                    <div style="font-size: 11px;" class="@(isOutOfStock ? "text-danger" : "text-info") fw-medium mt-1">
+                                                        <i class="bi bi-box-seam me-1"></i>@(isOutOfStock ? "Hết hàng" : $"Còn lại: {service.StockQty} {(service.Unit ?? "đơn vị")}")
+                                                    </div>
                                                 </div>
                                                 <div class="d-flex align-items-center gap-2">
                                                     <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="@service.ServiceId" data-delta="-1">-</button>
                                                     <input type="number" name="serviceQuantities[@service.ServiceId]" id="svc-@service.ServiceId"
-                                                           value="0" min="0" max="@(service.StockQty > 0 ? Math.Min(service.StockQty, 20) : 20)"
+                                                           value="0" min="0" max="@maxQty"
                                                            data-price="@service.Price"
                                                            class="text-center bg-transparent border-0 text-white font-monospace service-qty-input"
                                                            style="width: 40px; font-size: 14px;" readonly />
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="@service.ServiceId" data-delta="1">+</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="@service.ServiceId" data-delta="1" @(isOutOfStock ? "disabled" : "")>+</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -715,21 +720,31 @@
                         if (res.success && res.services && res.services.length > 0) {
                             let html = '<div class="row g-3">';
                             res.services.forEach(function (svc) {
+                                const stockQty = svc.stockQty ?? 0;
+                                const isOutOfStock = stockQty <= 0;
+                                const stockClass = isOutOfStock ? 'text-danger' : 'text-info';
+                                const stockText = isOutOfStock ? 'Hết hàng' : `Còn lại: ${stockQty} ${svc.unit || 'đơn vị'}`;
+                                const maxVal = isOutOfStock ? 0 : Math.min(stockQty, 20);
+                                const disabledAttr = isOutOfStock ? 'disabled' : '';
+
                                 html += `
                                     <div class="col-sm-6">
                                         <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background-color: rgba(255, 255, 255, 0.01); border: 1px solid var(--sc-border);">
                                             <div>
                                                 <div class="text-white fw-bold" style="font-size: 14px;">${svc.serviceName}</div>
                                                 <div class="text-sc-green fw-medium" style="font-size: 12px;">${Number(svc.price).toLocaleString('vi-VN')}đ / ${svc.unit || 'đơn vị'}</div>
+                                                <div style="font-size: 11px;" class="${stockClass} fw-medium mt-1">
+                                                    <i class="bi bi-box-seam me-1"></i>${stockText}
+                                                </div>
                                             </div>
                                             <div class="d-flex align-items-center gap-2">
                                                 <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="${svc.serviceId}" data-delta="-1">-</button>
                                                 <input type="number" name="serviceQuantities[${svc.serviceId}]" id="svc-${svc.serviceId}"
-                                                       value="0" min="0" max="${svc.stockQty > 0 ? Math.min(svc.stockQty, 20) : 20}"
+                                                       value="0" min="0" max="${maxVal}"
                                                        data-price="${svc.price}"
                                                        class="text-center bg-transparent border-0 text-white font-monospace service-qty-input"
                                                        style="width: 40px; font-size: 14px;" readonly />
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="${svc.serviceId}" data-delta="1">+</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded font-monospace service-qty-btn" data-sid="${svc.serviceId}" data-delta="1" ${disabledAttr}>+</button>
                                             </div>
                                         </div>
                                     </div>

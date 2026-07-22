@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SportCourtManagement_FrontEnd.Models.Bookings;
 using SportCourtManagement_FrontEnd.Models.Courts;
+using SportCourtManagement_FrontEnd.Models.Services;
 using SportCourtManagement_FrontEnd.Models.ViewModels;
 using SportCourtManagement_FrontEnd.Services;
 
@@ -38,8 +39,16 @@ namespace SportCourtManagement_FrontEnd.Controllers
             // Load time slots
             var timeSlots = await _apiService.GetTimeSlotsAsync();
 
-            // Load services
-            var services = await _apiService.GetServicesAsync();
+            // Load services: Filter by CourtId if selected
+            List<ServiceDto> services = new();
+            if (courtId.HasValue && courtId.Value > 0)
+            {
+                services = await _apiService.GetServicesByCourtIdAsync(courtId.Value);
+            }
+            else
+            {
+                services = await _apiService.GetServicesAsync();
+            }
 
             DateTime? selectedDate = null;
             if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out var parsedDate))
