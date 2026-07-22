@@ -672,19 +672,28 @@
                     activeServices.forEach(service => {
                         if (service.category === "Coach" || service.category === "Event") return;
 
+                        const stock = service.stockQty !== undefined ? service.stockQty : (service.stockQuantity !== undefined ? service.stockQuantity : 0);
+                        const isOutOfStock = stock <= 0;
+                        const stockBadge = isOutOfStock 
+                            ? `<span class="badge bg-danger text-white ms-2" style="font-size: 11px;">Hết hàng</span>`
+                            : `<span class="badge bg-secondary text-info ms-2" style="background-color: rgba(255,255,255,0.08) !important; font-size: 11px;">Tồn kho: ${stock}</span>`;
+
                         const item = document.createElement('div');
                         item.className = 'd-flex align-items-center justify-content-between p-3 rounded-3';
                         item.style.backgroundColor = '#1F2937';
                         
                         item.innerHTML = `
                             <div class="flex-grow-1">
-                                <h6 class="fw-bold mb-1 text-white">${service.serviceName}</h6>
+                                <div class="d-flex align-items-center mb-1">
+                                    <h6 class="fw-bold mb-0 text-white me-1">${service.serviceName}</h6>
+                                    ${stockBadge}
+                                </div>
                                 <span class="text-secondary small">Giá: <strong class="text-danger">${parseFloat(service.price).toLocaleString('vi-VN')}đ</strong> / ${service.unit || "phần"}</span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle px-2 py-1" onclick="updateQty(${service.serviceId}, -1)">-</button>
-                                <input type="number" name="serviceQuantities[${service.serviceId}]" id="qty-${service.serviceId}" class="form-control text-center border-0 text-white p-0" value="0" min="0" style="width: 40px; background: transparent; font-weight: bold;" readonly />
-                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle px-2 py-1" onclick="updateQty(${service.serviceId}, 1)">+</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle px-2 py-1" onclick="updateQty(${service.serviceId}, -1)" ${isOutOfStock ? 'disabled' : ''}>-</button>
+                                <input type="number" name="serviceQuantities[${service.serviceId}]" id="qty-${service.serviceId}" class="form-control text-center border-0 text-white p-0" value="0" min="0" max="${stock}" style="width: 40px; background: transparent; font-weight: bold;" readonly />
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle px-2 py-1" onclick="updateQty(${service.serviceId}, 1)" ${isOutOfStock ? 'disabled' : ''}>+</button>
                             </div>
                         `;
 
@@ -723,9 +732,15 @@
 
         function updateQty(serviceId, change) {
             const input = document.getElementById(`qty-${serviceId}`);
+            const service = activeServices.find(s => s.serviceId === serviceId);
+            const stock = service ? (service.stockQty !== undefined ? service.stockQty : (service.stockQuantity !== undefined ? service.stockQuantity : 999)) : 999;
+            
             if (input) {
                 let val = parseInt(input.value) + change;
                 if (val < 0) val = 0;
+                if (val > stock) {
+                    val = stock;
+                }
                 input.value = val;
 
                 // Recalculate total services price
