@@ -330,4 +330,11 @@ public class MockRoleService(MockDataStore store) : IRoleService
 
     public Task<List<PermissionMatrixRow>> GetPermissionMatrixAsync() =>
         Task.FromResult(store.PermissionMatrix.ToList());
+
+    public Task UpdatePermissionMatrixAsync(List<PermissionMatrixRow> matrix)
+    {
+        store.PermissionMatrix.Clear();
+        store.PermissionMatrix.AddRange(matrix);
+        return Task.CompletedTask;
+    }
 }

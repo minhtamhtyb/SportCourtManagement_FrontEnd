@@ -139,24 +139,9 @@ public class ComplexesController(
         return View(vm);
     }
 
-    public async Task<IActionResult> Services(int id, int? courtTypeId)
+    public IActionResult Services(int id, int? courtTypeId)
     {
-        var complex = await courtService.GetComplexByIdAsync(id);
-        if (complex == null) return NotFound();
-
-        var allCourtTypes = await courtService.GetCourtTypesAsync();
-        var complexCourtTypes = allCourtTypes
-            .Where(t => complex.CourtTypeIds.Contains(t.CourtTypeId))
-            .ToList();
-
-        var vm = new ComplexServicesViewModel
-        {
-            Complex = complex,
-            ComplexCourtTypes = complexCourtTypes,
-            ServiceOfferings = await offeringService.GetByComplexAsync(id),
-            SelectedCourtTypeId = courtTypeId ?? complexCourtTypes.FirstOrDefault()?.CourtTypeId
-        };
-        return View(vm);
+        return RedirectToAction("Index", "Services", new { area = "Admin" });
     }
 
     public async Task<IActionResult> AddService(int complexId, int? courtTypeId)
