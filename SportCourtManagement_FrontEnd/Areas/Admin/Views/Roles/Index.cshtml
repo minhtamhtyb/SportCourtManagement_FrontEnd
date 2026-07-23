@@ -3,6 +3,11 @@
     ViewData["Title"] = "Phân quyền";
 }
 
+@* ─── Toast Container ─── *@
+<div id="toastContainer"
+     style="position:fixed;top:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;min-width:320px;pointer-events:none;">
+</div>
+
 <div class="page-header">
     <div>
         <h1 class="page-title">Quản lý vai trò & Phân quyền</h1>
@@ -76,27 +81,65 @@
 
 @section Scripts {
     <script>
-        document.getElementById('btnSavePermissions')?.addEventListener('click', async function() {
+        // ── Toast helper ─────────────────────────────────────────────────────
+        function showToast(message, type) {
+            var container = document.getElementById('toastContainer');
+            if (!container) return;
+            var colors = {
+                success: { bg: 'rgba(16,185,129,.95)', icon: 'fa-circle-check' },
+                error:   { bg: 'rgba(239,68,68,.95)',  icon: 'fa-circle-xmark' },
+                info:    { bg: 'rgba(59,130,246,.95)',  icon: 'fa-circle-info'  }
+            };
+            var cfg = colors[type] || colors.info;
+            var toast = document.createElement('div');
+            toast.style.cssText = [
+                'background:' + cfg.bg,
+                'color:#fff', 'padding:12px 18px', 'border-radius:10px',
+                'font-size:.9rem', 'display:flex', 'align-items:center', 'gap:10px',
+                'box-shadow:0 4px 20px rgba(0,0,0,.4)', 'pointer-events:auto',
+                'opacity:0', 'transform:translateX(40px)',
+                'transition:all .3s ease', 'min-width:280px', 'max-width:420px',
+                'word-break:break-word'
+            ].join(';');
+            toast.innerHTML = '<i class="fa-solid ' + cfg.icon + '" style="flex-shrink:0"></i>' +
+                              '<span>' + message + '</span>';
+            container.appendChild(toast);
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    toast.style.opacity = '1';
+                    toast.style.transform = 'translateX(0)';
+                });
+            });
+            setTimeout(function () {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(40px)';
+                setTimeout(function () { toast.remove(); }, 350);
+            }, 4000);
+        }
+
+        // ── Save permission matrix ────────────────────────────────────────────
+        document.getElementById('btnSavePermissions')?.addEventListener('click', async function () {
             var btn = this;
             var originalText = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Đang lưu...';
 
             var rows = [];
-            document.querySelectorAll('#permissionTable tbody tr').forEach(function(tr) {
+            document.querySelectorAll('#permissionTable tbody tr').forEach(function (tr) {
                 var feature = tr.getAttribute('data-feature');
-                var getChk = function(role) {
+                var getChk = function (role) {
                     return tr.querySelector('.permission-chk[data-role="' + role + '"]')?.checked || false;
                 };
                 rows.push({
                     feature: feature,
-                    admin: getChk('Admin'),
-                    manager: getChk('Manager'),
-                    staff: getChk('Staff'),
+                    admin:    getChk('Admin'),
+                    manager:  getChk('Manager'),
+                    staff:    getChk('Staff'),
                     customer: getChk('Customer')
                 });
             });
 
+            // ✅ Correct CSRF header name for ASP.NET Core
             var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
             try {
@@ -104,18 +147,22 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
+                        'X-RequestVerificationToken': token
                     },
                     body: JSON.stringify(rows)
                 });
-                var result = await res.json();
+
+                var result;
+                try { result = await res.json(); }
+                catch { result = { success: false, message: 'Phản hồi không hợp lệ (HTTP ' + res.status + ').' }; }
+
                 if (result.success) {
-                    alert(result.message || 'Cập nhật ma trận phân quyền thành công!');
+                    showToast(result.message || 'Cập nhật phân quyền thành công!', 'success');
                 } else {
-                    alert('Lỗi: ' + (result.message || 'Cập nhật thất bại'));
+                    showToast(result.message || 'Cập nhật thất bại.', 'error');
                 }
             } catch (err) {
-                alert('Có lỗi xảy ra: ' + err);
+                showToast('Có lỗi xảy ra: ' + (err.message || err), 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
