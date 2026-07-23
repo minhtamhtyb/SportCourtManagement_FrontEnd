@@ -100,19 +100,19 @@
                                 <span class="fw-bold text-white fs-5">#@item.BookingCode</span>
                                 @if (item.BookingCode.StartsWith("RBK", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <span class="badge bg-opacity-15 bg-info text-info border border-info border-opacity-20 rounded-pill ms-2" style="font-size: 11px;">
+                                    <span class="badge rounded-pill ms-2" style="font-size: 11px; background-color: rgba(6, 182, 212, 0.15); color: #22D3EE; border: 1px solid rgba(6, 182, 212, 0.3);">
                                         <i class="bi bi-arrow-repeat me-1"></i>Định kỳ
                                     </span>
                                 }
                                 else if (item.BookingCode.StartsWith("TM-", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <span class="badge bg-opacity-15 bg-warning text-warning border border-warning border-opacity-20 rounded-pill ms-2" style="font-size: 11px;">
+                                    <span class="badge rounded-pill ms-2" style="font-size: 11px; background-color: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3);">
                                         <i class="bi bi-trophy me-1"></i>Giải đấu
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-opacity-15 bg-secondary text-secondary border border-secondary border-opacity-20 rounded-pill ms-2" style="font-size: 11px;">
+                                    <span class="badge rounded-pill ms-2" style="font-size: 11px; background-color: rgba(148, 163, 184, 0.15); color: #CBD5E1; border: 1px solid rgba(148, 163, 184, 0.3);">
                                         <i class="bi bi-calendar-event me-1"></i>Đơn lẻ
                                     </span>
                                 }
@@ -122,20 +122,20 @@
                                 @switch (item.Status)
                                 {
                                     case "Completed":
-                                        <span class="badge bg-opacity-10 bg-success text-success px-3 py-2 rounded-pill"><i class="bi bi-check2-all me-1"></i>Hoàn thành</span>
+                                        <span class="badge px-3 py-2 rounded-pill" style="background-color: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3);"><i class="bi bi-check2-all me-1"></i>Hoàn thành</span>
                                         break;
                                     case "Paid":
                                     case "Confirmed":
-                                        <span class="sc-badge sc-badge-blue px-3 py-2"><i class="bi bi-shield-check me-1"></i>Đã xác nhận</span>
+                                        <span class="badge px-3 py-2 rounded-pill" style="background-color: rgba(59, 130, 246, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3);"><i class="bi bi-shield-check me-1"></i>Đã xác nhận</span>
                                         break;
                                     case "Pending":
-                                        <span class="badge bg-opacity-10 bg-warning text-warning px-3 py-2 rounded-pill"><i class="bi bi-clock-history me-1"></i>Chờ xử lý</span>
+                                        <span class="badge px-3 py-2 rounded-pill" style="background-color: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3);"><i class="bi bi-clock-history me-1"></i>Chờ xử lý</span>
                                         break;
                                     case "Cancelled":
-                                        <span class="badge bg-opacity-10 bg-danger text-danger px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i>Đã hủy</span>
+                                        <span class="badge px-3 py-2 rounded-pill" style="background-color: rgba(239, 68, 68, 0.15); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.3);"><i class="bi bi-x-circle me-1"></i>Đã hủy</span>
                                         break;
                                     default:
-                                        <span class="badge bg-opacity-10 bg-secondary text-secondary px-3 py-2 rounded-pill">@item.Status</span>
+                                        <span class="badge px-3 py-2 rounded-pill" style="background-color: rgba(148, 163, 184, 0.15); color: #CBD5E1; border: 1px solid rgba(148, 163, 184, 0.3);">@item.Status</span>
                                         break;
                                 }
                             </div>
@@ -312,8 +312,8 @@
                     <div class="col-md-7 d-flex flex-column justify-content-between">
                         <div>
                             <div class="mb-3">
-                                <span id="detailCourtType" class="badge bg-indigo-600 bg-opacity-20 text-indigo-400 px-3 py-1.5 rounded-pill fs-7">Pickleball</span>
-                                <span id="detailCourtStatus" class="badge bg-success bg-opacity-20 text-success px-3 py-1.5 rounded-pill fs-7 ms-2">Hoạt động</span>
+                                <span id="detailCourtType" class="badge px-3 py-1.5 rounded-pill fs-7" style="background-color: rgba(99, 102, 241, 0.2); color: #A5B4FC; border: 1px solid rgba(99, 102, 241, 0.4);">Pickleball</span>
+                                <span id="detailCourtStatus" class="badge px-3 py-1.5 rounded-pill fs-7 ms-2" style="background-color: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4);">Hoạt động</span>
                             </div>
                             <p class="text-secondary mb-3 fs-6" id="detailCourtDesc">Thông tin chi tiết về sân thi đấu và các điều kiện sân chơi thể thao.</p>
                             
@@ -553,11 +553,13 @@
 
                     const statusBadge = document.getElementById('detailCourtStatus');
                     if (court.status === "Active" || court.status === "Available") {
-                        statusBadge.className = "badge bg-success bg-opacity-20 text-success px-3 py-1.5 rounded-pill fs-7 ms-2";
+                        statusBadge.className = "badge px-3 py-1.5 rounded-pill fs-7 ms-2";
+                        statusBadge.style.cssText = "background-color: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4);";
                         statusBadge.textContent = "Hoạt động";
                     } else {
-                        statusBadge.className = "badge bg-danger bg-opacity-20 text-danger px-3 py-1.5 rounded-pill fs-7 ms-2";
-                        statusBadge.textContent = court.status;
+                        statusBadge.className = "badge px-3 py-1.5 rounded-pill fs-7 ms-2";
+                        statusBadge.style.cssText = "background-color: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.4);";
+                        statusBadge.textContent = court.status === "Maintenance" ? "Bảo trì" : court.status;
                     }
 
                     detailModal.show();
@@ -672,19 +674,30 @@
                     activeServices.forEach(service => {
                         if (service.category === "Coach" || service.category === "Event") return;
 
+                        const stockQty = service.stockQty !== undefined ? service.stockQty : 0;
+                        const isOutOfStock = stockQty <= 0;
+
                         const item = document.createElement('div');
-                        item.className = 'd-flex align-items-center justify-content-between p-3 rounded-3';
+                        item.className = 'd-flex align-items-center justify-content-between p-3 rounded-3 mb-2';
                         item.style.backgroundColor = '#1F2937';
+                        item.style.border = '1px solid rgba(255,255,255,0.05)';
                         
+                        let stockBadgeHtml = isOutOfStock
+                            ? `<span class="badge ms-2" style="background-color: rgba(239, 68, 68, 0.15); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 600; font-size: 11px;">Hết hàng</span>`
+                            : `<span class="badge ms-2" style="background-color: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 600; font-size: 11px;">Kho: ${stockQty} ${service.unit || 'cái'}</span>`;
+
                         item.innerHTML = `
-                            <div class="flex-grow-1">
-                                <h6 class="fw-bold mb-1 text-white">${service.serviceName}</h6>
+                            <div class="flex-grow-1 me-3">
+                                <div class="d-flex align-items-center mb-1 flex-wrap gap-1">
+                                    <h6 class="fw-bold mb-0 text-white">${service.serviceName}</h6>
+                                    ${stockBadgeHtml}
+                                </div>
                                 <span class="text-secondary small">Giá: <strong class="text-danger">${parseFloat(service.price).toLocaleString('vi-VN')}đ</strong> / ${service.unit || "phần"}</span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle px-2 py-1" onclick="updateQty(${service.serviceId}, -1)">-</button>
-                                <input type="number" name="serviceQuantities[${service.serviceId}]" id="qty-${service.serviceId}" class="form-control text-center border-0 text-white p-0" value="0" min="0" style="width: 40px; background: transparent; font-weight: bold;" readonly />
-                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle px-2 py-1" onclick="updateQty(${service.serviceId}, 1)">+</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle px-2 py-1 text-white" style="width: 32px; height: 32px;" onclick="updateQty(${service.serviceId}, -1, ${stockQty})" ${isOutOfStock ? 'disabled' : ''}>-</button>
+                                <input type="number" name="serviceQuantities[${service.serviceId}]" id="qty-${service.serviceId}" class="form-control text-center border-0 text-white p-0" value="0" min="0" max="${stockQty}" style="width: 40px; background: transparent; font-weight: bold;" readonly />
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle px-2 py-1 text-white" style="width: 32px; height: 32px;" onclick="updateQty(${service.serviceId}, 1, ${stockQty})" ${isOutOfStock ? 'disabled' : ''}>+</button>
                             </div>
                         `;
 
@@ -721,11 +734,14 @@
             }
         }
 
-        function updateQty(serviceId, change) {
+        function updateQty(serviceId, change, maxStock) {
             const input = document.getElementById(`qty-${serviceId}`);
             if (input) {
-                let val = parseInt(input.value) + change;
+                let val = parseInt(input.value || 0) + change;
                 if (val < 0) val = 0;
+                if (maxStock !== undefined && val > maxStock) {
+                    val = maxStock;
+                }
                 input.value = val;
 
                 // Recalculate total services price

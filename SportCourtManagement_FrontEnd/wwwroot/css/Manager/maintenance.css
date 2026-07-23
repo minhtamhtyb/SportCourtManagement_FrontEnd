@@ -504,6 +504,15 @@
 .actions-cell {
     display: flex;
     gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.maintenance-table th:last-child,
+.maintenance-table td:last-child {
+    padding-left: 12px;
+    padding-right: 12px;
+    width: 160px;
+    min-width: 160px;
 }
 
 .action-icon-btn {

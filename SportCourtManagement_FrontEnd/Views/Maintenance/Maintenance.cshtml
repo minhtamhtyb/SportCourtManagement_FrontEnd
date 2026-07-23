@@ -200,12 +200,6 @@
                                     <button class="action-icon-btn view-detail" title="Xem chi tiết">
                                         <span class="material-symbols-outlined">visibility</span>
                                     </button>
-                                    @if (isPending || isInProgress)
-                                    {
-                                        <button class="action-icon-btn verify" title="Duyệt / Từ chối">
-                                            <span class="material-symbols-outlined">how_to_reg</span>
-                                        </button>
-                                    }
                                     @if (!isCompleted)
                                     {
                                         <button class="action-icon-btn edit" title="Chỉnh sửa">
@@ -392,13 +386,8 @@
                     <div class="modal-form-grid">
                         <div class="form-group">
                             <label class="form-label-custom">Sân</label>
-                            <select class="form-input-custom" name="CourtId" id="editCourtId" required>
-                                <option value="">-- Chọn sân --</option>
-                                @foreach (var c in Model.Courts)
-                                {
-                                    <option value="@c.CourtId">@c.CourtName (@c.CourtCode - @c.CourtTypeName) - [@c.Status]</option>
-                                }
-                            </select>
+                            <input type="text" class="form-input-custom" id="editCourtNameDisplay" readonly style="opacity: 0.8; background-color: var(--surface-container-low);" />
+                            <input type="hidden" name="CourtId" id="editCourtId" />
                         </div>
                         <div class="form-group">
                             <label class="form-label-custom">Loại bảo trì</label>
@@ -704,6 +693,7 @@
                 // Populate edit modal fields via ID
                 document.getElementById('editMaintenanceId').value = row.dataset.id;
                 document.getElementById('editCourtId').value = row.dataset.courtId;
+                document.getElementById('editCourtNameDisplay').value = row.dataset.courtName;
                 document.getElementById('editMaintenanceType').value = row.dataset.type;
                 document.getElementById('editStartDateTime').value = row.dataset.start;
                 document.getElementById('editEndDateTime').value = row.dataset.end;

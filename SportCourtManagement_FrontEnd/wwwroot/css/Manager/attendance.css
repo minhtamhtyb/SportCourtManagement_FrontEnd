@@ -204,10 +204,30 @@
     background: transparent;
     border: none;
     color: var(--on-surface);
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     outline: none;
-    padding-right: 24px;
+    padding: 2px 24px 2px 0;
+    min-width: 140px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23908fa0' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-size: 18px;
+    transition: color 0.2s ease;
+}
+
+.filter-box select:hover {
+    color: var(--secondary);
+}
+
+.filter-box select option {
+    background-color: #1b1b23;
+    color: #f8fafc;
+    padding: 8px;
 }
 
 /* Status list */
