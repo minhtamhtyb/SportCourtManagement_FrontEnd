@@ -206,6 +206,11 @@ namespace SportCourtManagement_FrontEnd.Controllers
                     var service = services.FirstOrDefault(s => s.ServiceId == kvp.Key);
                     if (service != null)
                     {
+                        if (service.StockQty < kvp.Value)
+                        {
+                            TempData["ErrorMessage"] = $"Số lượng hàng trong kho không đủ cho dịch vụ '{service.ServiceName}'. Còn lại: {service.StockQty}, Yêu cầu: {kvp.Value}";
+                            return RedirectToAction("Index");
+                        }
                         additionalAmount += service.Price * kvp.Value;
                     }
                 }
@@ -215,6 +220,16 @@ namespace SportCourtManagement_FrontEnd.Controllers
             {
                 TempData["ErrorMessage"] = "Vui lòng chọn ít nhất một dịch vụ.";
                 return RedirectToAction("Index");
+            }
+
+            // Deduct stock quantity
+            foreach (var kvp in serviceQuantities.Where(q => q.Value > 0))
+            {
+                var service = services.FirstOrDefault(s => s.ServiceId == kvp.Key);
+                if (service != null)
+                {
+                    service.StockQty -= kvp.Value;
+                }
             }
 
             if (overridenBooking == null)
