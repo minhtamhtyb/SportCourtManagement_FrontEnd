@@ -20,7 +20,7 @@ public class PromotionsController : Controller
   [HttpGet]
   public async Task<IActionResult> Index(string? keyword, bool? isActive, int page = 1)
   {
-    var pagedData = await _apiService.GetPagedPromotionsAsync(keyword, isActive, page, 10);
+    var pagedData = await _apiService.GetPagedPromotionsAsync(keyword, isActive, page, 5);
 
     var vm = new PromotionListViewModel
     {

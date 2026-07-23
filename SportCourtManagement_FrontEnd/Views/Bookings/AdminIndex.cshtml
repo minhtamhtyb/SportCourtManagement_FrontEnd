@@ -83,7 +83,7 @@
                     <label class="af-segment af-muted"><input type="radio" name="status" value="" checked="@string.IsNullOrWhiteSpace(Model.Status)" /><span>Tất cả</span></label>
                     <label class="af-segment af-warning"><input type="radio" name="status" value="Pending" checked="@(Model.Status == "Pending")" /><span>Chờ xử lý</span></label>
                     <label class="af-segment af-info"><input type="radio" name="status" value="Confirmed" checked="@(Model.Status == "Confirmed")" /><span>Đã xác nhận</span></label>
-                    <label class="af-segment"><input type="radio" name="status" value="Paid" checked="@(Model.Status == "Paid")" /><span>Đã thanh toán</span></label>
+                    <label class="af-segment"><input type="radio" name="status" value="Completed" checked="@(Model.Status == "Completed")" /><span>Đã xong</span></label>
                     <label class="af-segment af-danger"><input type="radio" name="status" value="Cancelled" checked="@(Model.Status == "Cancelled")" /><span>Đã hủy</span></label>
                 </div>
             </div>
@@ -130,7 +130,7 @@ else
                                     <i class="fa-solid fa-arrows-rotate me-1"></i>Định kỳ
                                 </span>
                             }
-                            else if (item.BookingCode.StartsWith("TM-", StringComparison.OrdinalIgnoreCase))
+                            else if (item.BookingCode.StartsWith("TM-", StringComparison.OrdinalIgnoreCase) || item.BookingCode.StartsWith("TBK", StringComparison.OrdinalIgnoreCase))
                             {
                                 <span class="badge bg-warning text-dark mt-1" style="font-size: 11px;">
                                     <i class="fa-solid fa-trophy me-1"></i>Giải đấu
@@ -172,6 +172,9 @@ else
                                 case "Paid":
                                     <span class="status-badge status-available" style="background-color: rgba(16,185,129,0.2); color: #10b981;">Đã thanh toán</span>
                                     break;
+                                case "Completed":
+                                    <span class="status-badge status-available" style="background-color: #3b82f6; color: white;">Đã xong</span>
+                                    break;
                                 case "Pending":
                                     <span class="status-badge status-maintenance">Chờ xử lý</span>
                                     break;
@@ -184,6 +187,19 @@ else
                             }
                         </td>
                         <td class="text-end">
+                            @if (item.Status == "Confirmed")
+                            {
+                                var servicesJson = System.Text.Json.JsonSerializer.Serialize(item.Services ?? new List<SportCourtManagement_FrontEnd.Models.Bookings.BookingServiceItemDto>());
+                                <button type="button" class="btn-ghost text-success me-1 btn-checkout" 
+                                        data-id="@item.BookingId" 
+                                        data-court="@item.CourtName"
+                                        data-slot="@item.SlotName"
+                                        data-subtotal="@item.SubTotal"
+                                        data-services='@servicesJson'
+                                        title="Trả sân (Check-out)">
+                                    <i class="fa-solid fa-right-from-bracket"></i>
+                                </button>
+                            }
                             @if (item.Status == "Pending")
                             {
                                 <form asp-action="UpdateStatus" method="post" class="d-inline me-1">
@@ -253,3 +269,92 @@ else
         </div>
     }
 }
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.btn-checkout').click(function() {
+                var btn = $(this);
+                var id = btn.data('id');
+                var court = btn.data('court');
+                var slot = btn.data('slot');
+                var subtotal = parseFloat(btn.data('subtotal')) || 0;
+                var services = btn.data('services') || [];
+
+                $('#checkoutBookingId').val(id);
+                $('#checkoutCourtInfo').text(court + ' | ' + slot);
+                $('#checkoutSubTotal').text(subtotal.toLocaleString('vi-VN') + 'đ');
+
+                var servicesList = $('#checkoutServicesList');
+                servicesList.empty();
+
+                if (services && services.length > 0) {
+                    var totalServices = 0;
+                    $.each(services, function(index, srv) {
+                        var total = parseFloat(srv.TotalPrice) || 0;
+                        totalServices += total;
+                        
+                        var liClass = "list-group-item d-flex justify-content-between align-items-center list-group-item-warning";
+                        var badgeClass = "badge bg-danger rounded-pill";
+                        var noteHtml = "<br/><small class='text-danger fw-bold'><i class='fa-solid fa-triangle-exclamation me-1'></i>(Nhắc nhở: Kiểm tra và thu hồi đồ dùng nếu có)</small>";
+                        
+                        var itemHtml = '<li class="' + liClass + '">' +
+                                       '<div>' + srv.ServiceName + ' x' + srv.Quantity + noteHtml + '</div>' +
+                                       '<span class="' + badgeClass + '">' + total.toLocaleString('vi-VN') + 'đ</span>' +
+                                       '</li>';
+                        servicesList.append(itemHtml);
+                    });
+                    
+                    var totalHtml = '<li class="list-group-item d-flex justify-content-between align-items-center fw-bold bg-dark text-white">' +
+                                    '<div>Tổng cộng</div>' +
+                                    '<span class="text-danger">' + (subtotal + totalServices).toLocaleString('vi-VN') + 'đ</span>' +
+                                    '</li>';
+                    servicesList.append(totalHtml);
+                } else {
+                    servicesList.append('<li class="list-group-item text-muted bg-dark">Không có dịch vụ phát sinh.</li>');
+                }
+
+                $('#checkoutModal').modal('show');
+            });
+        });
+    </script>
+}
+
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <form asp-action="UpdateStatus" method="post">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="checkoutModalLabel"><i class="fa-solid fa-right-from-bracket me-2 text-success"></i>Xác nhận trả sân</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="checkoutBookingId" />
+                    <input type="hidden" name="status" value="Completed" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("AdminIndex")" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Thông tin sân</label>
+                        <div class="fw-bold fs-5 text-info" id="checkoutCourtInfo"></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Tiền sân</label>
+                        <div class="fw-bold text-success fs-5" id="checkoutSubTotal"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Dịch vụ sử dụng</label>
+                        <ul class="list-group list-group-flush" id="checkoutServicesList" style="border-radius: 8px; overflow: hidden; border: 1px solid #6c757d;">
+                            <!-- Items will be populated here -->
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-check me-2"></i>Hoàn tất trả sân</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
