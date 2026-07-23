@@ -22,14 +22,116 @@
         <p class="text-sc-muted mb-0" style="font-size: 14px;">Chọn sân, khung giờ và dịch vụ phụ trợ để hoàn tất đơn đặt sân của bạn.</p>
     </div>
 
-    <!-- Error / Success Messages -->
-    @if (TempData["ErrorMessage"] != null)
+    <!-- Error / Success Status Popup Modal -->
+    @if (TempData["ErrorMessage"] != null || TempData["SuccessMessage"] != null || TempData["StatusMessage"] != null)
     {
-        <div class="alert d-flex align-items-center gap-2 mb-4 py-3 px-4 rounded-3" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: #FCA5A5;">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <span>@TempData["ErrorMessage"]</span>
+        var errorMsg = TempData["ErrorMessage"]?.ToString();
+        var successMsg = TempData["SuccessMessage"]?.ToString();
+        var statusMsg = TempData["StatusMessage"]?.ToString();
+        var msg = errorMsg ?? successMsg ?? statusMsg ?? "";
+        var isLoginRequired = msg.Contains("đăng nhập", StringComparison.OrdinalIgnoreCase);
+        var isWalletInsufficient = msg.Contains("ví", StringComparison.OrdinalIgnoreCase) || msg.Contains("nạp", StringComparison.OrdinalIgnoreCase) || msg.Contains("số dư", StringComparison.OrdinalIgnoreCase);
+        var isSuccess = successMsg != null;
+        
+        <div class="modal fade" id="pageStatusModal" tabindex="-1" aria-labelledby="pageStatusModalLabel" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+                <div class="modal-content text-white rounded-4 border-0 shadow-lg" style="background-color: #0F172A; border: 1px solid rgba(255,255,255,0.1) !important;">
+                    <div class="modal-body text-center p-4">
+                        <div class="mb-3">
+                            @if (isSuccess)
+                            {
+                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle p-3 mb-2" style="background: rgba(16, 185, 129, 0.12); color: #10B981; width: 72px; height: 72px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                    <i class="bi bi-check-circle-fill display-5"></i>
+                                </div>
+                            }
+                            else if (isWalletInsufficient)
+                            {
+                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle p-3 mb-2" style="background: rgba(239, 68, 68, 0.12); color: #EF4444; width: 72px; height: 72px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                    <i class="bi bi-wallet2 display-5"></i>
+                                </div>
+                            }
+                            else if (isLoginRequired)
+                            {
+                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle p-3 mb-2" style="background: rgba(245, 158, 11, 0.12); color: #F59E0B; width: 72px; height: 72px; border: 1px solid rgba(245, 158, 11, 0.2);">
+                                    <i class="bi bi-shield-lock-fill display-5"></i>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle p-3 mb-2" style="background: rgba(239, 68, 68, 0.12); color: #EF4444; width: 72px; height: 72px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                    <i class="bi bi-exclamation-triangle-fill display-5"></i>
+                                </div>
+                            }
+                        </div>
+
+                        <h5 class="modal-title font-outfit text-white mb-2" id="pageStatusModalLabel" style="font-weight: 800; font-size: 20px;">
+                            @(isSuccess ? "Thành Công" : (isWalletInsufficient ? "Số Dư Ví Không Đủ" : (isLoginRequired ? "Yêu Cầu Đăng Nhập" : "Thông Báo Trạng Thái")))
+                        </h5>
+
+                        <p class="text-sc-muted mb-4 font-inter" style="font-size: 14px; line-height: 1.6;">
+                            @msg
+                        </p>
+
+                        <div class="d-flex justify-content-center gap-2">
+                            @if (isWalletInsufficient)
+                            {
+                                <a href="/Wallet/Index" class="btn px-4 py-2 text-white fw-bold rounded-3 d-inline-flex align-items-center gap-2" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                                    <i class="bi bi-plus-circle-fill"></i>Nạp tiền vào ví
+                                </a>
+                                <button type="button" class="btn btn-outline-secondary px-4 py-2 text-white-50 rounded-3" data-bs-dismiss="modal">
+                                    Đóng
+                                </button>
+                            }
+                            else if (isLoginRequired)
+                            {
+                                <a href="/Account/Login" class="btn px-4 py-2 text-white fw-bold rounded-3 d-inline-flex align-items-center gap-2" style="background-color: var(--sc-blue);">
+                                    <i class="bi bi-box-arrow-in-right"></i>Đăng nhập ngay
+                                </a>
+                                <button type="button" class="btn btn-outline-secondary px-4 py-2 text-white-50 rounded-3" data-bs-dismiss="modal">
+                                    Đóng
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn px-4 py-2 text-white fw-bold rounded-3" data-bs-dismiss="modal" style="background-color: var(--sc-blue);">
+                                    <i class="bi bi-check2 me-1"></i>Đã hiểu
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     }
+
+    <!-- Dynamic Status Modal Popup for JS -->
+    <div class="modal fade" id="dynamicStatusModal" tabindex="-1" aria-labelledby="dynamicStatusModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+            <div class="modal-content text-white rounded-4 border-0 shadow-lg" style="background-color: #0F172A; border: 1px solid rgba(255,255,255,0.1) !important;">
+                <div class="modal-body text-center p-4">
+                    <div id="dynamicStatusIcon" class="mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle p-3 mb-2" style="background: rgba(245, 158, 11, 0.12); color: #F59E0B; width: 72px; height: 72px; border: 1px solid rgba(245, 158, 11, 0.2);">
+                            <i class="bi bi-exclamation-circle-fill display-5"></i>
+                        </div>
+                    </div>
+
+                    <h5 class="modal-title font-outfit text-white mb-2" id="dynamicStatusModalTitle" style="font-weight: 800; font-size: 20px;">
+                        Thông Báo
+                    </h5>
+
+                    <p class="text-sc-muted mb-4 font-inter" id="dynamicStatusModalBody" style="font-size: 14px; line-height: 1.6;">
+                        ...
+                    </p>
+
+                    <div class="d-flex justify-content-center gap-2" id="dynamicStatusModalActions">
+                        <button type="button" class="btn px-4 py-2 text-white fw-bold rounded-3" data-bs-dismiss="modal" style="background-color: var(--sc-blue);">
+                            <i class="bi bi-check2 me-1"></i>Đã hiểu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
         <div class="row g-4">
             <!-- LEFT COLUMN: Form -->
@@ -1450,6 +1552,9 @@
                 if (recSelectedSlotIds.length === 0) {
                     e.preventDefault();
                     $('#rec-slot-error').show();
+                    if (window.showStatusPopupModal) {
+                        window.showStatusPopupModal('Chưa Chọn Khung Giờ', 'Vui lòng chọn ít nhất một khung giờ trống trước khi gửi yêu cầu đặt sân.', 'error');
+                    }
                     return false;
                 }
                 $('#rec-slot-error').hide();
@@ -1461,6 +1566,9 @@
                 if (selectedSlotIds.length === 0) {
                     e.preventDefault();
                     $('#slot-error').show();
+                    if (window.showStatusPopupModal) {
+                        window.showStatusPopupModal('Chưa Chọn Khung Giờ', 'Vui lòng chọn ít nhất một khung giờ trống trước khi gửi yêu cầu đặt sân.', 'error');
+                    }
                     return false;
                 }
                 $('#slot-error').hide();
@@ -1475,6 +1583,45 @@
                 loadRecSlotAvailability();
                 updateRecSummary();
             }
+            // --- Auto-show Status Popup Modal on Page Load ---
+            const pageStatusModalEl = document.getElementById('pageStatusModal');
+            if (pageStatusModalEl) {
+                const pageStatusModal = bootstrap.Modal.getOrCreateInstance(pageStatusModalEl);
+                pageStatusModal.show();
+            }
+
+            // --- Global Helper for Dynamic Status Popups ---
+            window.showStatusPopupModal = function(title, message, type = 'warning') {
+                const titleEl = document.getElementById('dynamicStatusModalTitle');
+                const bodyEl = document.getElementById('dynamicStatusModalBody');
+                const iconEl = document.getElementById('dynamicStatusIcon');
+                if (!titleEl || !bodyEl) return;
+
+                titleEl.textContent = title;
+                bodyEl.textContent = message;
+
+                const actionsEl = document.getElementById('dynamicStatusModalActions');
+
+                if (type === 'success') {
+                    iconEl.innerHTML = `<div class="d-inline-flex align-items-center justify-content-center rounded-circle p-3 mb-2" style="background: rgba(16, 185, 129, 0.12); color: #10B981; width: 72px; height: 72px; border: 1px solid rgba(16, 185, 129, 0.2);"><i class="bi bi-check-circle-fill display-5"></i></div>`;
+                    if (actionsEl) actionsEl.innerHTML = `<button type="button" class="btn px-4 py-2 text-white fw-bold rounded-3" data-bs-dismiss="modal" style="background-color: var(--sc-blue);"><i class="bi bi-check2 me-1"></i>Đã hiểu</button>`;
+                } else if (type === 'wallet') {
+                    iconEl.innerHTML = `<div class="d-inline-flex align-items-center justify-content-center rounded-circle p-3 mb-2" style="background: rgba(239, 68, 68, 0.12); color: #EF4444; width: 72px; height: 72px; border: 1px solid rgba(239, 68, 68, 0.2);"><i class="bi bi-wallet2 display-5"></i></div>`;
+                    if (actionsEl) actionsEl.innerHTML = `<a href="/Wallet/Index" class="btn px-4 py-2 text-white fw-bold rounded-3 d-inline-flex align-items-center gap-2" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);"><i class="bi bi-plus-circle-fill"></i>Nạp tiền vào ví</a><button type="button" class="btn btn-outline-secondary px-4 py-2 text-white-50 rounded-3" data-bs-dismiss="modal">Đóng</button>`;
+                } else if (type === 'error') {
+                    iconEl.innerHTML = `<div class="d-inline-flex align-items-center justify-content-center rounded-circle p-3 mb-2" style="background: rgba(239, 68, 68, 0.12); color: #EF4444; width: 72px; height: 72px; border: 1px solid rgba(239, 68, 68, 0.2);"><i class="bi bi-exclamation-triangle-fill display-5"></i></div>`;
+                    if (actionsEl) actionsEl.innerHTML = `<button type="button" class="btn px-4 py-2 text-white fw-bold rounded-3" data-bs-dismiss="modal" style="background-color: var(--sc-blue);"><i class="bi bi-check2 me-1"></i>Đã hiểu</button>`;
+                } else {
+                    iconEl.innerHTML = `<div class="d-inline-flex align-items-center justify-content-center rounded-circle p-3 mb-2" style="background: rgba(245, 158, 11, 0.12); color: #F59E0B; width: 72px; height: 72px; border: 1px solid rgba(245, 158, 11, 0.2);"><i class="bi bi-shield-lock-fill display-5"></i></div>`;
+                    if (actionsEl) actionsEl.innerHTML = `<button type="button" class="btn px-4 py-2 text-white fw-bold rounded-3" data-bs-dismiss="modal" style="background-color: var(--sc-blue);"><i class="bi bi-check2 me-1"></i>Đã hiểu</button>`;
+                }
+
+                const modalEl = document.getElementById('dynamicStatusModal');
+                if (modalEl) {
+                    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    bsModal.show();
+                }
+            };
         });
     </script>
 }
