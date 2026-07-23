@@ -487,7 +487,7 @@ public class BookingsController : Controller
     [HttpGet]
     public async Task<IActionResult> AdminIndex(string? keyword, DateTime? fromDate, DateTime? toDate, int? courtTypeId, string? status, int page = 1)
     {
-        var pagedData = await _apiService.GetPagedAdminBookingsAsync(keyword, fromDate, toDate, courtTypeId, status, page, 15);
+        var pagedData = await _apiService.GetPagedAdminBookingsAsync(keyword, fromDate, toDate, courtTypeId, status, page, 5);
         var courtTypes = await _apiService.GetCourtTypesAsync();
         ViewBag.CourtTypes = courtTypes;
 
