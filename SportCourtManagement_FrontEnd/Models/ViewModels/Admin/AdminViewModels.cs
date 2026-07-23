@@ -69,6 +69,14 @@ public class ComplexServicesViewModel
     public List<CourtTypeDto> ComplexCourtTypes { get; set; } = [];
     public List<ComplexCourtTypeServiceDto> ServiceOfferings { get; set; } = [];
     public int? SelectedCourtTypeId { get; set; }
+
+    // Paging
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 8;
+    public int TotalCount { get; set; }
+    public int TotalPages { get; set; }
+    public string? SearchQuery { get; set; }
+    public string? ModeFilter { get; set; }
 }
 
 public class ServiceOfferingFormViewModel

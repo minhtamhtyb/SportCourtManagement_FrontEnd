@@ -1,58 +1,140 @@
 @model ComplexServicesViewModel
 @{
     ViewData["Title"] = $"Dịch vụ — {Model.Complex.ComplexName}";
-    var offerings = Model.ServiceOfferings
-        .Where(o => o.CourtTypeId == Model.SelectedCourtTypeId)
-        .OrderBy(o => o.ServiceMode)
-        .ThenBy(o => o.ServiceName)
-        .ToList();
+    int complexId = Model.Complex.ComplexId;
+    int selectedCtId = Model.SelectedCourtTypeId ?? 0;
 }
 
+@* ─────────── Toast Container ─────────── *@
+<div id="toastContainer"
+     style="position:fixed;top:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;min-width:320px;pointer-events:none;">
+</div>
+
+@* ─────────── Page Header ─────────── *@
 <div class="page-header">
     <div>
-        <a asp-action="Details" asp-route-id="@Model.Complex.ComplexId" class="text-secondary small text-decoration-none">
+        <a asp-action="Details" asp-route-id="@complexId" class="text-secondary small text-decoration-none">
             <i class="fa-solid fa-arrow-left me-1"></i> Quay lại chi tiết tổ hợp
         </a>
         <h1 class="page-title mt-1">Dịch vụ theo loại sân</h1>
-        <p class="page-subtitle">@Model.Complex.ComplexName — cấu hình dịch vụ luôn cung cấp (miễn phí) và tùy chọn khi đặt</p>
+        <p class="page-subtitle">
+            @Model.Complex.ComplexName —
+            cấu hình dịch vụ luôn cung cấp (miễn phí) &amp; tùy chọn khi đặt
+            &nbsp;<span class="text-secondary">(@Model.TotalCount dịch vụ)</span>
+        </p>
     </div>
     @if (Model.ComplexCourtTypes.Any())
     {
-        <button type="button" class="btn-primary-custom btn-sm" data-service-modal="create"
-                data-complex-id="@Model.Complex.ComplexId" data-court-type-id="@Model.SelectedCourtTypeId">
+        <button type="button" class="btn-primary-custom btn-sm" id="btnAddService"
+                data-service-modal="create"
+                data-complex-id="@complexId"
+                data-court-type-id="@selectedCtId">
             <i class="fa-solid fa-plus"></i> Thêm dịch vụ
         </button>
     }
 </div>
+
+@* ─────────── TempData alerts ─────────── *@
+@if (TempData["Success"] is string successMsg)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i>@successMsg
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] is string errorMsg)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>@errorMsg
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 @if (!Model.ComplexCourtTypes.Any())
 {
     <div class="empty-state py-5">
         <i class="fa-solid fa-table-tennis-paddle-ball d-block"></i>
         <p class="text-secondary mb-2">Thêm sân vào tổ hợp trước khi cấu hình dịch vụ theo loại sân.</p>
-        <a asp-controller="Courts" asp-action="Create" asp-route-complexId="@Model.Complex.ComplexId" class="btn-primary-custom btn-sm">
+        <a asp-area="Admin" asp-controller="Courts" asp-action="Create"
+           asp-route-complexId="@complexId" class="btn-primary-custom btn-sm">
             Thêm sân đầu tiên
         </a>
     </div>
 }
 else
 {
+    @* ─────────── CourtType tab filter ─────────── *@
     <div class="filter-bar mb-3">
         @foreach (var ct in Model.ComplexCourtTypes)
         {
-            <a asp-action="Services" asp-route-id="@Model.Complex.ComplexId" asp-route-courtTypeId="@ct.CourtTypeId"
-               class="filter-chip @(Model.SelectedCourtTypeId == ct.CourtTypeId ? "active" : "")">@ct.TypeName</a>
+            <a asp-action="Services" asp-route-id="@complexId"
+               asp-route-courtTypeId="@ct.CourtTypeId"
+               asp-route-search="@Model.SearchQuery"
+               asp-route-mode="@Model.ModeFilter"
+               class="filter-chip @(selectedCtId == ct.CourtTypeId ? "active" : "")">
+                @ct.TypeName
+            </a>
         }
     </div>
 
-    if (!offerings.Any())
+    @* ─────────── Search + Mode filter ─────────── *@
+    <form method="get"
+          asp-action="Services"
+          asp-route-id="@complexId"
+          asp-route-courtTypeId="@selectedCtId"
+          class="filter-bar mb-3" id="serviceFilterForm">
+        <div class="filter-search">
+            <i class="fa-solid fa-magnifying-glass text-secondary"></i>
+            <input type="text" name="search" value="@Model.SearchQuery"
+                   placeholder="Tìm tên hoặc loại dịch vụ..." id="serviceSearchInput" />
+        </div>
+        <a asp-action="Services" asp-route-id="@complexId"
+           asp-route-courtTypeId="@selectedCtId"
+           class="filter-chip @(string.IsNullOrEmpty(Model.ModeFilter) ? "active" : "")">
+            Tất cả
+        </a>
+        <a asp-action="Services" asp-route-id="@complexId"
+           asp-route-courtTypeId="@selectedCtId"
+           asp-route-mode="Included"
+           asp-route-search="@Model.SearchQuery"
+           class="filter-chip @(Model.ModeFilter == "Included" ? "active" : "")">
+            Luôn cung cấp
+        </a>
+        <a asp-action="Services" asp-route-id="@complexId"
+           asp-route-courtTypeId="@selectedCtId"
+           asp-route-mode="Optional"
+           asp-route-search="@Model.SearchQuery"
+           class="filter-chip @(Model.ModeFilter == "Optional" ? "active" : "")">
+            Tùy chọn
+        </a>
+        <button type="submit" class="btn-secondary-custom btn-sm">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </form>
+
+    @if (!Model.ServiceOfferings.Any())
     {
         <div class="empty-state py-4">
-            <p class="text-secondary">Chưa có dịch vụ cho loại sân này.</p>
-            <button type="button" class="btn-secondary-custom btn-sm" data-service-modal="create"
-                    data-complex-id="@Model.Complex.ComplexId" data-court-type-id="@Model.SelectedCourtTypeId">
-                Thêm dịch vụ đầu tiên
-            </button>
+            <i class="fa-solid fa-box-open d-block"></i>
+            <p class="text-secondary">
+                @if (!string.IsNullOrEmpty(Model.SearchQuery) || !string.IsNullOrEmpty(Model.ModeFilter))
+                {
+                    @:Không tìm thấy dịch vụ phù hợp.
+                }
+                else
+                {
+                    @:Chưa có dịch vụ cho loại sân này.
+                }
+            </p>
+            @if (string.IsNullOrEmpty(Model.SearchQuery) && string.IsNullOrEmpty(Model.ModeFilter))
+            {
+                <button type="button" class="btn-secondary-custom btn-sm"
+                        data-service-modal="create"
+                        data-complex-id="@complexId"
+                        data-court-type-id="@selectedCtId">
+                    Thêm dịch vụ đầu tiên
+                </button>
+            }
         </div>
     }
     else
@@ -61,6 +143,7 @@ else
             <table class="admin-table" id="serviceOfferingsTable">
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th>Dịch vụ</th>
                         <th>Loại</th>
                         <th>Hình thức</th>
@@ -71,10 +154,13 @@ else
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var o in offerings)
+                    @{ int rowNum = (Model.PageNumber - 1) * Model.PageSize + 1; }
+                    @foreach (var o in Model.ServiceOfferings)
                     {
                         var (catLabel, catCss) = DisplayHelpers.GetServiceCategory(o.Category);
-                        <tr class="@(!o.IsActive ? "opacity-50" : "")" data-offering-id="@o.OfferingId">
+                        <tr class="@(!o.IsActive ? "opacity-50" : "")"
+                            id="offering-row-@o.OfferingId">
+                            <td class="text-secondary small">@rowNum</td>
                             <td>
                                 <div class="fw-semibold text-white">@o.ServiceName</div>
                                 <div class="text-secondary small">@o.Unit</div>
@@ -100,37 +186,137 @@ else
                                     @DisplayHelpers.FormatCurrency(o.Price)
                                 }
                             </td>
-                            <td><span class="fw-semibold @(o.StockQty < 10 ? "text-warning" : "")">@o.StockQty</span></td>
-                            <td>@(o.IsActive ? "Hoạt động" : "Ngưng")</td>
+                            <td>
+                                <span class="fw-semibold @(o.StockQty < 10 ? "text-warning" : "")">
+                                    @o.StockQty
+                                    @if (o.StockQty < 10)
+                                    {
+                                        <i class="fa-solid fa-triangle-exclamation ms-1" title="Tồn kho thấp"></i>
+                                    }
+                                </span>
+                            </td>
+                            <td>
+                                @if (o.IsActive)
+                                {
+                                    <span class="status-badge status-available">Hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-inactive">Ngưng</span>
+                                }
+                            </td>
                             <td class="text-end">
                                 <button type="button" class="btn-ghost" title="Sửa"
                                         data-service-modal="edit"
                                         data-offering-id="@o.OfferingId"
-                                        data-complex-id="@Model.Complex.ComplexId">
-                                    <i class="fa-solid fa-pen"></i>
+                                        data-complex-id="@complexId">
+                                    <i class="fa-solid fa-pen text-info"></i>
                                 </button>
                                 <button type="button" class="btn-ghost text-danger" title="Xóa"
                                         data-service-delete="@o.OfferingId"
-                                        data-complex-id="@Model.Complex.ComplexId"
-                                        data-court-type-id="@Model.SelectedCourtTypeId"
+                                        data-complex-id="@complexId"
+                                        data-court-type-id="@selectedCtId"
                                         data-service-name="@o.ServiceName">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
+                        rowNum++;
                     }
                 </tbody>
             </table>
         </div>
+
+        @* ─────────── Pagination ─────────── *@
+        @if (Model.TotalPages > 1)
+        {
+            <div class="pagination-custom mt-3">
+                @if (Model.PageNumber > 1)
+                {
+                    <a asp-action="Services" asp-route-id="@complexId"
+                       asp-route-courtTypeId="@selectedCtId"
+                       asp-route-page="@(Model.PageNumber - 1)"
+                       asp-route-search="@Model.SearchQuery"
+                       asp-route-mode="@Model.ModeFilter"
+                       title="Trang trước">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="disabled"><i class="fa-solid fa-chevron-left"></i></span>
+                }
+
+                @{
+                    int startPage = Math.Max(1, Model.PageNumber - 2);
+                    int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                    if (Model.PageNumber <= 3) endPage = Math.Min(Model.TotalPages, 5);
+                    if (Model.PageNumber >= Model.TotalPages - 2) startPage = Math.Max(1, Model.TotalPages - 4);
+                }
+                @if (startPage > 1)
+                {
+                    <a asp-action="Services" asp-route-id="@complexId"
+                       asp-route-courtTypeId="@selectedCtId"
+                       asp-route-page="1"
+                       asp-route-search="@Model.SearchQuery"
+                       asp-route-mode="@Model.ModeFilter">1</a>
+                    @if (startPage > 2) { <span class="dots">...</span> }
+                }
+                @for (int i = startPage; i <= endPage; i++)
+                {
+                    if (i == Model.PageNumber)
+                    { <span class="active">@i</span> }
+                    else
+                    {
+                        <a asp-action="Services" asp-route-id="@complexId"
+                           asp-route-courtTypeId="@selectedCtId"
+                           asp-route-page="@i"
+                           asp-route-search="@Model.SearchQuery"
+                           asp-route-mode="@Model.ModeFilter">@i</a>
+                    }
+                }
+                @if (endPage < Model.TotalPages)
+                {
+                    @if (endPage < Model.TotalPages - 1) { <span class="dots">...</span> }
+                    <a asp-action="Services" asp-route-id="@complexId"
+                       asp-route-courtTypeId="@selectedCtId"
+                       asp-route-page="@Model.TotalPages"
+                       asp-route-search="@Model.SearchQuery"
+                       asp-route-mode="@Model.ModeFilter">@Model.TotalPages</a>
+                }
+                @if (Model.PageNumber < Model.TotalPages)
+                {
+                    <a asp-action="Services" asp-route-id="@complexId"
+                       asp-route-courtTypeId="@selectedCtId"
+                       asp-route-page="@(Model.PageNumber + 1)"
+                       asp-route-search="@Model.SearchQuery"
+                       asp-route-mode="@Model.ModeFilter"
+                       title="Trang sau">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="disabled"><i class="fa-solid fa-chevron-right"></i></span>
+                }
+            </div>
+            <p class="text-secondary small text-center mt-2">
+                Hiển thị @((Model.PageNumber - 1) * Model.PageSize + 1)–@Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount)
+                trong tổng số @Model.TotalCount dịch vụ
+            </p>
+        }
     }
 }
 
-<div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
+@* ─────────── Add / Edit Service Modal ─────────── *@
+<div class="modal fade" id="serviceModal" tabindex="-1"
+     aria-labelledby="serviceModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content admin-modal">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title text-white" id="serviceModalLabel">Dịch vụ loại sân</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
             <div class="modal-body" id="serviceModalBody">
                 <div class="text-center py-4 text-secondary">
@@ -142,6 +328,35 @@ else
     </div>
 </div>
 
+@* ─────────── Delete Confirm Modal ─────────── *@
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1"
+     aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-content admin-modal">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white" id="deleteConfirmLabel">
+                    <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Xác nhận xóa
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body text-secondary">
+                Bạn có chắc muốn xóa dịch vụ
+                <strong class="text-white" id="deleteServiceName"></strong>
+                khỏi loại sân này?
+                <br /><small class="text-secondary">Thao tác này không thể hoàn tác.</small>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fa-solid fa-trash me-1"></i> Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* CSRF token form for delete *@
 <form id="serviceDeleteForm" method="post" class="d-none">
     @Html.AntiForgeryToken()
 </form>

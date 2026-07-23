@@ -139,9 +139,69 @@ public class ComplexesController(
         return View(vm);
     }
 
-    public IActionResult Services(int id, int? courtTypeId)
+    public async Task<IActionResult> Services(int id, int? courtTypeId,
+        string? search, string? mode, int page = 1)
     {
-        return RedirectToAction("Index", "Services", new { area = "Admin" });
+        var complex = await courtService.GetComplexByIdAsync(id);
+        if (complex == null) return NotFound();
+
+        var allCourtTypes = await courtService.GetCourtTypesAsync();
+        var complexCourtTypes = allCourtTypes
+            .Where(t => complex.CourtTypeIds.Contains(t.CourtTypeId))
+            .ToList();
+
+        int selectedCtId = courtTypeId
+            ?? complexCourtTypes.FirstOrDefault()?.CourtTypeId
+            ?? 0;
+
+        var allOfferings = await offeringService.GetByComplexAsync(id);
+
+        // Filter by selected court type
+        var filtered = allOfferings
+            .Where(o => o.CourtTypeId == selectedCtId)
+            .AsEnumerable();
+
+        // Search filter
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var q = search.Trim().ToLower();
+            filtered = filtered.Where(o =>
+                o.ServiceName.ToLower().Contains(q) ||
+                o.Category.ToLower().Contains(q));
+        }
+
+        // Mode filter
+        if (!string.IsNullOrWhiteSpace(mode))
+        {
+            filtered = filtered.Where(o => o.ServiceMode.Equals(mode, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var filteredList = filtered
+            .OrderBy(o => o.ServiceMode)
+            .ThenBy(o => o.ServiceName)
+            .ToList();
+
+        const int pageSize = 8;
+        if (page < 1) page = 1;
+        int totalCount = filteredList.Count;
+        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        if (totalPages < 1) totalPages = 1;
+        if (page > totalPages) page = totalPages;
+
+        var vm = new ComplexServicesViewModel
+        {
+            Complex = complex,
+            ComplexCourtTypes = complexCourtTypes,
+            ServiceOfferings = filteredList.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
+            SelectedCourtTypeId = selectedCtId > 0 ? selectedCtId : null,
+            PageNumber = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            SearchQuery = search,
+            ModeFilter = mode
+        };
+        return View(vm);
     }
 
     public async Task<IActionResult> AddService(int complexId, int? courtTypeId)
