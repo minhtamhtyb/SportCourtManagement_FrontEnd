@@ -127,7 +127,18 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 return RedirectToAction(nameof(Tasks));
             }
 
-            
+            if (!model.AssignedStaffId.HasValue || model.AssignedStaffId.Value <= 0)
+            {
+                TempData["ErrorMessage"] = "Vui lòng chọn nhân viên thực hiện.";
+                return RedirectToAction(nameof(Tasks));
+            }
+
+            if (model.DueDate.HasValue && model.DueDate.Value <= GetVietnamTime(DateTime.UtcNow))
+            {
+                TempData["ErrorMessage"] = "Hạn hoàn thành phải ở trong tương lai.";
+                return RedirectToAction(nameof(Tasks));
+            }
+
             var json = JsonSerializer.Serialize(model, _jsonOpts);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _client.PostAsync(_apiBase + "/tasks", content);
@@ -337,6 +348,20 @@ namespace SportCourtManagement_FrontEnd.Controllers
             {
                 ViewBag.Complexes = new List<SportCourtManagement_FrontEnd.Models.DTOs.CourtComplexDto>();
             }
+        }
+
+        private DateTime GetVietnamTime(DateTime utcNow)
+        {
+            TimeZoneInfo vnZone;
+            try
+            {
+                vnZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                vnZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+            }
+            return TimeZoneInfo.ConvertTimeFromUtc(utcNow, vnZone);
         }
     }
 }

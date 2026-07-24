@@ -307,8 +307,8 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label-custom">Nhân viên thực hiện</label>
-                            <select class="form-input-custom" name="AssignedStaffId" id="createAssignedStaffId">
-                                <option value="">-- Chưa phân công --</option>
+                            <select class="form-input-custom" name="AssignedStaffId" id="createAssignedStaffId" required>
+                                <option value="" disabled selected>-- Chọn nhân viên thực hiện --</option>
                                 @foreach (var staff in Model.Staffs)
                                 {
                                     <option value="@staff.UserId">@staff.FullName</option>
@@ -711,6 +711,33 @@
 
                 const deleteModal = new bootstrap.Modal(document.getElementById('deleteTaskModal'));
                 deleteModal.show();
+            }
+        });
+
+        // Set dynamic min datetime for create task DueDate input
+        function updateMinDueDate() {
+            const now = new Date();
+            const tzOffset = now.getTimezoneOffset() * 60000;
+            const minTimeStr = new Date(now - tzOffset).toISOString().slice(0, 16);
+            const input = document.getElementById('createDueDate');
+            if (input) {
+                input.setAttribute('min', minTimeStr);
+            }
+        }
+        updateMinDueDate();
+        setInterval(updateMinDueDate, 60000);
+
+        // Form submit validation for Task DueDate
+        document.getElementById('createTaskForm').addEventListener('submit', function (e) {
+            const dueVal = document.getElementById('createDueDate').value;
+            if (dueVal) {
+                const dueDate = new Date(dueVal);
+                const now = new Date();
+                
+                if (dueDate.getTime() + 60000 <= now.getTime()) {
+                    e.preventDefault();
+                    showToast('Hạn hoàn thành phải ở trong tương lai.', 'error');
+                }
             }
         });
     </script>
