@@ -150,23 +150,100 @@ public class CourtsController(ICourtService courtService) : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id, int complexId)
+    public async Task<IActionResult> Deactivate(int id, int complexId)
     {
         try
         {
-            await courtService.DeleteCourtAsync(id);
+            var result = await courtService.DeactivateCourtAsync(id);
             if (IsAjaxRequest())
-                return Json(new { success = true, message = "Xóa sân thành công! Các booking liên quan đã được hủy và hoàn tiền vào ví khách hàng." });
-            TempData["Success"] = "Xóa sân thành công! Các booking liên quan đã được hủy và hoàn tiền.";
+                return Json(new { success = true, message = result.Message });
+            TempData["Success"] = result.Message;
         }
         catch (Exception ex)
         {
             if (IsAjaxRequest())
-                return Json(new { success = false, message = ex.Message });
+                return BadRequest(new { success = false, message = ex.Message });
             TempData["Error"] = ex.Message;
         }
         return RedirectToAction("Details", "Complexes", new { id = complexId });
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Restore(int id, int complexId)
+    {
+        try
+        {
+            var result = await courtService.RestoreCourtAsync(id);
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = result.Message });
+            TempData["Success"] = result.Message;
+        }
+        catch (Exception ex)
+        {
+            if (IsAjaxRequest())
+                return BadRequest(new { success = false, message = ex.Message });
+            TempData["Error"] = ex.Message;
+        }
+        return RedirectToAction("Details", "Complexes", new { id = complexId });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> PreviewMaintenance(int id, DateTime start, DateTime end)
+    {
+        try
+        {
+            var preview = await courtService.PreviewMaintenanceConflictsAsync(id, start, end);
+            return Json(new { success = true, data = preview });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ScheduleMaintenance(
+        int id,
+        int complexId,
+        DateTime startDateTime,
+        DateTime endDateTime,
+        string? reason,
+        bool confirmRefund = false)
+    {
+        try
+        {
+            var result = await courtService.ScheduleMaintenanceAsync(id, new ScheduleCourtMaintenanceRequest
+            {
+                StartDateTime = startDateTime,
+                EndDateTime = endDateTime,
+                Reason = reason,
+                ConfirmRefund = confirmRefund
+            });
+            if (IsAjaxRequest())
+                return Json(new
+                {
+                    success = true,
+                    message = result.Message,
+                    cancelledBookings = result.CancelledBookings,
+                    totalRefunded = result.TotalRefunded
+                });
+            TempData["Success"] = result.Message;
+        }
+        catch (Exception ex)
+        {
+            if (IsAjaxRequest())
+                return BadRequest(new { success = false, message = ex.Message });
+            TempData["Error"] = ex.Message;
+        }
+        return RedirectToAction("Details", "Complexes", new { id = complexId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> Delete(int id, int complexId) =>
+        Deactivate(id, complexId);
 
     private async Task<CourtFormViewModel> BuildFormViewModel(int complexId, string? complexName)
     {
