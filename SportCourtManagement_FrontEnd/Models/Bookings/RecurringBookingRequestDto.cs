@@ -7,6 +7,7 @@ namespace SportCourtManagement_FrontEnd.Models.Bookings
     {
         public int CourtId { get; set; }
         public int SlotId { get; set; }
+        public List<int>? SlotIds { get; set; }
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
         public List<int> DaysOfWeek { get; set; } = new();

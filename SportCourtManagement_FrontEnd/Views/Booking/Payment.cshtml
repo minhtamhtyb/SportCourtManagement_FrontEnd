@@ -92,7 +92,7 @@
                                             <span class="text-white">
                                                 @if (!string.IsNullOrEmpty(booking.SlotName))
                                                 {
-                                                    @booking.SlotName
+                                                    @booking.SlotName @($"({booking.StartTime:hh\\:mm} - {booking.EndTime:hh\\:mm})")
                                                 }
                                                 else
                                                 {
@@ -104,13 +104,13 @@
 
                                     @if (booking.BookingServices != null && booking.BookingServices.Any())
                                     {
-                                        <div class="mt-1 ps-2 border-start" style="border-start-color: rgba(255,255,255,0.1) !important; font-size: 12px;">
-                                            <span class="text-sc-muted">Dịch vụ:</span>
+                                        <div class="mt-2 pt-2 border-top border-white border-opacity-10" style="font-size: 12.5px;">
+                                            <span class="text-sc-muted d-block mb-1 font-outfit fw-bold"><i class="bi bi-bag-plus text-warning me-1"></i>Dịch vụ bổ sung:</span>
                                             @foreach (var svc in booking.BookingServices)
                                             {
-                                                <div class="d-flex justify-content-between text-white">
-                                                    <span>• @svc.ServiceName x@(svc.Quantity)</span>
-                                                    <span class="text-sc-green fw-medium">@svc.TotalPrice.ToString("N0")đ</span>
+                                                <div class="d-flex justify-content-between align-items-center text-white py-1 px-2 mb-1 rounded" style="background: rgba(255,255,255,0.03);">
+                                                    <span>• @svc.ServiceName <span class="text-white-50">(@svc.Price.ToString("N0")đ/đơn vị)</span> x<strong class="text-white">@svc.Quantity</strong></span>
+                                                    <span class="text-sc-green fw-bold">@svc.TotalPrice.ToString("N0")đ</span>
                                                 </div>
                                             }
                                         </div>

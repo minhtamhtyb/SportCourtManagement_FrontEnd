@@ -48,6 +48,7 @@ public interface ICourtApiService
     Task<PagedResult<TournamentPublicDto>> GetPagedPublicTournamentsAsync(string? keyword, int pageNumber, int pageSize);
     Task<TournamentDto?> CreateTournamentAsync(CreateTournamentFormDto form);
     Task<(TournamentDto? Data, string? ErrorMessage)> CreateTournamentResultAsync(CreateTournamentFormDto form);
+    Task<(TournamentDto? Data, string? ErrorMessage)> CreateAndPayTournamentWithWalletAsync(CreateTournamentFormDto form);
     Task<TournamentDto?> GetMyTournamentDetailAsync(int id);
     Task<bool> UpdateTournamentStatusAsync(int id, string status, string? cancelReason);
     Task<SePayQrCodeDto?> GetSePayQrCodeAsync(string bookingOrTournamentCode);
