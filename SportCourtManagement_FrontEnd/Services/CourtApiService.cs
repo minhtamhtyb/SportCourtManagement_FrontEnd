@@ -484,6 +484,7 @@ public class CourtApiService : ICourtApiService
             {
                 CourtId = request.CourtId,
                 SlotId = request.SlotId,
+                SlotIds = request.SlotIds,
                 StartDate = request.StartDate.ToDateTime(TimeOnly.MinValue),
                 EndDate = request.EndDate.ToDateTime(TimeOnly.MinValue),
                 DaysOfWeek = request.DaysOfWeek,
@@ -1079,6 +1080,42 @@ public class CourtApiService : ICourtApiService
     {
         var (data, _) = await CreateTournamentResultAsync(form);
         return data;
+    }
+
+    public async Task<(TournamentDto? Data, string? ErrorMessage)> CreateAndPayTournamentWithWalletAsync(
+        CreateTournamentFormDto form
+    )
+    {
+        try
+        {
+            var req = CreateAuthRequest(HttpMethod.Post, "api/bookings/tournament/pay-wallet");
+            req.Content = JsonContent.Create(form, null, _jsonOptions);
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<TournamentDto>>(
+                    _jsonOptions
+                );
+                return (body?.Data, null);
+            }
+            var rawErr = await res.Content.ReadAsStringAsync();
+            try
+            {
+                var errBody = System.Text.Json.JsonSerializer.Deserialize<ApiResponse<object>>(
+                    rawErr,
+                    _jsonOptions
+                );
+                if (errBody != null && !string.IsNullOrWhiteSpace(errBody.Message))
+                    return (null, errBody.Message);
+            }
+            catch { }
+            return (null, $"Lỗi thanh toán ({res.StatusCode})");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error CreateAndPayTournamentWithWalletAsync");
+            return (null, ex.Message);
+        }
     }
 
     public async Task<(TournamentDto? Data, string? ErrorMessage)> CreateTournamentResultAsync(

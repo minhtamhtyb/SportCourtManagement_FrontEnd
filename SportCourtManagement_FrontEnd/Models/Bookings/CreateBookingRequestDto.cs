@@ -13,9 +13,9 @@ public class CreateBookingRequestDto
     [Range(1, int.MaxValue, ErrorMessage = "Sân không hợp lệ.")]
     public int CourtId { get; set; }
 
-    [Required(ErrorMessage = "Vui lòng chọn khung giờ.")]
-    [Range(1, int.MaxValue, ErrorMessage = "Khung giờ không hợp lệ.")]
     public int SlotId { get; set; }
+
+    public List<int>? SlotIds { get; set; }
 
     [Required(ErrorMessage = "Vui lòng chọn ngày đặt sân.")]
     public DateTime BookingDate { get; set; }

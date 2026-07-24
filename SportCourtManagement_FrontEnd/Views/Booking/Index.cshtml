@@ -559,9 +559,9 @@
                     </div>
 
                     <!-- Policy -->
-                    <div class="mt-3 p-3 rounded" style="background-color: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.12); font-size: 12px; line-height: 1.5;">
-                        <span class="text-sc-red fw-bold d-block mb-1"><i class="bi bi-info-circle-fill me-1"></i> Lưu ý</span>
-                        <span class="text-sc-muted">Booking sẽ được giữ tạm trong 5 phút. Nếu không thanh toán trong thời gian này, đơn đặt sân sẽ tự động hủy.</span>
+                    <div class="mt-3 p-3 rounded" style="background-color: rgba(245, 158, 11, 0.04); border: 1px solid rgba(245, 158, 11, 0.15); font-size: 12px; line-height: 1.5;">
+                        <span class="text-sc-amber fw-bold d-block mb-1"><i class="bi bi-shield-check me-1"></i> Lưu ý thanh toán</span>
+                        <span class="text-sc-muted">Khung giờ đặt sân chỉ được chính thức xác nhận khi bạn thanh toán thành công. Khách hàng thanh toán trước sẽ giữ sân thành công.</span>
                     </div>
                 </div>
             </div>
@@ -1248,6 +1248,7 @@
             });
 
             recStartDate.add(recEndDate).on('change', function () {
+                validateRecDaysOfWeek();
                 loadRecSlotAvailability();
                 updateRecSummary();
             });
@@ -1255,6 +1256,44 @@
             $('input[name="daysOfWeek"]').on('change', function () {
                 updateRecSummary();
             });
+
+            function validateRecDaysOfWeek() {
+                const startVal = recStartDate.val();
+                const endVal = recEndDate.val();
+
+                if (!startVal || !endVal) return;
+
+                const start = new Date(startVal + 'T00:00:00');
+                const end = new Date(endVal + 'T00:00:00');
+
+                if (start > end) return;
+
+                const validDays = new Set();
+                let curr = new Date(start);
+                let limit = 0;
+                while (curr <= end && limit < 366) {
+                    validDays.add(curr.getDay());
+                    curr.setDate(curr.getDate() + 1);
+                    limit++;
+                }
+
+                $('input[name="daysOfWeek"]').each(function () {
+                    const $chk = $(this);
+                    const dayVal = parseInt($chk.val());
+                    const $parent = $chk.closest('.form-check');
+
+                    if (!validDays.has(dayVal)) {
+                        $chk.prop('checked', false).prop('disabled', true);
+                        $parent.css({ 'opacity': '0.3', 'pointer-events': 'none' }).attr('title', 'Ngày này không nằm trong khoảng thời gian đã chọn');
+                    } else {
+                        $chk.prop('disabled', false);
+                        $parent.css({ 'opacity': '1', 'pointer-events': 'auto' }).removeAttr('title');
+                    }
+                });
+            }
+
+            // Run initial validation on page load
+            validateRecDaysOfWeek();
 
             function loadRecSlotAvailability() {
                 const courtId = recCourtSelect.val();
@@ -1491,12 +1530,15 @@
                     // Calculate court price from selected slots
                     let slotTotalPerSession = 0;
                     const selectedSlots = recSlotsData.filter(s => recSelectedSlotIds.includes(s.slotId));
-                    selectedSlots.forEach(s => slotTotalPerSession += s.price);
+                    selectedSlots.forEach(s => slotTotalPerSession += (Number(s.price) || 0));
 
                     const totalCourtPrice = slotTotalPerSession * sessionCount;
                     if (totalCourtPrice > 0) {
                         $('#summary-court-price').text(`${totalCourtPrice.toLocaleString('vi-VN')}đ (${sessionCount} buổi x ${selectedSlots.length} slot)`);
                         $('#summary-total').text(`${totalCourtPrice.toLocaleString('vi-VN')}đ`);
+                    } else if (slotTotalPerSession > 0) {
+                        $('#summary-court-price').text(`${slotTotalPerSession.toLocaleString('vi-VN')}đ (mỗi buổi x ${selectedSlots.length} slot)`);
+                        $('#summary-total').text(`${slotTotalPerSession.toLocaleString('vi-VN')}đ`);
                     } else {
                         $('#summary-court-price').text('—');
                         $('#summary-total').text('—');

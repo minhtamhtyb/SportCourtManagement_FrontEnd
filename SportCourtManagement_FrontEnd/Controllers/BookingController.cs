@@ -109,6 +109,24 @@ namespace SportCourtManagement_FrontEnd.Controllers
                     price = isWeekend ? pricing.Price * pricing.PeakMultiplier : pricing.Price;
                 }
 
+                if (price <= 0 && court != null)
+                {
+                    var anyPricing = court.Pricings?.FirstOrDefault(p => p.Price > 0);
+                    if (anyPricing != null)
+                    {
+                        price = anyPricing.Price;
+                    }
+                    else
+                    {
+                        decimal hours = 1.5m;
+                        if (TimeSpan.TryParse(ts.StartTime, out var sTime) && TimeSpan.TryParse(ts.EndTime, out var eTime))
+                        {
+                            hours = (decimal)(eTime - sTime).TotalHours;
+                        }
+                        price = (court.PricePerHour > 0 ? court.PricePerHour : 100000m) * (hours > 0 ? hours : 1);
+                    }
+                }
+
                 return new
                 {
                     slotId = ts.SlotId,
@@ -187,78 +205,103 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 return RedirectToAction("Index", new { courtId });
             }
 
-            var allCreatedBookings = new List<SingularBookingResponseDto>();
-            var allConflictDates = new List<string>();
-
             try
             {
-                foreach (var currentSlotId in targetSlots)
+                var court = await _apiService.GetCourtDetailAsync(courtId);
+                var timeSlots = await _apiService.GetTimeSlotsAsync();
+                var selectedSlots = timeSlots?.Where(ts => targetSlots.Contains(ts.SlotId)).OrderBy(ts => ts.StartTime).ToList() ?? new();
+
+                var minStart = selectedSlots.Count > 0 && TimeSpan.TryParse(selectedSlots.First().StartTime, out var st2) ? st2 : TimeSpan.Zero;
+                var maxEnd = selectedSlots.Count > 0 && TimeSpan.TryParse(selectedSlots.Last().EndTime, out var et2) ? et2 : TimeSpan.Zero;
+
+                string slotRangeName = selectedSlots.Count > 1
+                    ? $"{CleanSlotName(selectedSlots.First().SlotName)} - {CleanSlotName(selectedSlots.Last().SlotName)}"
+                    : (selectedSlots.FirstOrDefault() != null ? CleanSlotName(selectedSlots.First().SlotName) : "Slot");
+
+                var allDates = new List<DateTime>();
+                for (var date = parsedStartDate.Date; date <= parsedEndDate.Date; date = date.AddDays(1))
                 {
-                    var request = new RecurringBookingRequestDto
-                    {
-                        CourtId = courtId,
-                        SlotId = currentSlotId,
-                        StartDate = DateOnly.FromDateTime(parsedStartDate),
-                        EndDate = DateOnly.FromDateTime(parsedEndDate),
-                        DaysOfWeek = daysOfWeek,
-                        PromotionCode = promoCode,
-                        Note = note
-                    };
+                    if (daysOfWeek.Contains((int)date.DayOfWeek))
+                        allDates.Add(date);
+                }
 
-                    var result = await _apiService.CreateRecurringBookingAsync(request, token);
-                    if (result != null)
+                if (allDates.Count == 0)
+                {
+                    TempData["ErrorMessage"] = "Không có ngày nào phù hợp trong khoảng thời gian đã chọn.";
+                    return RedirectToAction("Index", new { courtId });
+                }
+
+                decimal daySubTotal = 0;
+                foreach (var sId in targetSlots)
+                {
+                    var pricing = court?.Pricings?.FirstOrDefault(p => p.SlotId == sId && p.Price > 0);
+                    if (pricing != null)
                     {
-                        if (result.ConflictDates != null && result.ConflictDates.Count > 0)
+                        daySubTotal += pricing.Price;
+                    }
+                    else
+                    {
+                        var anyPricing = court?.Pricings?.FirstOrDefault(p => p.Price > 0);
+                        if (anyPricing != null)
                         {
-                            allConflictDates.AddRange(result.ConflictDates);
+                            daySubTotal += anyPricing.Price;
                         }
-
-                        if (result.CreatedBookings != null && result.CreatedBookings.Count > 0)
+                        else
                         {
-                            allCreatedBookings.AddRange(result.CreatedBookings.Select(b => new SingularBookingResponseDto
+                            var slotItem = selectedSlots.FirstOrDefault(s => s.SlotId == sId);
+                            decimal hours = 1.5m;
+                            if (slotItem != null && TimeSpan.TryParse(slotItem.StartTime, out var sT) && TimeSpan.TryParse(slotItem.EndTime, out var eT))
                             {
-                                BookingId = b.BookingId,
-                                BookingCode = b.BookingCode,
-                                CourtId = b.CourtId,
-                                CourtName = b.CourtName ?? result.CourtName,
-                                SlotId = b.SlotId,
-                                SlotName = b.SlotName ?? result.SlotName,
-                                BookingDate = b.BookingDate,
-                                SubTotal = b.SubTotal,
-                                DiscountAmount = b.DiscountAmount,
-                                TotalAmount = b.TotalAmount,
-                                Status = b.Status
-                            }));
+                                hours = (decimal)(eT - sT).TotalHours;
+                            }
+                            daySubTotal += (court?.PricePerHour > 0 ? court.PricePerHour : 100000m) * (hours > 0 ? hours : 1);
                         }
                     }
                 }
 
-                if (allCreatedBookings.Count > 0)
+                var allSessionDrafts = new List<SingularBookingResponseDto>();
+                for (int i = 0; i < allDates.Count; i++)
                 {
-                    TempData["SuccessMessage"] = $"Đặt sân định kỳ thành công! Tổng số buổi đã đặt: {allCreatedBookings.Count}.";
-                    if (allConflictDates.Count > 0)
+                    allSessionDrafts.Add(new SingularBookingResponseDto
                     {
-                        TempData["WarningMessage"] = $"Các ngày bị trùng lịch đã được bỏ qua: {string.Join(", ", allConflictDates.Distinct())}.";
-                    }
+                        BookingCode = $"DRAFT-REC-{i + 1}",
+                        CourtId = courtId,
+                        CourtName = court?.CourtName ?? "Sân thể thao",
+                        SlotId = targetSlots.First(),
+                        SlotName = slotRangeName,
+                        BookingDate = allDates[i],
+                        StartTime = minStart,
+                        EndTime = maxEnd,
+                        SubTotal = daySubTotal,
+                        DiscountAmount = 0,
+                        TotalAmount = daySubTotal,
+                        Status = "Draft"
+                    });
+                }
 
-                    var bookingCodes = string.Join(",", allCreatedBookings.Select(b => b.BookingCode));
-                    return RedirectToAction("Payment", new { bookingCodes });
-                }
-                else
+                var request = new RecurringBookingRequestDto
                 {
-                    TempData["ErrorMessage"] = "Không thể tạo lịch định kỳ. Có thể tất cả các buổi đều bị trùng lịch hoặc dịch vụ phản hồi không thành công.";
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
+                    CourtId = courtId,
+                    SlotId = targetSlots.First(),
+                    SlotIds = targetSlots,
+                    StartDate = DateOnly.FromDateTime(parsedStartDate),
+                    EndDate = DateOnly.FromDateTime(parsedEndDate),
+                    DaysOfWeek = daysOfWeek,
+                    PromotionCode = promoCode,
+                    Note = note
+                };
+
+                HttpContext.Session.Remove("DraftSingleRequest");
+                HttpContext.Session.SetString("DraftRecurringRequest", JsonSerializer.Serialize(request));
+                TempData["BookingResponses"] = JsonSerializer.Serialize(allSessionDrafts);
+
+                return RedirectToAction("Payment", new { bookingCodes = "DRAFT-RECURRING" });
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Lỗi tạo đặt sân định kỳ: " + ex.Message;
+                TempData["ErrorMessage"] = "Lỗi thiết lập đơn định kỳ: " + ex.Message;
+                return RedirectToAction("Index", new { courtId });
             }
-
-            return RedirectToAction("Index", new { courtId });
         }
 
         // POST: /Booking/JoinWaitlist
@@ -310,7 +353,6 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 return RedirectToAction("Index", new { courtId, date = bookingDate });
             }
 
-            // Build service items list once (shared across all slot bookings)
             var serviceItems = new List<CreateBookingServiceItemDto>();
             if (serviceQuantities != null)
             {
@@ -327,62 +369,101 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 }
             }
 
-            var successfulBookings = new List<SingularBookingResponseDto>();
-            var errors = new List<string>();
-
-            // Create one booking per selected slot
-            foreach (var slotId in slotIds)
+            var request = new CreateBookingRequestDto
             {
-                var request = new CreateBookingRequestDto
-                {
-                    CourtId = courtId,
-                    SlotId = slotId,
-                    BookingDate = parsedDate,
-                    PromoCode = promoCode,
-                    BookingServices = serviceItems
-                };
+                CourtId = courtId,
+                SlotId = slotIds.First(),
+                SlotIds = slotIds,
+                BookingDate = parsedDate,
+                PromoCode = promoCode,
+                BookingServices = serviceItems
+            };
 
-                try
+            var court = await _apiService.GetCourtDetailAsync(courtId);
+            var timeSlots = await _apiService.GetTimeSlotsAsync();
+            var selectedSlots = timeSlots?.Where(ts => slotIds.Contains(ts.SlotId)).OrderBy(ts => ts.StartTime).ToList() ?? new();
+
+            var minStart = selectedSlots.Count > 0 && TimeSpan.TryParse(selectedSlots.First().StartTime, out var st1) ? st1 : TimeSpan.Zero;
+            var maxEnd = selectedSlots.Count > 0 && TimeSpan.TryParse(selectedSlots.Last().EndTime, out var et1) ? et1 : TimeSpan.Zero;
+
+            string slotRangeName = selectedSlots.Count > 1
+                ? $"{CleanSlotName(selectedSlots.First().SlotName)} - {CleanSlotName(selectedSlots.Last().SlotName)}"
+                : (selectedSlots.FirstOrDefault() != null ? CleanSlotName(selectedSlots.First().SlotName) : "Slot");
+
+            decimal subTotal = 0;
+            foreach (var sId in slotIds)
+            {
+                var pricing = court?.Pricings?.FirstOrDefault(p => p.SlotId == sId && p.Price > 0);
+                if (pricing != null)
                 {
-                    var result = await _apiService.CreateSingularBookingAsync(request, token);
-                    if (result != null)
+                    subTotal += pricing.Price;
+                }
+                else
+                {
+                    var anyPricing = court?.Pricings?.FirstOrDefault(p => p.Price > 0);
+                    if (anyPricing != null)
                     {
-                        successfulBookings.Add(result);
+                        subTotal += anyPricing.Price;
                     }
                     else
                     {
-                        errors.Add($"Slot {slotId}: Không thể tạo đặt sân.");
+                        var slotItem = selectedSlots.FirstOrDefault(s => s.SlotId == sId);
+                        decimal hours = 1.5m;
+                        if (slotItem != null && TimeSpan.TryParse(slotItem.StartTime, out var sT) && TimeSpan.TryParse(slotItem.EndTime, out var eT))
+                        {
+                            hours = (decimal)(eT - sT).TotalHours;
+                        }
+                        subTotal += (court?.PricePerHour > 0 ? court.PricePerHour : 100000m) * (hours > 0 ? hours : 1);
                     }
                 }
-                catch (InvalidOperationException ex)
+            }
+
+            var draftServices = new List<SingularBookingServiceResponseDto>();
+            decimal serviceTotalAmount = 0;
+            if (serviceItems.Any())
+            {
+                var availableServices = await _apiService.GetServicesByCourtIdAsync(courtId) ?? new();
+                foreach (var item in serviceItems)
                 {
-                    errors.Add($"Slot {slotId}: {ex.Message}");
+                    var matched = availableServices.FirstOrDefault(s => s.ServiceId == item.ServiceId);
+                    decimal unitPrice = matched?.Price ?? 0;
+                    decimal itemTotal = unitPrice * item.Quantity;
+                    serviceTotalAmount += itemTotal;
+
+                    draftServices.Add(new SingularBookingServiceResponseDto
+                    {
+                        ServiceId = item.ServiceId,
+                        ServiceName = matched?.ServiceName ?? $"Dịch vụ #{item.ServiceId}",
+                        Quantity = item.Quantity,
+                        Price = unitPrice,
+                        TotalPrice = itemTotal
+                    });
                 }
             }
 
-            if (successfulBookings.Count == 0)
+            var draftDto = new SingularBookingResponseDto
             {
-                TempData["ErrorMessage"] = "Không thể đặt sân. " + string.Join(" | ", errors);
-                return RedirectToAction("Index", new { courtId, date = bookingDate });
-            }
+                BookingCode = "DRAFT-SINGLE",
+                CourtId = courtId,
+                CourtName = court?.CourtName ?? "Sân thể thao",
+                SlotId = slotIds.First(),
+                SlotName = slotRangeName,
+                BookingDate = parsedDate,
+                StartTime = minStart,
+                EndTime = maxEnd,
+                SubTotal = subTotal,
+                ServicesAmount = serviceTotalAmount,
+                DiscountAmount = 0,
+                TotalAmount = subTotal + serviceTotalAmount,
+                Status = "Draft",
+                BookingServices = draftServices
+            };
 
-            if (errors.Count > 0)
-            {
-                TempData["WarningMessage"] = $"Đã đặt {successfulBookings.Count}/{slotIds.Count} sân thành công. Lỗi: {string.Join(" | ", errors)}";
-            }
+            HttpContext.Session.Remove("DraftRecurringRequest");
+            HttpContext.Session.SetString("DraftSingleRequest", JsonSerializer.Serialize(request));
+            TempData["BookingResponses"] = JsonSerializer.Serialize(new List<SingularBookingResponseDto> { draftDto });
 
-            var bookingCodes = string.Join(",", successfulBookings.Select(b => b.BookingCode));
-
-            // Nếu đã được xác nhận (thanh toán qua ví thành công trực tiếp)
-            if (successfulBookings.Any(b => string.Equals(b.Status, "Confirmed", StringComparison.OrdinalIgnoreCase)))
-            {
-                TempData["SuccessMessage"] = $"Đặt sân thành công! Tổng cộng {successfulBookings.Sum(b => b.TotalAmount):N0}đ đã được thanh toán từ ví.";
-                return RedirectToAction("Success", new { bookingCodes });
-            }
-
-            // Fallback
-            TempData["BookingResponses"] = JsonSerializer.Serialize(successfulBookings);
-            return RedirectToAction("Payment", new { bookingCodes });
+            return RedirectToAction("Payment", new { bookingCodes = "DRAFT-SINGLE" });
         }
 
         // GET: /Booking/Payment?bookingCodes=BK-001,BK-002&isServicePayment=true
@@ -529,13 +610,70 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 return RedirectToAction("Index");
             }
 
+            var token = GetToken();
+
+            // Handle Recurring Booking Draft payment
+            if (bookingCodes.Contains("DRAFT-REC") || bookingCodes.Contains("DRAFT-RECURRING") || (bookingCodes.StartsWith("DRAFT") && HttpContext.Session.GetString("DraftRecurringRequest") != null && !bookingCodes.Contains("DRAFT-SINGLE")))
+            {
+                var jsonStr = HttpContext.Session.GetString("DraftRecurringRequest");
+                if (!string.IsNullOrEmpty(jsonStr))
+                {
+                    try
+                    {
+                        var request = JsonSerializer.Deserialize<RecurringBookingRequestDto>(jsonStr);
+                        if (request != null)
+                        {
+                            var result = await _apiService.CreateRecurringBookingAsync(request, token);
+                            HttpContext.Session.Remove("DraftRecurringRequest");
+                            
+                            string msg = $"Đặt sân định kỳ thành công! Đã tự động thanh toán {result.TotalEstimatedAmount:N0}đ từ ví cho {result.TotalBookedSessions} buổi.";
+                            if (result.ConflictDates != null && result.ConflictDates.Count > 0)
+                            {
+                                msg += $" (Các ngày bị trùng lịch đã được bỏ qua: {string.Join(", ", result.ConflictDates.Distinct())}).";
+                            }
+                            TempData["SuccessMessage"] = msg;
+                            return RedirectToAction("Index", "MyBookings");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["ErrorMessage"] = "Thanh toán đặt sân định kỳ thất bại: " + ex.Message;
+                        return RedirectToAction("Index");
+                    }
+                }
+            }
+
+            // Handle Single Booking Draft payment
+            if (bookingCodes.Contains("DRAFT-SINGLE") || (bookingCodes.StartsWith("DRAFT") && HttpContext.Session.GetString("DraftSingleRequest") != null))
+            {
+                var jsonStr = HttpContext.Session.GetString("DraftSingleRequest");
+                if (!string.IsNullOrEmpty(jsonStr))
+                {
+                    try
+                    {
+                        var request = JsonSerializer.Deserialize<CreateBookingRequestDto>(jsonStr);
+                        if (request != null)
+                        {
+                            var result = await _apiService.CreateSingularBookingAsync(request, token);
+                            HttpContext.Session.Remove("DraftSingleRequest");
+                            TempData["SuccessMessage"] = $"Đặt sân thành công! Đã tự động thanh toán {result.TotalAmount:N0}đ từ ví cho đơn #{result.BookingCode}.";
+                            return RedirectToAction("Index", "MyBookings");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["ErrorMessage"] = "Thanh toán đơn đặt sân thất bại: " + ex.Message;
+                        return RedirectToAction("Index");
+                    }
+                }
+            }
+
             var codes = bookingCodes.Split(',', StringSplitOptions.RemoveEmptyEntries);
             var successCount = 0;
             var lastMessage = "";
 
             foreach (var code in codes)
             {
-                // We pass amount = 0, the backend webhook handler will validate the booking's actual amount
                 var (success, message, _) = await _apiService.SimulateSePayWebhookAsync(code.Trim(), 0);
                 if (success)
                 {
@@ -548,7 +686,6 @@ namespace SportCourtManagement_FrontEnd.Controllers
             {
                 if (isServicePayment)
                 {
-                    var token = GetToken();
                     string? serviceInfoJson = null;
                     if (TempData.TryGetValue("ServicePaymentInfo", out var obj) && obj is string jsonFromTemp)
                     {
@@ -671,6 +808,60 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 return Json(new { success = false, message = "Không tìm thấy mã đặt sân." });
             }
 
+            // Handle Recurring Booking Draft payment
+            if (bookingCodes.Contains("DRAFT-REC") || bookingCodes.Contains("DRAFT-RECURRING") || (bookingCodes.StartsWith("DRAFT") && HttpContext.Session.GetString("DraftRecurringRequest") != null && !bookingCodes.Contains("DRAFT-SINGLE")))
+            {
+                var jsonStr = HttpContext.Session.GetString("DraftRecurringRequest");
+                if (!string.IsNullOrEmpty(jsonStr))
+                {
+                    try
+                    {
+                        var request = JsonSerializer.Deserialize<RecurringBookingRequestDto>(jsonStr);
+                        if (request != null)
+                        {
+                            var result = await _apiService.CreateRecurringBookingAsync(request, token);
+                            HttpContext.Session.Remove("DraftRecurringRequest");
+
+                            string msg = $"Đặt sân định kỳ thành công! Đã tự động thanh toán {result.TotalEstimatedAmount:N0}đ từ ví cho {result.TotalBookedSessions} buổi.";
+                            if (result.ConflictDates != null && result.ConflictDates.Count > 0)
+                            {
+                                msg += $" (Các ngày bị trùng lịch đã được bỏ qua: {string.Join(", ", result.ConflictDates.Distinct())}).";
+                            }
+                            TempData["SuccessMessage"] = msg;
+                            return Json(new { success = true, redirectUrl = Url.Action("Index", "MyBookings") });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new { success = false, message = ex.Message });
+                    }
+                }
+            }
+
+            // Handle Single Booking Draft payment
+            if (bookingCodes.Contains("DRAFT-SINGLE") || (bookingCodes.StartsWith("DRAFT") && HttpContext.Session.GetString("DraftSingleRequest") != null))
+            {
+                var jsonStr = HttpContext.Session.GetString("DraftSingleRequest");
+                if (!string.IsNullOrEmpty(jsonStr))
+                {
+                    try
+                    {
+                        var request = JsonSerializer.Deserialize<CreateBookingRequestDto>(jsonStr);
+                        if (request != null)
+                        {
+                            var result = await _apiService.CreateSingularBookingAsync(request, token);
+                            HttpContext.Session.Remove("DraftSingleRequest");
+                            TempData["SuccessMessage"] = $"Đặt sân thành công! Đã thanh toán {result.TotalAmount:N0}đ từ ví cho đơn #{result.BookingCode}.";
+                            return Json(new { success = true, redirectUrl = Url.Action("Index", "MyBookings") });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new { success = false, message = ex.Message });
+                    }
+                }
+            }
+
             if (isServicePayment)
             {
                 string? serviceInfoJson = null;
@@ -763,6 +954,13 @@ namespace SportCourtManagement_FrontEnd.Controllers
             }
 
             return token;
+        }
+
+        private static string CleanSlotName(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return name ?? "";
+            var idx = name.IndexOf('(');
+            return idx > 0 ? name.Substring(0, idx).Trim() : name.Trim();
         }
     }
 }

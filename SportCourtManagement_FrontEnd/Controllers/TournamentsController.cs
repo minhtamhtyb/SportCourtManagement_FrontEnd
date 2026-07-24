@@ -224,58 +224,172 @@ public class TournamentsController : Controller
       return BadRequest(new { success = false, message = "Vui lòng chọn ít nhất 1 sân và 1 khung giờ thi đấu!" });
     }
 
-    var (created, errMsg) = await _apiService.CreateTournamentResultAsync(form);
-    if (created == null)
-    {
-      return Conflict(new { success = false, message = !string.IsNullOrWhiteSpace(errMsg) ? errMsg : "Đặt giải đấu thất bại. Khung giờ chọn có thể đã kín lịch hoặc đang được giữ chỗ." });
-    }
-
-    return Ok(new { success = true, redirectUrl = Url.Action("Payment", "Tournaments", new { id = created.TournamentId }) });
+    HttpContext.Session.SetString("DraftTournamentForm", System.Text.Json.JsonSerializer.Serialize(form));
+    return Ok(new { success = true, redirectUrl = Url.Action("Payment", "Tournaments", new { id = 0 }) });
   }
 
   // GET: /Tournaments/Payment/5
   [HttpGet]
-  public async Task<IActionResult> Payment(int id)
+  public async Task<IActionResult> Payment(int id = 0)
   {
-    var tour = await _apiService.GetMyTournamentDetailAsync(id);
-    if (tour == null)
-    {
-      TempData["ErrorMessage"] = "Không tìm thấy giải đấu hoặc bạn không có quyền truy cập.";
-      return RedirectToAction(nameof(MyTournaments));
-    }
-
-    if (string.Equals(tour.Status, "Paid", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(tour.Status, "Confirmed", StringComparison.OrdinalIgnoreCase))
-    {
-      return RedirectToAction(nameof(PaymentSuccess), new { id = tour.TournamentId });
-    }
-
-    if (string.Equals(tour.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
-    {
-      TempData["ErrorMessage"] = $"Giải đấu #{tour.TournamentId} đã bị hủy, không thể tiếp tục thanh toán.";
-      return RedirectToAction(nameof(MyTournaments));
-    }
-
-    if (tour.ExpiredAt.HasValue && DateTime.SpecifyKind(tour.ExpiredAt.Value, DateTimeKind.Utc) < DateTime.UtcNow && string.Equals(tour.Status, "Pending", StringComparison.OrdinalIgnoreCase))
-    {
-      TempData["ErrorMessage"] = $"Đơn đặt giải đấu #{tour.TournamentId} đã hết hạn giữ chỗ (5 phút). Vui lòng đặt lại giải đấu mới.";
-      return RedirectToAction(nameof(MyDetail), new { id = tour.TournamentId });
-    }
-
     var token = GetToken();
     var wallet = await _apiService.GetWalletBalanceAsync(token);
     ViewBag.Wallet = wallet;
 
-    var qrCode = await _apiService.GetSePayQrCodeAsync($"TM-{id}");
-    ViewBag.QrCode = qrCode;
+    if (id > 0)
+    {
+      var tour = await _apiService.GetMyTournamentDetailAsync(id);
+      if (tour == null)
+      {
+        TempData["ErrorMessage"] = "Không tìm thấy giải đấu hoặc bạn không có quyền truy cập.";
+        return RedirectToAction(nameof(MyTournaments));
+      }
 
-    return View(tour);
+      if (string.Equals(tour.Status, "Paid", StringComparison.OrdinalIgnoreCase) ||
+          string.Equals(tour.Status, "Confirmed", StringComparison.OrdinalIgnoreCase))
+      {
+        return RedirectToAction(nameof(PaymentSuccess), new { id = tour.TournamentId });
+      }
+
+      if (string.Equals(tour.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+      {
+        TempData["ErrorMessage"] = $"Giải đấu #{tour.TournamentId} đã bị hủy, không thể tiếp tục thanh toán.";
+        return RedirectToAction(nameof(MyTournaments));
+      }
+
+      var qrCode = await _apiService.GetSePayQrCodeAsync($"TM-{id}");
+      ViewBag.QrCode = qrCode;
+
+      return View(tour);
+    }
+
+    // Draft tournament payment screen
+    var draftJson = HttpContext.Session.GetString("DraftTournamentForm");
+    if (string.IsNullOrEmpty(draftJson))
+    {
+      TempData["ErrorMessage"] = "Không tìm thấy thông tin đăng ký giải đấu.";
+      return RedirectToAction(nameof(Create));
+    }
+
+    var form = System.Text.Json.JsonSerializer.Deserialize<CreateTournamentFormDto>(draftJson);
+    if (form == null)
+    {
+      TempData["ErrorMessage"] = "Thông tin đăng ký giải đấu không hợp lệ.";
+      return RedirectToAction(nameof(Create));
+    }
+
+    var courtsSearch = await _apiService.SearchCourtsAsync(new Models.Courts.CourtSearchParams { PageSize = 100 });
+    var courtsList = courtsSearch.Items ?? new();
+    var timeSlotsList = await _apiService.GetTimeSlotsAsync() ?? new();
+
+    var complexServices = new List<SportCourtManagement_FrontEnd.Models.DTOs.ComplexCourtTypeServiceDto>();
+    var complexIds = new List<int> { 1 };
+    foreach (var cid in complexIds)
+    {
+      var svcs = await _apiService.GetComplexServicesAsync(cid);
+      complexServices.AddRange(svcs);
+    }
+
+    var draftTour = new TournamentDto
+    {
+      TournamentId = 0,
+      TournamentName = form.TournamentName,
+      Description = form.Description,
+      Status = "Draft",
+      CreatedAt = DateTime.UtcNow,
+      Bookings = new List<TournamentBookingItemDto>()
+    };
+
+    if (form.CourtSelections != null)
+    {
+      foreach (var sel in form.CourtSelections)
+      {
+        var court = courtsList.FirstOrDefault(c => c.CourtId == sel.CourtId);
+        Models.Courts.CourtDetailDto? courtDetail = null;
+        try { courtDetail = await _apiService.GetCourtDetailAsync(sel.CourtId); } catch { }
+
+        // Calculate services ONCE per court selection (not per slot)
+        var bookingServices = new List<TournamentBookingServiceItemDto>();
+        decimal serviceTotal = 0;
+        if (sel.Services != null)
+        {
+          foreach (var s in sel.Services)
+          {
+            if (s.Quantity > 0)
+            {
+              var matchSvc = complexServices.FirstOrDefault(cs => cs.ServiceId == s.ServiceId);
+              decimal unitPrice = matchSvc?.Price ?? 0;
+              decimal itemTotal = unitPrice * s.Quantity;
+              serviceTotal += itemTotal;
+
+              bookingServices.Add(new TournamentBookingServiceItemDto
+              {
+                ServiceId = s.ServiceId,
+                ServiceName = matchSvc?.ServiceName ?? $"Dịch vụ #{s.ServiceId}",
+                Quantity = s.Quantity,
+                UnitPrice = unitPrice,
+                TotalPrice = itemTotal
+              });
+            }
+          }
+        }
+
+        if (sel.SlotIds != null)
+        {
+          bool isFirstSlot = true;
+          foreach (var slotId in sel.SlotIds)
+          {
+            var slotItem = timeSlotsList.FirstOrDefault(s => s.SlotId == slotId);
+            
+            decimal courtPrice = 0;
+            var pricing = courtDetail?.Pricings?.FirstOrDefault(p => p.SlotId == slotId);
+            if (pricing != null && pricing.Price > 0)
+            {
+              courtPrice = pricing.Price;
+            }
+            else
+            {
+              decimal hours = 1.5m;
+              if (slotItem != null && TimeSpan.TryParse(slotItem.StartTime, out var st) && TimeSpan.TryParse(slotItem.EndTime, out var et))
+              {
+                hours = (decimal)(et - st).TotalHours;
+              }
+              courtPrice = (courtDetail?.PricePerHour > 0 ? courtDetail.PricePerHour : (court?.PricePerHour > 0 ? court.PricePerHour : 100000m)) * (hours > 0 ? hours : 1);
+            }
+
+            // Only attach services to the first slot's booking to avoid duplication
+            draftTour.Bookings.Add(new TournamentBookingItemDto
+            {
+              CourtId = sel.CourtId,
+              CourtName = court?.CourtName ?? "Sân thể thao",
+              SlotName = slotItem?.SlotName ?? $"Slot #{slotId}",
+              StartTime = slotItem?.StartTime ?? "",
+              EndTime = slotItem?.EndTime ?? "",
+              BookingDate = sel.BookingDate,
+              TotalAmount = courtPrice + (isFirstSlot ? serviceTotal : 0),
+              Status = "Pending",
+              Services = isFirstSlot ? bookingServices : new List<TournamentBookingServiceItemDto>()
+            });
+            isFirstSlot = false;
+          }
+        }
+      }
+    }
+
+    draftTour.TotalAmount = draftTour.Bookings.Sum(b => b.TotalAmount);
+    ViewBag.DraftForm = form;
+    return View(draftTour);
   }
 
   // GET: /Tournaments/CheckPaymentStatus/5
   [HttpGet]
   public async Task<IActionResult> CheckPaymentStatus(int id)
   {
+    if (id <= 0)
+    {
+      return Ok(new { success = true, status = "Draft", isPaid = false, isCancelled = false, isExpired = false });
+    }
+
     var tour = await _apiService.GetMyTournamentDetailAsync(id);
     if (tour == null)
     {
@@ -334,13 +448,42 @@ public class TournamentsController : Controller
     if (string.IsNullOrEmpty(token))
       return Json(new { success = false, message = "Bạn cần đăng nhập." });
 
-    var (success, msg) = await _apiService.PayTournamentWithWalletAsync(tournamentId, token);
-    if (success)
+    if (tournamentId > 0)
     {
-      TempData["SuccessMessage"] = "Thanh toán giải đấu thành công!";
-      return Json(new { success = true, redirectUrl = Url.Action(nameof(PaymentSuccess), new { id = tournamentId }) });
+      var (success, msg) = await _apiService.PayTournamentWithWalletAsync(tournamentId, token);
+      if (success)
+      {
+        TempData["SuccessMessage"] = "Thanh toán giải đấu thành công!";
+        return Json(new { success = true, redirectUrl = Url.Action(nameof(PaymentSuccess), new { id = tournamentId }) });
+      }
+      return Json(new { success = false, message = msg });
     }
-    return Json(new { success = false, message = msg });
+
+    var draftJson = HttpContext.Session.GetString("DraftTournamentForm");
+    if (!string.IsNullOrEmpty(draftJson))
+    {
+      try
+      {
+        var form = System.Text.Json.JsonSerializer.Deserialize<CreateTournamentFormDto>(draftJson);
+        if (form != null)
+        {
+          var (created, errMsg) = await _apiService.CreateAndPayTournamentWithWalletAsync(form);
+          if (created != null)
+          {
+            HttpContext.Session.Remove("DraftTournamentForm");
+            TempData["SuccessMessage"] = "Tạo và thanh toán giải đấu từ ví thành công!";
+            return Json(new { success = true, redirectUrl = Url.Action(nameof(PaymentSuccess), new { id = created.TournamentId }) });
+          }
+          return Json(new { success = false, message = !string.IsNullOrWhiteSpace(errMsg) ? errMsg : "Thanh toán giải đấu thất bại." });
+        }
+      }
+      catch (Exception ex)
+      {
+        return Json(new { success = false, message = ex.Message });
+      }
+    }
+
+    return Json(new { success = false, message = "Không tìm thấy thông tin đăng ký giải đấu." });
   }
 
   private string? GetToken()
