@@ -139,7 +139,7 @@
                 });
             });
 
-            // ✅ Correct CSRF header name for ASP.NET Core
+            // ✅ CSRF header name khớp với Program.cs: options.HeaderName = "RequestVerificationToken"
             var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
             try {
@@ -147,7 +147,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-RequestVerificationToken': token
+                        'RequestVerificationToken': token
                     },
                     body: JSON.stringify(rows)
                 });

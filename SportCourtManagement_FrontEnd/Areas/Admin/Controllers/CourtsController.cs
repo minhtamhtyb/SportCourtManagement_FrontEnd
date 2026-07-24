@@ -152,8 +152,19 @@ public class CourtsController(ICourtService courtService) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, int complexId)
     {
-        await courtService.DeleteCourtAsync(id);
-        TempData["Success"] = "Xóa sân thành công!";
+        try
+        {
+            await courtService.DeleteCourtAsync(id);
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Xóa sân thành công! Các booking liên quan đã được hủy và hoàn tiền vào ví khách hàng." });
+            TempData["Success"] = "Xóa sân thành công! Các booking liên quan đã được hủy và hoàn tiền.";
+        }
+        catch (Exception ex)
+        {
+            if (IsAjaxRequest())
+                return Json(new { success = false, message = ex.Message });
+            TempData["Error"] = ex.Message;
+        }
         return RedirectToAction("Details", "Complexes", new { id = complexId });
     }
 
