@@ -1,3 +1,4 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
@@ -67,6 +68,23 @@
         .dropdown-menu-dark-custom .dropdown-item.active {
             background-color: var(--primary) !important;
             color: #fff !important;
+        }
+
+        /* Notifications styling */
+        .notification-item {
+            transition: background-color 0.2s ease;
+        }
+        .notification-item.unread {
+            background-color: rgba(56, 189, 248, 0.06);
+        }
+        .notification-item:hover {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+        }
+        .notification-item .dropdown-item {
+            background: transparent !important;
+        }
+        .notification-item .dropdown-item:hover {
+            background: transparent !important;
         }
     </style>
     @await RenderSectionAsync("Styles", required: false)
@@ -207,10 +225,21 @@
                 <input type="text" placeholder="Tìm kiếm booking, sân, khách hàng..." />
             </div>
             <div class="ms-auto d-flex align-items-center gap-2">
-                <button class="btn-ghost position-relative" type="button">
-                    <i class="fa-regular fa-bell"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-dark rounded-circle" style="width:8px;height:8px"></span>
-                </button>
+                <div class="dropdown">
+                    <button class="btn-ghost position-relative" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border: none; background: none;">
+                        <i class="fa-regular fa-bell"></i>
+                        <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 9px; padding: 3px 6px;">0</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto; border-radius: 12px; padding: 8px; background: var(--surface-container); border: 1px solid rgba(255,255,255,0.1) !important;">
+                        <li class="dropdown-header text-uppercase font-weight-bold" style="font-size: 11px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; color: var(--on-surface-variant);">
+                            <span>Thông báo</span>
+                            <a href="javascript:void(0)" onclick="markAllNotificationsAsRead()" class="text-primary text-decoration-none" style="font-size: 11px; font-weight: 600;">Đọc tất cả</a>
+                        </li>
+                        <div id="notificationItemsContainer">
+                            <li class="text-center py-3 text-muted" style="font-style: italic; font-size: 13px;">Không có thông báo mới</li>
+                        </div>
+                    </ul>
+                </div>
                 <div class="d-flex align-items-center gap-2">
                     <div class="admin-avatar">@initial</div>
                     <span class="d-none d-sm-inline text-secondary" style="font-size:.875rem">@userName</span>
@@ -228,6 +257,17 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/admin.js" asp-append-version="true"></script>
+@if (User.Identity?.IsAuthenticated == true)
+{
+    var token = Context.Session.GetString(SportCourtManagement_FrontEnd.Services.Api.JwtForwardingHandler.SessionTokenKey)
+                ?? User.FindFirst(SportCourtManagement_FrontEnd.Services.Api.JwtForwardingHandler.AccessTokenClaimType)?.Value;
+    <script>
+        window.accessToken = "@token";
+        window.API_BASE_URL = '@Configuration["ApiSettings:BaseUrl"]';
+    </script>
+}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script src="~/js/notifications.js" asp-append-version="true"></script>
 <script>
     function changeComplex(id) {
         const url = new URL(window.location.href);
