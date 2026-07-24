@@ -6,8 +6,8 @@
   bool isConfirmedOrPaid = Model.Status == "Confirmed" || Model.Status == "Paid";
   bool isCancelled = Model.Status == "Cancelled";
 
-  // TTL 10 phút tính từ ExpiredAt (UTC) hoặc CreatedAt + 10m
-  var expiredAt = Model.ExpiredAt ?? Model.CreatedAt.AddMinutes(10);
+  // TTL 5 phút tính từ ExpiredAt (UTC) hoặc CreatedAt + 5m
+  var expiredAt = Model.ExpiredAt ?? Model.CreatedAt.AddMinutes(5);
   var nowUtc = DateTime.UtcNow;
   var remainingSeconds = (int)(expiredAt - nowUtc).TotalSeconds;
 }
@@ -168,7 +168,7 @@
         <div class="d-flex align-items-center gap-3">
           <div class="fs-1 text-warning"><i class="bi bi-hourglass-split"></i></div>
           <div>
-            <h5 class="fw-bold mb-1 text-dark">Đơn Giải Đấu Đang Giữ Chỗ Thanh Toán (TTL 10 Phút)</h5>
+            <h5 class="fw-bold mb-1 text-dark">Đơn Giải Đấu Đang Giữ Chỗ Thanh Toán (TTL 5 Phút)</h5>
             <p class="mb-0 text-secondary">Để tránh giữ chỗ ảo gây ảnh hưởng lịch sân, vui lòng hoàn tất thanh toán trong: <strong id="ttlCountdownDisplay" class="text-danger fs-5"></strong></p>
           </div>
         </div>
@@ -187,7 +187,7 @@
           <i class="bi bi-exclamation-triangle-fill fs-1 text-danger"></i>
           <div>
             <h5 class="fw-bold mb-1 text-danger">Thời Gian Giữ Chỗ Đã Hết (TTL Expired)</h5>
-            <p class="mb-0 text-dark">Thời gian giữ chỗ 10 phút đã hết hạn. Các ca thi đấu của giải này hiện đã tự động mở lại cho khách hàng khác đặt đè. Vui lòng đặt lại giải đấu mới nếu bạn chưa chuyển khoản.</p>
+            <p class="mb-0 text-dark">Thời gian giữ chỗ 5 phút đã hết hạn. Các ca thi đấu của giải này hiện đã tự động mở lại cho khách hàng khác đặt đè. Vui lòng đặt lại giải đấu mới nếu bạn chưa chuyển khoản.</p>
           </div>
         </div>
         <div>
@@ -386,8 +386,8 @@
 {
   <script>
     /**
-     * Bắt đầu đếm ngược thời gian TTL 10 phút trên trang chi tiết giải đấu.
-     * @@param {number} totalSeconds - Số giây còn lại kể từ CreatedAt + 10 phút.
+     * Bắt đầu đếm ngược thời gian TTL 5 phút trên trang chi tiết giải đấu.
+     * @@param {number} totalSeconds - Số giây còn lại kể từ CreatedAt + 5 phút.
      */
     function startDetailTtlCountdown(totalSeconds) {
       let remaining = totalSeconds;
@@ -425,7 +425,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       // Lấy chính xác số giây thực tế từ server
-      const remaining = @((int)((Model.ExpiredAt ?? Model.CreatedAt.AddMinutes(10)) - DateTime.UtcNow).TotalSeconds);
+      const remaining = @((int)((Model.ExpiredAt ?? Model.CreatedAt.AddMinutes(5)) - DateTime.UtcNow).TotalSeconds);
       startDetailTtlCountdown(remaining);
     });
   </script>

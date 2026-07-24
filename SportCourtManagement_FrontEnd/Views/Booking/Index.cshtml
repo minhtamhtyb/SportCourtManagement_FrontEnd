@@ -1213,16 +1213,18 @@
                     courtTotal += s.price;
                 });
 
+                let effectiveCourtTotal = courtTotal;
                 if (courtTotal > 0) {
                     let priceText = courtTotal.toLocaleString('vi-VN') + 'đ';
                     if (selectedSlots.length > 1) priceText += ` (x${selectedSlots.length} slot)`;
                     $('#summary-court-price').text(priceText);
                 } else {
                     const courtPrice = parseFloat(courtSelect.find(':selected').data('price')) || 0;
+                    effectiveCourtTotal = courtPrice;
                     $('#summary-court-price').text(courtPrice > 0 ? courtPrice.toLocaleString('vi-VN') + 'đ' : '—');
                 }
 
-                const total = courtTotal + serviceTotal;
+                const total = effectiveCourtTotal + serviceTotal;
                 $('#summary-total').text(total > 0 ? total.toLocaleString('vi-VN') + 'đ' : '—');
             }
 

@@ -123,8 +123,8 @@
                 </div>
 
                 <div class="d-flex gap-3 justify-content-center">
-                    <a asp-controller="Courts" asp-action="Index" class="sc-btn sc-btn-secondary px-4 py-2.5 text-decoration-none d-inline-flex align-items-center" style="border-radius: 10px;">
-                        Quay lại danh sách sân
+                    <a asp-controller="MyBookings" asp-action="Index" class="sc-btn sc-btn-secondary px-4 py-2.5 text-decoration-none d-inline-flex align-items-center" style="border-radius: 10px;">
+                        <i class="bi bi-clock-history me-1"></i> Xem lịch sử đặt sân
                     </a>
                     @{
                         var bookingCodes = Model?.CreatedBookings != null && Model.CreatedBookings.Any() 
