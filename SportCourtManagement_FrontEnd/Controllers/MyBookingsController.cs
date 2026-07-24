@@ -144,7 +144,17 @@ namespace SportCourtManagement_FrontEnd.Controllers
                     PromotionCode = booking.PromotionCode,
                     Note = booking.Note,
                     CancelReason = booking.CancelReason,
-                    CreatedAt = booking.CreatedAt
+                    CreatedAt = booking.CreatedAt,
+                    Services = booking.Services != null
+                        ? booking.Services.Select(s => new BookingServiceItemDto
+                        {
+                            ServiceId = s.ServiceId,
+                            ServiceName = s.ServiceName,
+                            Quantity = s.Quantity,
+                            UnitPrice = s.UnitPrice,
+                            TotalPrice = s.TotalPrice
+                        }).ToList()
+                        : new List<BookingServiceItemDto>()
                 };
                 overrides.Add(overridenBooking);
             }
@@ -232,81 +242,10 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 }
             }
 
-            if (overridenBooking == null)
-            {
-                overridenBooking = new BookingDetailDto
-                {
-                    BookingId = booking.BookingId,
-                    BookingCode = booking.BookingCode,
-                    UserId = booking.UserId,
-                    CustomerName = booking.CustomerName,
-                    CustomerPhone = booking.CustomerPhone,
-                    CourtId = booking.CourtId,
-                    CourtName = booking.CourtName,
-                    SlotId = booking.SlotId,
-                    SlotName = booking.SlotName,
-                    BookingDate = booking.BookingDate,
-                    StartTime = booking.StartTime,
-                    EndTime = booking.EndTime,
-                    SubTotal = booking.SubTotal,
-                    DiscountAmount = booking.DiscountAmount,
-                    TotalAmount = booking.TotalAmount,
-                    Status = booking.Status,
-                    PromotionId = booking.PromotionId,
-                    PromotionCode = booking.PromotionCode,
-                    Note = booking.Note,
-                    CancelReason = booking.CancelReason,
-                    CreatedAt = booking.CreatedAt
-                };
-                overrides.Add(overridenBooking);
-            }
-
-            if (overridenBooking.Services == null) overridenBooking.Services = new List<BookingServiceItemDto>();
-            foreach (var q in serviceQuantities.Where(kv => kv.Value > 0))
-            {
-                var s = services.FirstOrDefault(svc => svc.ServiceId == q.Key);
-                if (s != null)
-                {
-                    var existingSvc = overridenBooking.Services.FirstOrDefault(svc => svc.ServiceId == q.Key);
-                    if (existingSvc != null)
-                    {
-                        existingSvc.Quantity += q.Value;
-                        existingSvc.TotalPrice += s.Price * q.Value;
-                    }
-                    else
-                    {
-                        overridenBooking.Services.Add(new BookingServiceItemDto
-                        {
-                            ServiceId = s.ServiceId,
-                            ServiceName = s.ServiceName,
-                            Quantity = q.Value,
-                            UnitPrice = s.Price,
-                            TotalPrice = s.Price * q.Value
-                        });
-                    }
-                }
-            }
-
-            overridenBooking.TotalAmount += additionalAmount;
             string addedServicesText = string.Join(", ", serviceQuantities.Where(q => q.Value > 0).Select(q => {
                 var s = services.FirstOrDefault(svc => svc.ServiceId == q.Key);
                 return $"{s?.ServiceName ?? "Dịch vụ"} x{q.Value}";
             }));
-            overridenBooking.Note = string.IsNullOrEmpty(overridenBooking.Note) 
-                ? $"Đặt thêm: {addedServicesText}" 
-                : $"{overridenBooking.Note} | Đặt thêm: {addedServicesText}";
-
-            // Persist to backend database
-            var (apiSuccess, apiMessage) = await _apiService.AddServicesToBookingAsync(bookingId, serviceQuantities, token);
-            if (!apiSuccess)
-            {
-                TempData["ErrorMessage"] = $"Không thể lưu dịch vụ: {apiMessage}";
-                return RedirectToAction("Index");
-            }
-
-            SaveBookingOverrides(overrides);
-
-            TempData["SuccessMessage"] = $"Đã thêm dịch vụ: {addedServicesText}. Vui lòng thanh toán số tiền bổ sung!";
 
             // Pass service payment info for Payment page
             var addedServicesList = serviceQuantities.Where(q => q.Value > 0).Select(q => {
@@ -321,13 +260,18 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 };
             }).ToList();
 
-            TempData["ServicePaymentInfo"] = JsonSerializer.Serialize(new
+            var servicePaymentInfo = JsonSerializer.Serialize(new
             {
+                BookingId = booking.BookingId,
                 BookingCode = booking.BookingCode,
                 AdditionalAmount = additionalAmount,
                 AddedServicesText = addedServicesText,
+                ServiceQuantities = serviceQuantities.Where(q => q.Value > 0).ToDictionary(q => q.Key, q => q.Value),
                 Services = addedServicesList
             });
+
+            HttpContext.Session.SetString($"ServicePaymentInfo_{booking.BookingCode}", servicePaymentInfo);
+            TempData["ServicePaymentInfo"] = servicePaymentInfo;
 
             return RedirectToAction("Payment", "Booking", new { bookingCodes = booking.BookingCode, isServicePayment = true });
         }

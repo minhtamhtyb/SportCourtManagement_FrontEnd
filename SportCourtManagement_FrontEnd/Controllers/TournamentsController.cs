@@ -258,7 +258,7 @@ public class TournamentsController : Controller
 
     if (tour.ExpiredAt.HasValue && DateTime.SpecifyKind(tour.ExpiredAt.Value, DateTimeKind.Utc) < DateTime.UtcNow && string.Equals(tour.Status, "Pending", StringComparison.OrdinalIgnoreCase))
     {
-      TempData["ErrorMessage"] = $"Đơn đặt giải đấu #{tour.TournamentId} đã hết hạn giữ chỗ (10 phút). Vui lòng đặt lại giải đấu mới.";
+      TempData["ErrorMessage"] = $"Đơn đặt giải đấu #{tour.TournamentId} đã hết hạn giữ chỗ (5 phút). Vui lòng đặt lại giải đấu mới.";
       return RedirectToAction(nameof(MyDetail), new { id = tour.TournamentId });
     }
 
