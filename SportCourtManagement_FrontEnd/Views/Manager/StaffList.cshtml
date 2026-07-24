@@ -198,11 +198,20 @@
                 <div class="modal-body" style="padding: 24px;">
                     <div style="display: flex; flex-direction: column; gap: 15px;">
                         <div class="form-group">
-                            <label class="form-label" style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px;">Mã số nhân viên (UserId)</label>
-                            <input type="number" class="form-control" name="staffId" required placeholder="Nhập UserId của nhân viên..." 
-                                   style="background: var(--surface-container-low); border: 1px solid rgba(70, 69, 84, 0.3); color: var(--on-surface); border-radius: 6px; padding: 10px 14px;" />
+                            <label class="form-label" style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px;">Nhân viên (Staff)</label>
+                            <select class="form-select" name="staffId" required 
+                                    style="background: var(--surface-container-low); border: 1px solid rgba(70, 69, 84, 0.3); color: var(--on-surface); border-radius: 6px; padding: 10px 14px; width: 100%;">
+                                <option value="" disabled selected>-- Chọn nhân viên để gán --</option>
+                                @if (ViewBag.UnassignedStaff != null)
+                                {
+                                    foreach (var s in (List<SportCourtManagement_FrontEnd.Models.Manager.StaffSummaryResponse>)ViewBag.UnassignedStaff)
+                                    {
+                                        <option value="@s.UserId">@s.FullName (ID: @s.UserId) - @s.Email</option>
+                                    }
+                                }
+                            </select>
                             <small style="color: var(--on-surface-variant); display: block; margin-top: 6px; font-size: 12px;">
-                                * Nhập ID của nhân viên (ví dụ: 3) để liên kết họ vào khu phức hợp thể thao này.
+                                * Chỉ hiển thị nhân viên có vai trò Staff chưa được gán vào cơ sở nào.
                             </small>
                         </div>
                     </div>
