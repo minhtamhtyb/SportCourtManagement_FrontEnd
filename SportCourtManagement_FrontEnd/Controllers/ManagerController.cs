@@ -371,6 +371,17 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 model = JsonSerializer.Deserialize<PagedStaffResponse>(rawJson, _jsonOpts) ?? new PagedStaffResponse();
             }
 
+            // Fetch unassigned staff list
+            var unassignedResponse = await _client.GetAsync(_apiBase + "/staff/unassigned");
+            var unassignedStaff = new List<StaffSummaryResponse>();
+            if (unassignedResponse.IsSuccessStatusCode)
+            {
+                string rawUnassigned = await unassignedResponse.Content.ReadAsStringAsync();
+                unassignedStaff = JsonSerializer.Deserialize<List<StaffSummaryResponse>>(rawUnassigned, _jsonOpts) 
+                                  ?? new List<StaffSummaryResponse>();
+            }
+            ViewBag.UnassignedStaff = unassignedStaff;
+
             ViewData["SearchQuery"] = search;
             return View(model);
         }

@@ -31,6 +31,45 @@
                         <span class="text-sc-muted">Số lịch thi đấu:</span>
                         <span class="text-white fw-semibold">@Model.Bookings.Count buổi</span>
                     </div>
+
+                    @{
+                        var allServices = Model.Bookings
+                            .SelectMany(b => b.Services ?? new List<SportCourtManagement_FrontEnd.Models.Tournaments.TournamentBookingServiceItemDto>())
+                            .GroupBy(s => new { s.ServiceId, s.ServiceName })
+                            .Select(g => {
+                                var totalQty = g.Sum(x => x.Quantity);
+                                var totalPrice = g.Sum(x => x.TotalPrice);
+                                var unitPrice = totalQty > 0 ? (totalPrice / totalQty) : (g.FirstOrDefault()?.UnitPrice ?? 0);
+                                return new {
+                                    ServiceId = g.Key.ServiceId,
+                                    ServiceName = g.Key.ServiceName,
+                                    UnitPrice = unitPrice,
+                                    TotalQuantity = totalQty,
+                                    TotalPrice = totalPrice
+                                };
+                            }).ToList();
+                        var totalServiceAmount = allServices.Sum(s => s.TotalPrice);
+                    }
+
+                    @if (allServices.Any())
+                    {
+                        <hr style="border-color: rgba(255,255,255,0.06); margin: 12px 0;" />
+                        <span class="text-white-50 small d-block mb-2 font-outfit fw-bold"><i class="bi bi-cart-check-fill text-warning me-1"></i>Chi tiết dịch vụ đặt kèm giải đấu:</span>
+                        <div class="d-flex flex-column gap-2 mb-2">
+                            @foreach (var svc in allServices)
+                            {
+                                <div class="d-flex justify-content-between align-items-center text-sc-muted p-2 rounded" style="background: rgba(255,255,255,0.02);">
+                                    <span>• @svc.ServiceName <span class="text-white-50">(@svc.UnitPrice.ToString("N0")đ/đơn vị)</span> x<strong class="text-white">@svc.TotalQuantity</strong></span>
+                                    <span class="fw-bold text-white">@svc.TotalPrice.ToString("N0")đ</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-white border-opacity-10">
+                            <span class="fw-semibold text-sc-muted">Tổng tiền dịch vụ:</span>
+                            <span class="fw-bold text-warning">@totalServiceAmount.ToString("N0")đ</span>
+                        </div>
+                    }
+
                     <hr style="border-color: rgba(255,255,255,0.06); margin: 10px 0;" />
                     <div class="d-flex justify-content-between align-items-baseline">
                         <span class="text-white fw-bold" style="font-size: 15px;">Tổng phí tổ chức:</span>

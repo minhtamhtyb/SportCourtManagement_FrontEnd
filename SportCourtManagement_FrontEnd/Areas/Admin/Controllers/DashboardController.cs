@@ -6,7 +6,7 @@ using SportCourtManagement_FrontEnd.Services.Interfaces;
 namespace SportCourtManagement_FrontEnd.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Policy = "AdminOrStaff")]
+[Authorize(Policy = "AdminOnly")]
 public class DashboardController(IReportService reportService) : Controller
 {
     public async Task<IActionResult> Index()

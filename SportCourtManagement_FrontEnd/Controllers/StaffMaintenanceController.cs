@@ -61,6 +61,12 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
             string url = $"{_baseUrl.TrimEnd('/')}/api/manager/complexes/{selectedComplexId}/maintenance?page=1&pageSize={pageSize}";
 
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdStr, out int staffId))
+            {
+                url += $"&assignedStaffId={staffId}";
+            }
+
             var response = await _client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {

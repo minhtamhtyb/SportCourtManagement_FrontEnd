@@ -396,15 +396,24 @@ namespace SportCourtManagement_FrontEnd.Controllers
             ViewBag.IsServicePayment = isServicePayment;
             ViewBag.BookingCodes = bookingCodes;
 
-            if (isServicePayment && TempData.TryGetValue("ServicePaymentInfo", out var serviceInfoJson))
+            if (isServicePayment)
             {
-                TempData.Keep("ServicePaymentInfo");
-                var json = serviceInfoJson as string;
-                if (!string.IsNullOrEmpty(json))
+                string? serviceInfoJson = null;
+                if (TempData.TryGetValue("ServicePaymentInfo", out var obj) && obj is string jsonFromTemp)
+                {
+                    serviceInfoJson = jsonFromTemp;
+                    TempData.Keep("ServicePaymentInfo");
+                }
+                if (string.IsNullOrEmpty(serviceInfoJson) && !string.IsNullOrEmpty(bookingCodes))
+                {
+                    serviceInfoJson = HttpContext.Session.GetString($"ServicePaymentInfo_{bookingCodes}");
+                }
+
+                if (!string.IsNullOrEmpty(serviceInfoJson))
                 {
                     try
                     {
-                        using var doc = JsonDocument.Parse(json);
+                        using var doc = JsonDocument.Parse(serviceInfoJson);
                         var root = doc.RootElement;
                         var addAmount = root.GetProperty("AdditionalAmount").GetDecimal();
                         var addedText = root.GetProperty("AddedServicesText").GetString();
@@ -539,7 +548,41 @@ namespace SportCourtManagement_FrontEnd.Controllers
             {
                 if (isServicePayment)
                 {
-                    TempData["SuccessMessage"] = "Đã gửi SePay Webhook giả lập và xác nhận thanh toán dịch vụ bổ sung thành công!";
+                    var token = GetToken();
+                    string? serviceInfoJson = null;
+                    if (TempData.TryGetValue("ServicePaymentInfo", out var obj) && obj is string jsonFromTemp)
+                    {
+                        serviceInfoJson = jsonFromTemp;
+                    }
+                    if (string.IsNullOrEmpty(serviceInfoJson) && !string.IsNullOrEmpty(bookingCodes))
+                    {
+                        serviceInfoJson = HttpContext.Session.GetString($"ServicePaymentInfo_{bookingCodes}");
+                    }
+
+                    if (!string.IsNullOrEmpty(serviceInfoJson))
+                    {
+                        try
+                        {
+                            using var doc = JsonDocument.Parse(serviceInfoJson);
+                            var root = doc.RootElement;
+                            var bookingId = root.GetProperty("BookingId").GetInt32();
+                            var addedText = root.GetProperty("AddedServicesText").GetString();
+                            var quantitiesJson = root.GetProperty("ServiceQuantities").GetRawText();
+                            var quantities = JsonSerializer.Deserialize<Dictionary<int, int>>(quantitiesJson) ?? new();
+
+                            await ApplyServicePaymentOverrideAsync(bookingId, quantities, token);
+                            TempData["SuccessMessage"] = $"Xác nhận thanh toán dịch vụ bổ sung thành công: {addedText}!";
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error completing service payment in SimulatePayment");
+                            TempData["SuccessMessage"] = "Đã nhận thanh toán dịch vụ bổ sung!";
+                        }
+                    }
+                    else
+                    {
+                        TempData["SuccessMessage"] = "Xác nhận thanh toán dịch vụ bổ sung thành công!";
+                    }
                     return RedirectToAction("Index", "MyBookings");
                 }
 
@@ -630,25 +673,35 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
             if (isServicePayment)
             {
-                // Lấy thông tin thanh toán dịch vụ bổ sung từ TempData
-                if (TempData.TryGetValue("ServicePaymentInfo", out var serviceInfoJson))
+                string? serviceInfoJson = null;
+                if (TempData.TryGetValue("ServicePaymentInfo", out var obj) && obj is string jsonFromTemp)
                 {
+                    serviceInfoJson = jsonFromTemp;
                     TempData.Keep("ServicePaymentInfo");
-                    var json = serviceInfoJson as string;
-                    if (!string.IsNullOrEmpty(json))
+                }
+                if (string.IsNullOrEmpty(serviceInfoJson) && !string.IsNullOrEmpty(bookingCodes))
+                {
+                    serviceInfoJson = HttpContext.Session.GetString($"ServicePaymentInfo_{bookingCodes}");
+                }
+
+                if (!string.IsNullOrEmpty(serviceInfoJson))
+                {
+                    using var doc = JsonDocument.Parse(serviceInfoJson);
+                    var root = doc.RootElement;
+                    var bookingId = root.GetProperty("BookingId").GetInt32();
+                    var addAmount = root.GetProperty("AdditionalAmount").GetDecimal();
+                    var addedText = root.GetProperty("AddedServicesText").GetString();
+                    var quantitiesJson = root.GetProperty("ServiceQuantities").GetRawText();
+                    var quantities = JsonSerializer.Deserialize<Dictionary<int, int>>(quantitiesJson) ?? new();
+
+                    var (success, msg) = await _apiService.PayServicesWithWalletAsync(bookingCodes, addAmount, token);
+                    if (success)
                     {
-                        using var doc = JsonDocument.Parse(json);
-                        var root = doc.RootElement;
-                        var addAmount = root.GetProperty("AdditionalAmount").GetDecimal();
-                        
-                        var (success, msg) = await _apiService.PayServicesWithWalletAsync(bookingCodes, addAmount, token);
-                        if (success)
-                        {
-                            TempData["SuccessMessage"] = "Thanh toán dịch vụ bổ sung từ ví thành công!";
-                            return Json(new { success = true, redirectUrl = Url.Action("Index", "MyBookings") });
-                        }
-                        return Json(new { success = false, message = msg });
+                        await ApplyServicePaymentOverrideAsync(bookingId, quantities, token);
+                        TempData["SuccessMessage"] = $"Thanh toán dịch vụ bổ sung từ ví thành công: {addedText}!";
+                        return Json(new { success = true, redirectUrl = Url.Action("Index", "MyBookings") });
                     }
+                    return Json(new { success = false, message = msg });
                 }
                 return Json(new { success = false, message = "Không tìm thấy thông tin dịch vụ mua thêm." });
             }
@@ -657,10 +710,33 @@ namespace SportCourtManagement_FrontEnd.Controllers
                 var (success, msg) = await _apiService.PayBookingWithWalletAsync(bookingCodes, token);
                 if (success)
                 {
-                    TempData["SuccessMessage"] = $"Đặt sân thành công! Tổng cộng đã được thanh toán từ ví.";
-                    return Json(new { success = true, redirectUrl = Url.Action("Success", new { bookingCodes }) });
+                    TempData["SuccessMessage"] = $"Đặt sân thành công! Đã thanh toán từ ví điện tử.";
+                    return Json(new { success = true, redirectUrl = Url.Action("Index", "MyBookings") });
                 }
                 return Json(new { success = false, message = msg });
+            }
+        }
+
+        private async Task ApplyServicePaymentOverrideAsync(int bookingId, Dictionary<int, int> serviceQuantities, string token)
+        {
+            try
+            {
+                var (apiSuccess, _) = await _apiService.AddServicesToBookingAsync(bookingId, serviceQuantities, token);
+                if (apiSuccess)
+                {
+                    var session = HttpContext.Session;
+                    var json = session.GetString("BookingOverrides");
+                    if (!string.IsNullOrEmpty(json))
+                    {
+                        var overrides = JsonSerializer.Deserialize<List<BookingDetailDto>>(json) ?? new List<BookingDetailDto>();
+                        overrides.RemoveAll(o => o.BookingId == bookingId);
+                        session.SetString("BookingOverrides", JsonSerializer.Serialize(overrides));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ApplyServicePaymentOverrideAsync");
             }
         }
 
