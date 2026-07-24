@@ -143,8 +143,36 @@ public class ApiCourtService(ApiClient api) : ICourtService
         await UpdateCourtAsync(id, court);
     }
 
-    public Task DeleteCourtAsync(int id) =>
-        api.DeleteAsync($"api/courts/{id}");
+    public async Task<CourtLifecycleResultDto> DeactivateCourtAsync(int id)
+    {
+        var (data, error, _) = await api.PostForResultAsync<CourtLifecycleResultDto>($"api/courts/{id}/deactivate", new { });
+        if (error != null) throw new InvalidOperationException(error);
+        return data ?? new CourtLifecycleResultDto { Message = "Đã ngưng hoạt động sân." };
+    }
+
+    public async Task<CourtLifecycleResultDto> RestoreCourtAsync(int id)
+    {
+        var (data, error, _) = await api.PostForResultAsync<CourtLifecycleResultDto>($"api/courts/{id}/restore", new { });
+        if (error != null) throw new InvalidOperationException(error);
+        return data ?? new CourtLifecycleResultDto { Message = "Đã khôi phục sân." };
+    }
+
+    public async Task<MaintenanceConflictPreviewDto> PreviewMaintenanceConflictsAsync(
+        int courtId, DateTime start, DateTime end)
+    {
+        var qs = $"api/courts/{courtId}/maintenance-conflicts?start={Uri.EscapeDataString(start.ToString("o"))}&end={Uri.EscapeDataString(end.ToString("o"))}";
+        return await api.GetDataAsync<MaintenanceConflictPreviewDto>(qs)
+            ?? new MaintenanceConflictPreviewDto { CourtId = courtId, StartDateTime = start, EndDateTime = end };
+    }
+
+    public async Task<CourtLifecycleResultDto> ScheduleMaintenanceAsync(
+        int courtId, ScheduleCourtMaintenanceRequest request)
+    {
+        var (data, error, _) = await api.PostForResultAsync<CourtLifecycleResultDto>(
+            $"api/courts/{courtId}/maintenance", request);
+        if (error != null) throw new InvalidOperationException(error);
+        return data ?? new CourtLifecycleResultDto { Message = "Đã lên lịch bảo trì." };
+    }
 
     private static object ToPayload(CourtDto dto) => new
     {

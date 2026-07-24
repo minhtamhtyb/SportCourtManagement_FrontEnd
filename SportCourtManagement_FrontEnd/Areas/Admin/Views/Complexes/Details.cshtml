@@ -102,16 +102,43 @@ else
                         · <i class="fa-solid fa-tag ms-1 me-1"></i>@DisplayHelpers.FormatCurrency(court.PricePerHour)/giờ
                     </div>
                     <div class="d-flex gap-1 flex-wrap align-items-center">
-                        <button type="button" class="btn-secondary-custom btn-sm py-1 px-2" style="font-size:.75rem" data-court-modal="edit" data-court-id="@court.CourtId">
+                        <button type="button" class="btn-secondary-custom btn-sm py-1 px-2" style="font-size:.75rem" data-court-modal="edit" data-court-id="@court.CourtId" title="Chỉnh sửa">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <form asp-controller="Courts" asp-action="Delete" method="post" class="d-inline ms-auto"
-                              onsubmit="return confirm('⚠️ XÓA SÂN: @court.CourtName\n\nCác booking đang chờ (Pending/Confirmed) sẽ bị hủy tự động và tiền sẽ được hoàn vào ví khách hàng.\n\nBạn có chắc chắn muốn xóa sân này không?')">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@court.CourtId" />
-                            <input type="hidden" name="complexId" value="@Model.Complex.ComplexId" />
-                            <button type="submit" class="btn-ghost text-danger btn-sm"><i class="fa-solid fa-trash"></i></button>
-                        </form>
+                        <button type="button"
+                                class="btn-secondary-custom btn-sm py-1 px-2"
+                                style="font-size:.75rem"
+                                data-maintenance-court
+                                data-court-id="@court.CourtId"
+                                data-court-name="@court.CourtName"
+                                data-complex-id="@Model.Complex.ComplexId"
+                                title="Bảo trì">
+                            <i class="fa-solid fa-wrench"></i>
+                        </button>
+                        @if (string.Equals(court.Status, "Inactive", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <form asp-area="Admin" asp-controller="Courts" asp-action="Restore" method="post" class="d-inline ms-auto">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@court.CourtId" />
+                                <input type="hidden" name="complexId" value="@Model.Complex.ComplexId" />
+                                <button type="submit" class="btn-ghost text-success btn-sm" title="Khôi phục hoạt động"
+                                        onclick="return confirm('Khôi phục sân @court.CourtName về trạng thái Hoạt động?')">
+                                    <i class="fa-solid fa-play"></i>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-area="Admin" asp-controller="Courts" asp-action="Deactivate" method="post" class="d-inline ms-auto">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@court.CourtId" />
+                                <input type="hidden" name="complexId" value="@Model.Complex.ComplexId" />
+                                <button type="submit" class="btn-ghost text-warning btn-sm" title="Ngưng hoạt động"
+                                        onclick="return confirm('Ngưng hoạt động sân @court.CourtName?\n\nChỉ cho phép khi KHÔNG còn lịch Pending/Confirmed.\nNếu còn lịch đặt, hãy dùng Bảo trì.')">
+                                    <i class="fa-solid fa-pause"></i>
+                                </button>
+                            </form>
+                        }
                     </div>
                 </div>
             </div>
@@ -153,7 +180,203 @@ else
     </div>
 </div>
 
+<div class="modal fade" id="maintenanceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content admin-modal">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white">
+                    <i class="fa-solid fa-wrench text-warning me-2"></i>Bảo trì sân
+                    <span class="text-secondary fs-6" id="maintCourtName"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="maintCourtId" />
+                <input type="hidden" id="maintComplexId" value="@Model.Complex.ComplexId" />
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small">Bắt đầu</label>
+                        <input type="datetime-local" id="maintStart" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small">Kết thúc</label>
+                        <input type="datetime-local" id="maintEnd" class="form-control" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-secondary small">Lý do</label>
+                        <input type="text" id="maintReason" class="form-control" maxlength="500" placeholder="VD: Thay thảm, sửa lưới..." />
+                    </div>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <button type="button" class="btn-secondary-custom btn-sm" id="btnPreviewMaint">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i> Kiểm tra conflict
+                    </button>
+                </div>
+                <div id="maintConflictBox" class="mt-3 d-none">
+                    <div class="alert alert-warning py-2 mb-2" id="maintConflictSummary"></div>
+                    <div class="table-responsive">
+                        <table class="admin-table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Khách</th>
+                                    <th>Thời gian</th>
+                                    <th>Hoàn tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="maintConflictBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="maintConfirmRefund" />
+                        <label class="form-check-label text-secondary small" for="maintConfirmRefund">
+                            Xác nhận hủy các lịch conflict và hoàn tiền vào ví khách
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn-primary-custom" id="btnSaveMaint">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Xác nhận bảo trì
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="~/js/complexes.js" asp-append-version="true"></script>
     <script src="~/js/courts.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                || document.querySelector('#maintenanceModal')?.closest('body')?.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            function getAntiForgery() {
+                return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            }
+
+            function toLocalInputValue(d) {
+                const pad = n => String(n).padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            }
+
+            document.querySelectorAll('[data-maintenance-court]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('maintCourtId').value = btn.dataset.courtId;
+                    document.getElementById('maintCourtName').textContent = '— ' + (btn.dataset.courtName || '');
+                    document.getElementById('maintReason').value = '';
+                    document.getElementById('maintConfirmRefund').checked = false;
+                    document.getElementById('maintConflictBox').classList.add('d-none');
+                    document.getElementById('maintConflictBody').innerHTML = '';
+
+                    const start = new Date();
+                    start.setMinutes(0, 0, 0);
+                    start.setHours(start.getHours() + 1);
+                    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+                    document.getElementById('maintStart').value = toLocalInputValue(start);
+                    document.getElementById('maintEnd').value = toLocalInputValue(end);
+
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('maintenanceModal')).show();
+                });
+            });
+
+            document.getElementById('btnPreviewMaint')?.addEventListener('click', async () => {
+                const id = document.getElementById('maintCourtId').value;
+                const start = document.getElementById('maintStart').value;
+                const end = document.getElementById('maintEnd').value;
+                if (!start || !end) {
+                    alert('Vui lòng chọn thời gian bắt đầu và kết thúc.');
+                    return;
+                }
+                try {
+                    const url = `/Admin/Courts/PreviewMaintenance?id=${id}&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+                    const res = await fetch(url);
+                    const json = await res.json();
+                    if (!json.success) {
+                        alert(json.message || 'Không kiểm tra được conflict.');
+                        return;
+                    }
+                    const data = json.data;
+                    const box = document.getElementById('maintConflictBox');
+                    const summary = document.getElementById('maintConflictSummary');
+                    const body = document.getElementById('maintConflictBody');
+                    box.classList.remove('d-none');
+                    if (!data.conflictCount) {
+                        summary.className = 'alert alert-success py-2 mb-2';
+                        summary.textContent = 'Không có lịch đặt nào bị trùng khung bảo trì.';
+                        body.innerHTML = '';
+                        document.getElementById('maintConfirmRefund').checked = false;
+                        document.getElementById('maintConfirmRefund').closest('.form-check').classList.add('d-none');
+                    } else {
+                        summary.className = 'alert alert-warning py-2 mb-2';
+                        summary.textContent = `Có ${data.conflictCount} lịch bị trùng — tổng hoàn ước tính ${Number(data.totalRefundAmount).toLocaleString('vi-VN')}đ.`;
+                        document.getElementById('maintConfirmRefund').closest('.form-check').classList.remove('d-none');
+                        body.innerHTML = (data.conflicts || []).map(c => `
+                            <tr>
+                                <td>${c.bookingCode || ('#' + c.bookingId)}</td>
+                                <td>${c.customerName || ''}</td>
+                                <td>${new Date(c.bookingDate).toLocaleDateString('vi-VN')} ${c.startTime}-${c.endTime}</td>
+                                <td>${Number(c.refundAmount).toLocaleString('vi-VN')}đ</td>
+                            </tr>`).join('');
+                    }
+                } catch (e) {
+                    alert('Không kết nối được máy chủ.');
+                }
+            });
+
+            document.getElementById('btnSaveMaint')?.addEventListener('click', async () => {
+                const id = document.getElementById('maintCourtId').value;
+                const complexId = document.getElementById('maintComplexId').value;
+                const start = document.getElementById('maintStart').value;
+                const end = document.getElementById('maintEnd').value;
+                const reason = document.getElementById('maintReason').value;
+                const conflictVisible = !document.getElementById('maintConflictBox').classList.contains('d-none');
+                const conflictRows = document.getElementById('maintConflictBody').children.length;
+                const confirmRefund = document.getElementById('maintConfirmRefund').checked;
+
+                if (!start || !end) {
+                    alert('Vui lòng chọn thời gian bảo trì.');
+                    return;
+                }
+                if (conflictVisible && conflictRows > 0 && !confirmRefund) {
+                    alert('Có lịch conflict. Hãy tick xác nhận hủy & hoàn tiền, hoặc đổi khung giờ.');
+                    return;
+                }
+
+                const form = new FormData();
+                form.append('id', id);
+                form.append('complexId', complexId);
+                form.append('startDateTime', start);
+                form.append('endDateTime', end);
+                form.append('reason', reason || '');
+                form.append('confirmRefund', confirmRefund ? 'true' : 'false');
+                form.append('__RequestVerificationToken', getAntiForgery());
+
+                const btn = document.getElementById('btnSaveMaint');
+                btn.disabled = true;
+                try {
+                    const res = await fetch('/Admin/Courts/ScheduleMaintenance', {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: form
+                    });
+                    const json = await res.json().catch(() => null);
+                    if (!res.ok || !json?.success) {
+                        alert(json?.message || 'Lên lịch bảo trì thất bại.');
+                        return;
+                    }
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('maintenanceModal')).hide();
+                    if (window.showToast) showToast(json.message, 'success');
+                    else alert(json.message);
+                    setTimeout(() => location.reload(), 800);
+                } catch {
+                    alert('Không kết nối được máy chủ.');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        })();
+    </script>
 }

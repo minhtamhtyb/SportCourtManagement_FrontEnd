@@ -39,7 +39,10 @@ public interface ICourtService
     Task<CourtDto> CreateCourtAsync(CourtDto dto);
     Task UpdateCourtAsync(int id, CourtDto dto);
     Task UpdateCourtStatusAsync(int id, string status);
-    Task DeleteCourtAsync(int id);
+    Task<CourtLifecycleResultDto> DeactivateCourtAsync(int id);
+    Task<CourtLifecycleResultDto> RestoreCourtAsync(int id);
+    Task<MaintenanceConflictPreviewDto> PreviewMaintenanceConflictsAsync(int courtId, DateTime start, DateTime end);
+    Task<CourtLifecycleResultDto> ScheduleMaintenanceAsync(int courtId, ScheduleCourtMaintenanceRequest request);
 }
 
 public interface IServiceCatalogService

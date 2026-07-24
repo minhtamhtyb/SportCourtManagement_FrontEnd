@@ -156,12 +156,67 @@ public class MockCourtService(MockDataStore store) : ICourtService
         return Task.CompletedTask;
     }
 
-    public Task DeleteCourtAsync(int id)
+    public Task<CourtLifecycleResultDto> DeactivateCourtAsync(int id)
     {
         var court = store.Courts.FirstOrDefault(c => c.CourtId == id)
             ?? throw new InvalidOperationException("Không tìm thấy sân.");
-        store.Courts.Remove(court);
+        court.Status = "Inactive";
         store.RecalculateComplexStats();
-        return Task.CompletedTask;
+        return Task.FromResult(new CourtLifecycleResultDto
+        {
+            CourtId = court.CourtId,
+            CourtName = court.CourtName,
+            Status = "Inactive",
+            Message = "Đã chuyển sân sang Ngưng hoạt động."
+        });
+    }
+
+    public Task<CourtLifecycleResultDto> RestoreCourtAsync(int id)
+    {
+        var court = store.Courts.FirstOrDefault(c => c.CourtId == id)
+            ?? throw new InvalidOperationException("Không tìm thấy sân.");
+        court.Status = "Available";
+        store.RecalculateComplexStats();
+        return Task.FromResult(new CourtLifecycleResultDto
+        {
+            CourtId = court.CourtId,
+            CourtName = court.CourtName,
+            Status = "Available",
+            Message = "Đã khôi phục sân về trạng thái Hoạt động."
+        });
+    }
+
+    public Task<MaintenanceConflictPreviewDto> PreviewMaintenanceConflictsAsync(
+        int courtId, DateTime start, DateTime end)
+    {
+        var court = store.Courts.FirstOrDefault(c => c.CourtId == courtId)
+            ?? throw new InvalidOperationException("Không tìm thấy sân.");
+        return Task.FromResult(new MaintenanceConflictPreviewDto
+        {
+            CourtId = courtId,
+            CourtName = court.CourtName,
+            StartDateTime = start,
+            EndDateTime = end,
+            ConflictCount = 0,
+            TotalRefundAmount = 0
+        });
+    }
+
+    public Task<CourtLifecycleResultDto> ScheduleMaintenanceAsync(
+        int courtId, ScheduleCourtMaintenanceRequest request)
+    {
+        var court = store.Courts.FirstOrDefault(c => c.CourtId == courtId)
+            ?? throw new InvalidOperationException("Không tìm thấy sân.");
+        if (request.EndDateTime <= request.StartDateTime)
+            throw new InvalidOperationException("Thời gian kết thúc phải sau thời gian bắt đầu.");
+        court.Status = "Maintenance";
+        store.RecalculateComplexStats();
+        return Task.FromResult(new CourtLifecycleResultDto
+        {
+            CourtId = court.CourtId,
+            CourtName = court.CourtName,
+            Status = "Maintenance",
+            Message = "Đã lên lịch bảo trì (mock)."
+        });
     }
 }
