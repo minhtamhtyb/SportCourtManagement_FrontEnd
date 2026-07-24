@@ -87,6 +87,11 @@ namespace SportCourtManagement_FrontEnd.Controllers
             // Get court detail for pricing info
             var court = await _apiService.GetCourtDetailAsync(courtId);
 
+            // Determine if slots are in the past (local time)
+            var nowLocal = DateTime.Now;
+            var isPastDate = parsedDate.Date < nowLocal.Date;
+            var isToday = parsedDate.Date == nowLocal.Date;
+
             // Merge: start from allTimeSlots, overlay availability status
             var result = allTimeSlots.Select(ts =>
             {
@@ -100,13 +105,24 @@ namespace SportCourtManagement_FrontEnd.Controllers
 
                 if (availSlot != null)
                 {
-                    status = availSlot.Status; // Available | Held | Booked | Maintenance | Inactive
+                    status = availSlot.Status; // Available | Held | Booked | Maintenance | Inactive | Past
                     price = availSlot.Price;
                 }
                 else if (pricing != null)
                 {
                     var isWeekend = parsedDate.DayOfWeek == DayOfWeek.Saturday || parsedDate.DayOfWeek == DayOfWeek.Sunday;
                     price = isWeekend ? pricing.Price * pricing.PeakMultiplier : pricing.Price;
+                }
+
+                // Override: mark as Past if time has elapsed (fallback for non-API slots)
+                if (status != "Past")
+                {
+                    bool isSlotPast = isPastDate;
+                    if (!isSlotPast && isToday && TimeSpan.TryParse(ts.StartTime, out var slotStart))
+                    {
+                        isSlotPast = slotStart <= nowLocal.TimeOfDay;
+                    }
+                    if (isSlotPast) status = "Past";
                 }
 
                 if (price <= 0 && court != null)

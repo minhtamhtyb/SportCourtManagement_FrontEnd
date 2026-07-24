@@ -654,6 +654,23 @@
             color: #F59E0B;
         }
 
+        /* Past (slot time already elapsed) */
+        .slot-segment.slot-past {
+            background: rgba(100, 116, 139, 0.06);
+            border: 1.5px solid rgba(100, 116, 139, 0.2);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .slot-segment.slot-past .slot-time,
+        .slot-segment.slot-past .slot-name {
+            color: #64748B !important;
+            text-decoration: line-through;
+        }
+        .slot-segment.slot-past .slot-status-badge {
+            background: rgba(100, 116, 139, 0.15);
+            color: #94A3B8;
+        }
+
         /* Selected (start or end) */
         .slot-segment.slot-selected {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.2));
@@ -952,13 +969,18 @@
                     const isAvailable = slot.status === 'Available';
                     const isBooked = slot.status === 'Booked';
                     const isHeld = slot.status === 'Held';
+                    const isPast = slot.status === 'Past';
                     const isMaintenance = slot.status === 'Maintenance' || slot.status === 'Inactive';
 
                     let statusClass = 'slot-available';
                     let statusText = 'Trống';
                     let statusBadgeStyle = 'background: rgba(16,185,129,0.12); color: #10B981;';
 
-                    if (isHeld) {
+                    if (isPast) {
+                        statusClass = 'slot-past';
+                        statusText = 'Đã qua';
+                        statusBadgeStyle = 'background: rgba(100,116,139,0.15); color: #94A3B8;';
+                    } else if (isHeld) {
                         statusClass = 'slot-held';
                         statusText = 'Đang giữ';
                         statusBadgeStyle = 'background: rgba(245,158,11,0.15); color: #F59E0B;';
@@ -1345,18 +1367,24 @@
                 const bar = $('<div class="slot-timeline-bar"></div>');
 
                 recSlotsData.forEach(function (slot) {
+                    const isPast = slot.status === 'Past';
                     const isMaintenance = slot.status === 'Maintenance' || slot.status === 'Inactive';
+                    const isBlocked = isPast || isMaintenance;
                     
                     let statusClass = 'slot-available';
                     let statusText = 'Định kỳ';
                     let statusBadgeStyle = 'background: rgba(245,158,11,0.15); color: #F59E0B;';
 
-                    if (isMaintenance) {
+                    if (isPast) {
+                        statusClass = 'slot-past';
+                        statusText = 'Đã qua';
+                        statusBadgeStyle = 'background: rgba(100,116,139,0.15); color: #94A3B8;';
+                    } else if (isMaintenance) {
                         statusClass = 'slot-maintenance';
                         statusText = slot.status === 'Inactive' ? 'Tạm đóng' : 'Bảo trì';
                     }
 
-                    const priceDisplay = !isMaintenance ? (Number(slot.price).toLocaleString('vi-VN') + 'đ') : '';
+                    const priceDisplay = !isBlocked ? (Number(slot.price).toLocaleString('vi-VN') + 'đ') : '';
 
                     const segment = $(`
                         <div class="slot-segment ${statusClass}"
@@ -1372,7 +1400,7 @@
                         </div>
                     `);
 
-                    if (!isMaintenance) {
+                    if (!isBlocked) {
                         segment.on('click', function () {
                             handleRecSlotClick(slot.slotId);
                         });
@@ -1406,7 +1434,7 @@
 
                     let hasBlocker = false;
                     for (let i = fromIdx; i <= toIdx; i++) {
-                        if (recSlotsData[i].status === 'Maintenance' || recSlotsData[i].status === 'Inactive') {
+                        if (recSlotsData[i].status === 'Maintenance' || recSlotsData[i].status === 'Inactive' || recSlotsData[i].status === 'Past') {
                             hasBlocker = true;
                             break;
                         }

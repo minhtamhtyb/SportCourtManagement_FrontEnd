@@ -307,6 +307,10 @@
 .tc-slot-label.status-booked .tc-slot-price { color: #f87171; }
 .tc-slot-label.status-maintenance,
 .tc-slot-label.status-inactive { opacity: .62; cursor: not-allowed; }
+.tc-slot-label.status-past { opacity: .45; cursor: not-allowed; }
+.tc-slot-label.status-past .tc-slot-name { text-decoration: line-through; color: #64748B; }
+.tc-slot-label.status-past .tc-slot-state,
+.tc-slot-label.status-past .tc-slot-price { color: #94A3B8; }
 .tc-slot-label.status-loading { opacity: .55; cursor: wait; }
 
 .tc-slot-input:checked + .tc-slot-label {

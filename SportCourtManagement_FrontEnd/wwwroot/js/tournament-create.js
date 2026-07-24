@@ -24,6 +24,7 @@
         Booked: { label: "Đã đặt", className: "status-booked" },
         Maintenance: { label: "Đang bảo trì", className: "status-maintenance" },
         Inactive: { label: "Tạm đóng", className: "status-inactive" },
+        Past: { label: "Đã qua giờ", className: "status-past" },
         Loading: { label: "Đang kiểm tra", className: "status-loading" },
         Error: { label: "Không tải được", className: "status-inactive" },
         Scheduled: { label: "Đã thêm vào lịch", className: "status-scheduled" }
@@ -633,6 +634,7 @@
         if (["booked", "confirmed", "inuse"].includes(value)) return "Booked";
         if (value === "maintenance") return "Maintenance";
         if (["inactive", "closed"].includes(value)) return "Inactive";
+        if (value === "past") return "Past";
         if (value === "loading") return "Loading";
         if (value === "error") return "Error";
         return "Inactive";
@@ -647,6 +649,7 @@
         if (status === "Booked") return "Đã đặt";
         if (status === "Maintenance") return "Bảo trì";
         if (status === "Inactive") return "Tạm đóng";
+        if (status === "Past") return "Đã qua giờ";
         return "--";
     }
 
