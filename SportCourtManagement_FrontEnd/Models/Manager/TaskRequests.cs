@@ -42,6 +42,8 @@ namespace SportCourtManagement_FrontEnd.Models.Manager
         [Required(ErrorMessage = "Độ ưu tiên không được để trống.")]
         public TaskPriority? Priority { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn nhân viên thực hiện.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Nhân viên thực hiện không hợp lệ.")]
         public int? AssignedStaffId { get; set; }
 
         public int? BookingId { get; set; }

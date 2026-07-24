@@ -736,6 +736,24 @@
             }
         });
 
+        // Set dynamic min datetime for create datetime inputs
+        function updateMinDateTime() {
+            const now = new Date();
+            const tzOffset = now.getTimezoneOffset() * 60000;
+            const minTimeStr = new Date(now - tzOffset).toISOString().slice(0, 16);
+            
+            const startInput = document.getElementById('createStartDateTime');
+            if (startInput) {
+                startInput.setAttribute('min', minTimeStr);
+            }
+            const endInput = document.getElementById('createEndDateTime');
+            if (endInput) {
+                endInput.setAttribute('min', minTimeStr);
+            }
+        }
+        updateMinDateTime();
+        setInterval(updateMinDateTime, 60000);
+
         // Form submit validation for Start/End Datetime
         document.getElementById('createMaintenanceForm').addEventListener('submit', function (e) {
             const startVal = document.getElementById('createStartDateTime').value;
@@ -743,6 +761,20 @@
             if (startVal && endVal) {
                 const startDate = new Date(startVal);
                 const endDate = new Date(endVal);
+                const now = new Date();
+                
+                if (startDate.getTime() + 60000 <= now.getTime()) {
+                    e.preventDefault();
+                    showToast('Thời gian bắt đầu phải ở trong tương lai.', 'error');
+                    return;
+                }
+
+                if (endDate.getTime() + 60000 <= now.getTime()) {
+                    e.preventDefault();
+                    showToast('Thời gian kết thúc phải ở trong tương lai.', 'error');
+                    return;
+                }
+                
                 if (startDate >= endDate) {
                     e.preventDefault();
                     showToast('Thời gian bắt đầu phải trước thời gian kết thúc.', 'error');

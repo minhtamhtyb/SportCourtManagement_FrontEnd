@@ -552,6 +552,37 @@
             detailModal.show();
         }
 
+        // Set dynamic min date for create shift input
+        function updateMinShiftDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const todayStr = `${year}-${month}-${day}`;
+            const input = document.getElementById('createShiftDate');
+            if (input) {
+                input.setAttribute('min', todayStr);
+            }
+        }
+        updateMinShiftDate();
 
+        // Validate create shift form on submit
+        const createShiftFormElem = document.querySelector('#createShiftModal form');
+        if (createShiftFormElem) {
+            createShiftFormElem.addEventListener('submit', function (e) {
+                const dateVal = document.getElementById('createShiftDate').value;
+                if (dateVal) {
+                    const selectedDate = new Date(dateVal);
+                    selectedDate.setHours(0, 0, 0, 0);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (selectedDate < today) {
+                        e.preventDefault();
+                        showToast('Không thể lập lịch ca trực cho ngày trong quá khứ.', 'error');
+                    }
+                }
+            });
+        }
     </script>
 }
