@@ -200,28 +200,31 @@ else
                                     <i class="fa-solid fa-right-from-bracket"></i>
                                 </button>
                             }
-                            @if (item.Status == "Pending")
+                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
                             {
-                                <form asp-action="UpdateStatus" method="post" class="d-inline me-1">
-                                    <input type="hidden" name="id" value="@item.BookingId" />
-                                    <input type="hidden" name="status" value="Confirmed" />
-                                    <input type="hidden" name="returnUrl" value="@Url.Action("AdminIndex")" />
-                                    <button type="submit" class="btn-ghost text-success" title="Duyệt đơn">
-                                        <i class="fa-solid fa-check"></i>
-                                    </button>
-                                </form>
-                            }
-                            @if (item.Status != "Cancelled")
-                            {
-                                <form asp-action="UpdateStatus" method="post" class="d-inline" onsubmit="return confirm('Xác nhận hủy đơn đặt sân này?');">
-                                    <input type="hidden" name="id" value="@item.BookingId" />
-                                    <input type="hidden" name="status" value="Cancelled" />
-                                    <input type="hidden" name="cancelReason" value="Quản trị viên hủy đơn" />
-                                    <input type="hidden" name="returnUrl" value="@Url.Action("AdminIndex")" />
-                                    <button type="submit" class="btn-ghost text-danger" title="Hủy đơn">
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </button>
-                                </form>
+                                @if (item.Status == "Pending")
+                                {
+                                    <form asp-action="UpdateStatus" method="post" class="d-inline me-1">
+                                        <input type="hidden" name="id" value="@item.BookingId" />
+                                        <input type="hidden" name="status" value="Confirmed" />
+                                        <input type="hidden" name="returnUrl" value="@Url.Action("AdminIndex")" />
+                                        <button type="submit" class="btn-ghost text-success" title="Duyệt đơn">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </form>
+                                }
+                                @if (item.Status != "Cancelled")
+                                {
+                                    <form asp-action="UpdateStatus" method="post" class="d-inline" onsubmit="return confirm('Xác nhận hủy đơn đặt sân này?');">
+                                        <input type="hidden" name="id" value="@item.BookingId" />
+                                        <input type="hidden" name="status" value="Cancelled" />
+                                        <input type="hidden" name="cancelReason" value="Quản trị viên hủy đơn" />
+                                        <input type="hidden" name="returnUrl" value="@Url.Action("AdminIndex")" />
+                                        <button type="submit" class="btn-ghost text-danger" title="Hủy đơn">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </form>
+                                }
                             }
                         </td>
                     </tr>
