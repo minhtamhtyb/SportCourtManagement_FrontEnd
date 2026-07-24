@@ -138,28 +138,31 @@ else
                             <a asp-action="AdminDetail" asp-route-id="@item.TournamentId" class="btn-ghost me-1" title="Chi tiết">
                                 <i class="fa-solid fa-eye"></i>
                             </a>
-                            @if (item.Status == "Pending")
+                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
                             {
-                                <form asp-action="UpdateStatus" method="post" class="d-inline me-1">
-                                    <input type="hidden" name="id" value="@item.TournamentId" />
-                                    <input type="hidden" name="status" value="Confirmed" />
-                                    <input type="hidden" name="returnUrl" value="@Url.Action("AdminIndex")" />
-                                    <button type="submit" class="btn-ghost text-success" title="Duyệt giải">
-                                        <i class="fa-solid fa-check"></i>
-                                    </button>
-                                </form>
-                            }
-                            @if (item.Status != "Cancelled")
-                            {
-                                <form asp-action="UpdateStatus" method="post" class="d-inline" onsubmit="return confirm('Xác nhận hủy giải đấu này?');">
-                                    <input type="hidden" name="id" value="@item.TournamentId" />
-                                    <input type="hidden" name="status" value="Cancelled" />
-                                    <input type="hidden" name="cancelReason" value="Quản trị viên từ chối/hủy" />
-                                    <input type="hidden" name="returnUrl" value="@Url.Action("AdminIndex")" />
-                                    <button type="submit" class="btn-ghost text-danger" title="Hủy giải">
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </button>
-                                </form>
+                                @if (item.Status == "Pending")
+                                {
+                                    <form asp-action="UpdateStatus" method="post" class="d-inline me-1">
+                                        <input type="hidden" name="id" value="@item.TournamentId" />
+                                        <input type="hidden" name="status" value="Confirmed" />
+                                        <input type="hidden" name="returnUrl" value="@Url.Action("AdminIndex")" />
+                                        <button type="submit" class="btn-ghost text-success" title="Duyệt giải">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </form>
+                                }
+                                @if (item.Status != "Cancelled")
+                                {
+                                    <form asp-action="UpdateStatus" method="post" class="d-inline" onsubmit="return confirm('Xác nhận hủy giải đấu này?');">
+                                        <input type="hidden" name="id" value="@item.TournamentId" />
+                                        <input type="hidden" name="status" value="Cancelled" />
+                                        <input type="hidden" name="cancelReason" value="Quản trị viên từ chối/hủy" />
+                                        <input type="hidden" name="returnUrl" value="@Url.Action("AdminIndex")" />
+                                        <button type="submit" class="btn-ghost text-danger" title="Hủy giải">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </form>
+                                }
                             }
                         </td>
                     </tr>

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SportCourtManagement_FrontEnd.Models.Promotions;
 using SportCourtManagement_FrontEnd.Services;
@@ -33,6 +34,7 @@ public class PromotionsController : Controller
 
   // GET: /Promotions/Create
   [HttpGet]
+  [Authorize(Roles = "Admin")]
   public IActionResult Create()
   {
     return View(new PromotionFormDto());
@@ -41,6 +43,7 @@ public class PromotionsController : Controller
   // POST: /Promotions/Create
   [HttpPost]
   [ValidateAntiForgeryToken]
+  [Authorize(Roles = "Admin")]
   public async Task<IActionResult> Create(PromotionFormDto form)
   {
     if (!ModelState.IsValid) return View(form);
@@ -58,6 +61,7 @@ public class PromotionsController : Controller
 
   // GET: /Promotions/Edit/5
   [HttpGet]
+  [Authorize(Roles = "Admin")]
   public async Task<IActionResult> Edit(int id)
   {
     var pagedData = await _apiService.GetPagedPromotionsAsync(null, null, 1, 100);
@@ -85,6 +89,7 @@ public class PromotionsController : Controller
   // POST: /Promotions/Edit/5
   [HttpPost]
   [ValidateAntiForgeryToken]
+  [Authorize(Roles = "Admin")]
   public async Task<IActionResult> Edit(int id, PromotionFormDto form)
   {
     if (!ModelState.IsValid) return View(form);
@@ -103,6 +108,7 @@ public class PromotionsController : Controller
   // POST: /Promotions/Delete/5
   [HttpPost]
   [ValidateAntiForgeryToken]
+  [Authorize(Roles = "Admin")]
   public async Task<IActionResult> Delete(int id)
   {
     var success = await _apiService.DeletePromotionAsync(id);
