@@ -105,7 +105,8 @@ else
                         <button type="button" class="btn-secondary-custom btn-sm py-1 px-2" style="font-size:.75rem" data-court-modal="edit" data-court-id="@court.CourtId">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <form asp-controller="Courts" asp-action="Delete" method="post" class="d-inline ms-auto" onsubmit="return confirm('Xóa sân này?')">
+                        <form asp-controller="Courts" asp-action="Delete" method="post" class="d-inline ms-auto"
+                              onsubmit="return confirm('⚠️ XÓA SÂN: @court.CourtName\n\nCác booking đang chờ (Pending/Confirmed) sẽ bị hủy tự động và tiền sẽ được hoàn vào ví khách hàng.\n\nBạn có chắc chắn muốn xóa sân này không?')">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@court.CourtId" />
                             <input type="hidden" name="complexId" value="@Model.Complex.ComplexId" />
