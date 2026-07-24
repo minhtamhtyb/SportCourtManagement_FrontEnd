@@ -154,15 +154,7 @@
                 }
             </div>
             }
-            @if (isAdmin)
-            {
-            <div class="admin-nav-section">
-                <div class="admin-nav-label sidebar-text">Hệ thống</div>
-                <a class="admin-nav-link @(controller=="Roles"?"active":"")" asp-area="Admin" asp-controller="Roles" asp-action="Index">
-                    <i class="fa-solid fa-shield-halved"></i><span class="sidebar-text">Phân quyền</span>
-                </a>
-            </div>
-            }
+
         </nav>
         <div class="admin-sidebar-footer">
             <div class="admin-avatar">@initial</div>
